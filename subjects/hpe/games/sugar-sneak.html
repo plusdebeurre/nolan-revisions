@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Sugar Sneak — HPE</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    body.game.theme-hpe { touch-action: none; }
+    .sort-bin {
+      min-height: 130px;
+      border: 3px dashed #cbd5e1;
+      border-radius: 1.25rem;
+      padding: 0.75rem;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .sort-bin.good-bin { border-color: #86efac; background: #f0fdf4; }
+    .sort-bin.bad-bin { border-color: #fca5a5; background: #fef2f2; }
+    .sort-bin.highlight { transform: scale(1.02); border-style: solid; }
+    .snack-chip {
+      font-size: 1rem;
+      padding: 0.75rem 0.9rem;
+      border-radius: 1rem;
+      border: 3px solid #e2e8f0;
+      background: white;
+      font-weight: 600;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+    }
+    .snack-chip.locked { opacity: 0.95; cursor: default; }
+    .bin-title { font-size: 1.25rem; font-weight: 700; text-align: center; margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body class="game theme-hpe min-h-screen">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="score-hud" id="score-hud">Score: 0 / 10</div>
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← HPE</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+
+    <header class="mb-4 text-center animate-pop">
+      <h1 class="text-3xl md:text-4xl font-bold mb-2 drop-shadow-sm" style="color: var(--accent-dark)">🍎 Sugar Sneak</h1>
+      <p class="text-lg text-slate-500 font-medium">Sort each snack — tooth-friendly or sugar sneak?</p>
+      <p id="sort-progress" class="mt-2 text-sm font-semibold" style="color: var(--accent)">0 of 10 sorted</p>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div id="bin-good" class="sort-bin good-bin" data-accept="good">
+        <p class="bin-title text-green-600">✅ Tooth-Friendly</p>
+        <div class="bin-items flex flex-col gap-2 min-h-[48px]"></div>
+      </div>
+      <div id="bin-bad" class="sort-bin bad-bin" data-accept="bad">
+        <p class="bin-title text-red-600">🍬 Sugar Sneak</p>
+        <div class="bin-items flex flex-col gap-2 min-h-[48px]"></div>
+      </div>
+    </div>
+
+    <div id="snacks-pool" class="question-card p-4 flex flex-col gap-3 animate-pop"></div>
+
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop mt-6">
+      <div class="text-6xl mb-4">🦷</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Snack Patrol Done!</h2>
+      <p class="text-2xl font-medium text-slate-600 mb-6">
+        You scored <span id="final-score" class="font-bold text-3xl" style="color: var(--accent)">0</span> out of 10!
+      </p>
+      <p id="result-msg" class="text-lg text-slate-500 mb-8 font-medium"></p>
+      <button type="button" id="play-again" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+
+  <div id="feedback-toast" class="feedback-toast">Nice! ✨</div>
+
+  <script src="../../../js/fun-effects.js"></script>
+  <script>
+    (function () {
+      const SNACKS = [
+        { id: 's1', text: '🍎 Crunchy apple slices', kind: 'good' },
+        { id: 's2', text: '🍭 Sticky lollipop', kind: 'bad' },
+        { id: 's3', text: '🧀 Cheese cubes', kind: 'good' },
+        { id: 's4', text: '🥤 Sugary soda', kind: 'bad' },
+        { id: 's5', text: '🥕 Carrot sticks', kind: 'good' },
+        { id: 's6', text: '🍫 Caramel candy bar', kind: 'bad' },
+        { id: 's7', text: '🥛 Plain milk', kind: 'good' },
+        { id: 's8', text: '🍬 Gummy bears', kind: 'bad' },
+        { id: 's9', text: '🥒 Cucumber water crunch', kind: 'good' },
+        { id: 's10', text: '🍩 Frosted donut', kind: 'bad' }
+      ];
+      const TOTAL = SNACKS.length;
+
+      let score = 0;
+      let sortedCount = 0;
+      let activeEl = null;
+      let startX, startY, initialX = 0, initialY = 0;
+      let activeBins = [];
+      let captureId = null;
+
+      const snacksPool = document.getElementById('snacks-pool');
+      const sortProgress = document.getElementById('sort-progress');
+      const scoreHud = document.getElementById('score-hud');
+      const resultScreen = document.getElementById('result-screen');
+      const toast = document.getElementById('feedback-toast');
+
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function updateHud() {
+        scoreHud.textContent = 'Score: ' + score + ' / ' + TOTAL;
+        if (window.FunEffects) FunEffects.pulseScore(scoreHud);
+      }
+
+      function buildGame() {
+        score = 0;
+        sortedCount = 0;
+        snacksPool.innerHTML = '';
+        document.querySelectorAll('.bin-items').forEach(b => { b.innerHTML = ''; });
+        resultScreen.classList.add('hidden');
+        sortProgress.textContent = '0 of ' + TOTAL + ' sorted';
+        updateHud();
+        activeBins = [document.getElementById('bin-good'), document.getElementById('bin-bad')];
+
+        shuffle(SNACKS).forEach(s => {
+          const el = document.createElement('div');
+          el.className = 'draggable snack-chip';
+          el.dataset.id = s.id;
+          el.dataset.kind = s.kind;
+          el.textContent = s.text;
+          snacksPool.appendChild(el);
+        });
+        setupDraggables(snacksPool.querySelectorAll('.draggable'));
+      }
+
+      function setupDraggables(elements) {
+        elements.forEach(el => {
+          el.addEventListener('pointerdown', onPointerDown);
+          el.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+        });
+      }
+
+      function onPointerDown(e) {
+        const target = e.target.closest('.draggable');
+        if (!target || target.classList.contains('locked')) return;
+        e.preventDefault();
+        activeEl = target;
+        captureId = e.pointerId;
+        activeEl.setPointerCapture(captureId);
+        activeEl.style.zIndex = 1000;
+        activeEl.style.transform = 'scale(1.05)';
+        startX = e.clientX;
+        startY = e.clientY;
+        const transform = window.getComputedStyle(activeEl).transform;
+        if (transform !== 'none') {
+          const matrix = new DOMMatrixReadOnly(transform);
+          initialX = matrix.m41;
+          initialY = matrix.m42;
+        } else {
+          initialX = 0;
+          initialY = 0;
+        }
+      }
+
+      function onPointerMove(e) {
+        if (!activeEl) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        activeEl.style.transform = 'translate(' + (initialX + dx) + 'px, ' + (initialY + dy) + 'px) scale(1.05)';
+        highlightBin(e.clientX, e.clientY);
+      }
+
+      let captureId = null;
+
+      function onPointerUp(e) {
+        if (!activeEl) return;
+        if (captureId != null) activeEl.releasePointerCapture(captureId);
+        activeEl.style.zIndex = '';
+        activeBins.forEach(b => b.classList.remove('highlight'));
+        const elRect = activeEl.getBoundingClientRect();
+        let dropped = false;
+        for (const bin of activeBins) {
+          const rect = bin.getBoundingClientRect();
+          if (isOverlap(elRect, rect) && bin.dataset.accept === activeEl.dataset.kind) {
+            bin.querySelector('.bin-items').appendChild(activeEl);
+            activeEl.style.transform = 'none';
+            activeEl.classList.add('locked');
+            activeEl.classList.remove('draggable');
+            dropped = true;
+            sortedCount++;
+            score++;
+            sortProgress.textContent = sortedCount + ' of ' + TOTAL + ' sorted';
+            updateHud();
+            toast.style.opacity = '1';
+            setTimeout(() => { toast.style.opacity = '0'; }, 800);
+            if (window.FunEffects && sortedCount % 3 === 0) FunEffects.confetti({ count: 8 });
+            if (sortedCount === TOTAL) finishGame();
+            break;
+          }
+        }
+        if (!dropped) {
+          activeEl.style.transition = 'transform 0.25s ease';
+          activeEl.style.transform = 'translate(0, 0)';
+          setTimeout(() => { activeEl.style.transition = ''; }, 250);
+          if (window.FunEffects) FunEffects.shake(activeEl);
+        }
+        activeEl = null;
+        captureId = null;
+      }
+
+      function isOverlap(r1, r2) {
+        return !(r1.right < r2.left + 16 || r1.left > r2.right - 16 ||
+                 r1.bottom < r2.top + 16 || r1.top > r2.bottom - 16);
+      }
+
+      function highlightBin(x, y) {
+        activeBins.forEach(bin => {
+          const rect = bin.getBoundingClientRect();
+          if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom &&
+              bin.dataset.accept === activeEl.dataset.kind) {
+            bin.classList.add('highlight');
+          } else {
+            bin.classList.remove('highlight');
+          }
+        });
+      }
+
+      function finishGame() {
+        document.getElementById('final-score').textContent = String(score);
+        const msg = document.getElementById('result-msg');
+        if (score === TOTAL) {
+          msg.textContent = 'You spotted every sugar sneak! Teeth team wins! 🌟';
+          if (window.FunEffects) FunEffects.celebratePerfect();
+        } else if (score >= 7) {
+          msg.textContent = 'Great sorting! Choose tooth-friendly snacks most days! 👍';
+        } else {
+          msg.textContent = 'Sticky sweets and soda can hurt enamel — try apples and water! 💪';
+        }
+        resultScreen.classList.remove('hidden');
+      }
+
+      document.addEventListener('pointermove', onPointerMove);
+      document.addEventListener('pointerup', onPointerUp);
+
+      document.getElementById('play-again').addEventListener('click', buildGame);
+      buildGame();
+    })();
+  </script>
+</body>
+</html>

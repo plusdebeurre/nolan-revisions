@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Life Detective — Science</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body>
+  <div id="app"></div>
+  <script src="../../../js/quiz-engine.js"></script>
+  <script>
+    QuizEngine.mount({
+      subject: 'science',
+      title: '🔍 Life Detective',
+      subtitle: 'Spot what living things do!',
+      backHref: '../index.html',
+      homeHref: '../../../index.html',
+      perfectMessage: 'Case closed! You are a top Life Detective! 🌟',
+      goodMessage: 'Sharp eyes! You spotted living signs! 👍',
+      tryAgainMessage: 'Every detective learns — try another case! 💪',
+      quizData: [
+        {
+          question: 'A puppy runs across the yard to fetch a ball. Which life sign is this?',
+          options: ['Movement', 'Making seeds', 'Being man-made', 'Melting'],
+          correctAnswer: 0,
+          explanation: 'Living things can move on their own. A puppy running is movement!',
+          hint: 'Legs and muscles help animals go places.'
+        },
+        {
+          question: 'You see your chest rise and fall when you sleep. What are you doing?',
+          options: ['Breathing', 'Photosynthesis', 'Rustling', 'Floating'],
+          correctAnswer: 0,
+          explanation: 'Breathing brings in air. Animals (and you!) need to breathe.',
+          hint: 'In and out — all day and night.'
+        },
+        {
+          question: 'A bean sprout was 2 cm tall last week and 8 cm today. What happened?',
+          options: ['Growth', 'Explosion', 'Recycling', 'Sleeping forever'],
+          correctAnswer: 0,
+          explanation: 'Living things grow bigger or change over time.',
+          hint: 'Plants and babies get taller!'
+        },
+        {
+          question: 'A mother duck sits on eggs until baby ducklings hatch. This is…',
+          options: ['Making babies / reproduction', 'Driving a car', 'Burning wood', 'Building a robot'],
+          correctAnswer: 0,
+          explanation: 'Living things can have babies or make seeds so life continues.',
+          hint: 'Eggs become new ducklings.'
+        },
+        {
+          question: 'A venus flytrap snaps shut when a fly touches it. What life sign?',
+          options: ['Sensitivity (reacting)', 'Being plastic', 'Being a rock', 'Having wheels'],
+          correctAnswer: 0,
+          explanation: 'Living things notice changes and react — that is sensitivity.',
+          hint: 'It feels the touch and moves!'
+        },
+        {
+          question: 'A rabbit munches carrots and grass. What is the rabbit doing?',
+          options: ['Nutrition (eating for energy)', 'Making sunlight', 'Breathing fire', 'Growing roots'],
+          correctAnswer: 0,
+          explanation: 'Animals get nutrition by eating food. Plants make food with light.',
+          hint: 'Yum — food gives energy!'
+        },
+        {
+          question: 'A car zooms down the street with its engine on. Is the car alive?',
+          options: ['No — it cannot grow or have babies', 'Yes — it moves so it is alive', 'Yes — because it is loud', 'Yes — because it needs gas'],
+          correctAnswer: 0,
+          explanation: 'Trick! Moving alone does not mean alive. Cars do not grow or reproduce.',
+          hint: 'Machines move but are not living.'
+        },
+        {
+          question: 'Campfire flames dance and spread. Is fire a living thing?',
+          options: ['No — fire does not grow like a plant or have babies', 'Yes — it moves', 'Yes — it is hot', 'Yes — it needs wood'],
+          correctAnswer: 0,
+          explanation: 'Fire moves and eats fuel, but it is not alive. It cannot reproduce.',
+          hint: 'Fire is a process, not a creature.'
+        },
+        {
+          question: 'After drinking water, people visit the bathroom. Plants also release extra water from leaves. This is…',
+          options: ['Getting rid of waste (excretion)', 'Making fruit', 'Sleeping', 'Turning into metal'],
+          correctAnswer: 0,
+          explanation: 'Living things remove waste they do not need. That is excretion.',
+          hint: 'Bodies clean out stuff they are done with.'
+        },
+        {
+          question: 'Sunflower turns its head to follow the sun across the sky. What does this show?',
+          options: ['Sensitivity and movement', 'That it is a toy', 'That it is man-made', 'That it never needs water'],
+          correctAnswer: 0,
+          explanation: 'The plant senses light and moves slowly — signs of life!',
+          hint: 'It notices the sun and responds.'
+        }
+      ]
+    });
+  </script>
+</body>
+</html>

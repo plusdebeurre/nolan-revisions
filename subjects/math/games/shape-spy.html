@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shape Spy — Math</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body class="game theme-math">
+  <div id="app"></div>
+  <script src="../../../js/fun-effects.js"></script>
+  <script src="../../../js/quiz-engine.js"></script>
+  <script>
+    QuizEngine.mount({
+      subject: 'math',
+      title: 'Shape Spy',
+      subtitle: 'Sides, corners, and shape names',
+      backHref: '../index.html',
+      homeHref: '../../../index.html',
+      perfectMessage: 'Shape spy badge earned! Perfect vision! 🌟',
+      goodMessage: 'You know your 2D shapes! 👍',
+      tryAgainMessage: 'Count sides and corners carefully! 💪',
+      quizData: [
+        { question: 'How many sides does a triangle have?', options: ['2', '3', '4', '6'], correctAnswer: 1, explanation: 'Tri means three — 3 sides!', hint: 'Count the straight edges.' },
+        { question: 'How many corners (vertices) does a square have?', options: ['3', '4', '5', '8'], correctAnswer: 1, explanation: 'A square has 4 corners.', hint: 'Same as its number of sides.' },
+        { question: 'Which shape has 6 sides?', options: ['Pentagon', 'Hexagon', 'Octagon', 'Rectangle'], correctAnswer: 1, explanation: 'Hexagon = 6 sides.', hint: 'Hex sounds like six.' },
+        { question: 'A rectangle has how many sides?', options: ['3', '4', '5', '6'], correctAnswer: 1, explanation: 'Rectangles have 4 sides.', hint: 'Like a square, but sides can differ in length.' },
+        { question: 'Which shape is round with no corners?', options: ['Oval', 'Circle', 'Sphere', 'Cube'], correctAnswer: 1, explanation: 'A circle is perfectly round in 2D.', hint: 'Pick the flat round shape.' },
+        { question: 'How many corners does a pentagon have?', options: ['4', '5', '6', '8'], correctAnswer: 1, explanation: 'Penta = 5 corners.', hint: 'Match sides and corners.' },
+        { question: 'Which shape has 8 sides?', options: ['Hexagon', 'Heptagon', 'Octagon', 'Decagon'], correctAnswer: 2, explanation: 'Octagon = 8 sides (like a stop sign).', hint: 'Oct sounds like eight.' },
+        { question: 'A trapezoid has how many sides?', options: ['3', '4', '5', '6'], correctAnswer: 1, explanation: 'Trapezoids are quadrilaterals with 4 sides.', hint: 'Four-sided shape family.' },
+        { question: 'Which shape has all sides equal AND 4 right angles?', options: ['Rhombus', 'Square', 'Trapezoid', 'Triangle'], correctAnswer: 1, explanation: 'Squares have 4 equal sides and square corners.', hint: 'Special type of rectangle.' },
+        { question: 'How many sides does a hexagon have?', options: ['5', '6', '7', '8'], correctAnswer: 1, explanation: '6 sides for a hexagon.', hint: 'Honeycomb cells are hexagons.' },
+        { question: 'Which shape has 3 corners?', options: ['Square', 'Triangle', 'Pentagon', 'Circle'], correctAnswer: 1, explanation: 'Triangles have 3 corners.', hint: 'Tri = three.' },
+        { question: 'A rhombus has how many sides?', options: ['3', '4', '5', '6'], correctAnswer: 1, explanation: 'Rhombus is a 4-sided shape.', hint: 'Looks like a tilted square.' },
+        { question: 'Which shape has NO straight sides?', options: ['Circle', 'Rectangle', 'Pentagon', 'Hexagon'], correctAnswer: 0, explanation: 'Circles curve all the way around.', hint: 'No edges, only a curve.' },
+        { question: 'How many vertices does an octagon have?', options: ['6', '7', '8', '10'], correctAnswer: 2, explanation: '8 vertices on an octagon.', hint: 'Vertices = corners.' },
+        { question: 'Which name fits a 4-sided shape?', options: ['Triangle', 'Quadrilateral', 'Pentagon', 'Hexagon'], correctAnswer: 1, explanation: 'Quad means four — quadrilateral.', hint: 'Squares and rectangles are in this family.' },
+        { question: 'A pentagon has how many sides?', options: ['4', '5', '6', '7'], correctAnswer: 1, explanation: '5 sides on a pentagon.', hint: 'Penta = five.' },
+        { question: 'Which shape always has 4 right angles?', options: ['Rhombus', 'Rectangle', 'Triangle', 'Circle'], correctAnswer: 1, explanation: 'Rectangles have four 90° corners.', hint: 'Think of a door shape.' },
+        { question: 'How many sides does an octagon have?', options: ['6', '7', '8', '9'], correctAnswer: 2, explanation: 'Octagon = 8 sides.', hint: 'Stop signs are octagons.' },
+        { question: 'Which shape has 4 equal sides but might not have right angles?', options: ['Square', 'Rhombus', 'Rectangle', 'Trapezoid'], correctAnswer: 1, explanation: 'Rhombus: 4 equal sides, angles may slant.', hint: 'Diamond shape on cards.' },
+        { question: 'A triangle has how many vertices?', options: ['2', '3', '4', '5'], correctAnswer: 1, explanation: '3 vertices where sides meet.', hint: 'Same as its sides.' },
+        { question: 'Which shape has 5 sides AND 5 corners?', options: ['Hexagon', 'Pentagon', 'Square', 'Octagon'], correctAnswer: 1, explanation: 'Pentagons have 5 of each.', hint: 'Home plate in baseball is a pentagon.' },
+        { question: 'How many sides does a quadrilateral have?', options: ['3', '4', '5', '6'], correctAnswer: 1, explanation: 'Quad = 4 sides.', hint: 'Includes squares and rectangles.' }
+      ]
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sentence Builder — English</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    .word-chip {
+      min-height: 2.75rem;
+      font-size: 1.05rem;
+      font-weight: 600;
+      border-radius: 0.85rem;
+      border: 3px solid var(--card-border);
+      background: #fff;
+      padding: 0.5rem 0.85rem;
+      transition: transform 0.12s, opacity 0.12s;
+    }
+    .word-chip:disabled {
+      opacity: 0.35;
+      transform: scale(0.96);
+    }
+    .built-slot {
+      min-height: 3rem;
+      border-radius: 0.85rem;
+      border: 2px dashed #cbd5e1;
+      background: #f8fafc;
+      padding: 0.65rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+    .built-slot.correct {
+      border-color: #22c55e;
+      background: #dcfce7;
+    }
+    .built-slot.wrong {
+      border-color: #ef4444;
+      background: #fee2e2;
+    }
+  </style>
+</head>
+<body class="game theme-english">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="score-hud" id="live-score-hud">Score: 0 / 12</div>
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← English</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+
+    <div id="play-screen">
+      <header class="mb-6 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2 drop-shadow-sm" style="color: var(--accent-dark)">🧱 Sentence Builder</h1>
+        <p class="text-lg text-slate-500 font-medium">Tap words <strong>in order</strong> to build the sentence!</p>
+        <div class="progress-track">
+          <div id="progress-bar" class="progress-bar-fill"></div>
+        </div>
+        <p id="sentence-tracker" class="mt-2 text-sm font-semibold" style="color: var(--accent)">Sentence 1 of 12</p>
+        <p id="live-score-line" class="live-score-line">Score: 0</p>
+      </header>
+
+      <div class="question-card p-6 md:p-8 animate-pop">
+        <p id="prompt" class="text-center text-xl font-semibold text-slate-700 mb-4"></p>
+        <div id="built-line" class="built-slot mb-6 text-center text-slate-500">Tap words below…</div>
+        <div id="word-bank" class="flex flex-wrap justify-center gap-2 mb-6"></div>
+        <div id="feedback" class="hidden text-center p-4 rounded-xl text-lg font-medium mb-4"></div>
+        <div class="text-center flex flex-wrap gap-3 justify-center">
+          <button type="button" id="undo-btn" class="btn-hint">↩ Undo last word</button>
+          <button type="button" id="clear-btn" class="btn-hint">Clear</button>
+          <button type="button" id="check-btn" class="btn-primary">Check ✓</button>
+          <button type="button" id="next-btn" class="hidden btn-primary">Next Sentence 🚀</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div class="text-6xl mb-4">🏆</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Builder Complete!</h2>
+      <p class="text-2xl font-medium text-slate-600 mb-6">
+        You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">0</span> out of 12!
+      </p>
+      <p id="result-message" class="text-lg text-slate-500 mb-8 font-medium"></p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+  <script src="../../../js/fun-effects.js"></script>
+  <script>
+    (function () {
+      const SENTENCES = [
+        { prompt: '🦁 Lions hunt for food.', words: ['Lions', 'hunt', 'for', 'food.'] },
+        { prompt: '🐔 Chickens peck seeds on the ground.', words: ['Chickens', 'peck', 'seeds', 'on', 'the', 'ground.'] },
+        { prompt: '🐍 Snakes creep through the grass.', words: ['Snakes', 'creep', 'through', 'the', 'grass.'] },
+        { prompt: '🐰 Rabbits escape from foxes.', words: ['Rabbits', 'escape', 'from', 'foxes.'] },
+        { prompt: '🐻 Bears fight to protect their cubs.', words: ['Bears', 'fight', 'to', 'protect', 'their', 'cubs.'] },
+        { prompt: '🐕 Dogs have soft fur.', words: ['Dogs', 'have', 'soft', 'fur.'] },
+        { prompt: '🦜 Birds have feathers and wings.', words: ['Birds', 'have', 'feathers', 'and', 'wings.'] },
+        { prompt: '🦈 Fish breathe with gills.', words: ['Fish', 'breathe', 'with', 'gills.'] },
+        { prompt: '🧊 Ice melts in the hot sun.', words: ['Ice', 'melts', 'in', 'the', 'hot', 'sun.'] },
+        { prompt: '💧 Water freezes when it is cold.', words: ['Water', 'freezes', 'when', 'it', 'is', 'cold.'] },
+        { prompt: '🐘 They are big elephants.', words: ['They', 'are', 'big', 'elephants.'] },
+        { prompt: '⭐ I always brush my teeth.', words: ['I', 'always', 'brush', 'my', 'teeth.'] }
+      ];
+
+      let index = 0;
+      let score = 0;
+      let picked = [];
+      let pickedBtns = [];
+      let checked = false;
+
+      const playScreen = document.getElementById('play-screen');
+      const resultScreen = document.getElementById('result-screen');
+      const promptEl = document.getElementById('prompt');
+      const builtLine = document.getElementById('built-line');
+      const wordBank = document.getElementById('word-bank');
+      const feedback = document.getElementById('feedback');
+      const checkBtn = document.getElementById('check-btn');
+      const nextBtn = document.getElementById('next-btn');
+      const undoBtn = document.getElementById('undo-btn');
+      const clearBtn = document.getElementById('clear-btn');
+      const progressBar = document.getElementById('progress-bar');
+      const sentenceTracker = document.getElementById('sentence-tracker');
+      const scoreDisplay = document.getElementById('score-display');
+      const resultMessage = document.getElementById('result-message');
+      const restartBtn = document.getElementById('restart-btn');
+      const liveScoreHud = document.getElementById('live-score-hud');
+      const liveScoreLine = document.getElementById('live-score-line');
+
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function updateScoreHud() {
+        liveScoreHud.textContent = `Score: ${score} / ${SENTENCES.length}`;
+        liveScoreLine.textContent = `Score: ${score}`;
+        if (window.FunEffects) FunEffects.pulseScore(liveScoreLine);
+      }
+
+      function loadSentence() {
+        picked = [];
+        pickedBtns = [];
+        checked = false;
+        feedback.classList.add('hidden');
+        nextBtn.classList.add('hidden');
+        checkBtn.classList.remove('hidden');
+        undoBtn.disabled = false;
+        clearBtn.disabled = false;
+
+        const item = SENTENCES[index];
+        promptEl.textContent = item.prompt;
+        sentenceTracker.textContent = `Sentence ${index + 1} of ${SENTENCES.length}`;
+        progressBar.style.width = `${(index / SENTENCES.length) * 100}%`;
+
+        builtLine.className = 'built-slot mb-6 text-center text-slate-500';
+        builtLine.textContent = 'Tap words below…';
+
+        wordBank.innerHTML = '';
+        shuffle(item.words).forEach((word, i) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'word-chip';
+          btn.textContent = word;
+          btn.dataset.word = word;
+          btn.addEventListener('click', () => tapWord(btn, word));
+          wordBank.appendChild(btn);
+        });
+      }
+
+      function refreshBuilt() {
+        if (picked.length === 0) {
+          builtLine.textContent = 'Tap words below…';
+          builtLine.classList.remove('correct', 'wrong');
+        } else {
+          builtLine.textContent = picked.join(' ');
+        }
+      }
+
+      function tapWord(btn, word) {
+        if (checked || btn.disabled) return;
+        const item = SENTENCES[index];
+        const nextWord = item.words[picked.length];
+        if (word !== nextWord) {
+          feedback.classList.remove('hidden', 'bg-green-100', 'text-green-800');
+          feedback.classList.add('bg-red-100', 'text-red-800');
+          feedback.innerHTML = `<strong>Not yet!</strong> Next word should be "<strong>${nextWord}</strong>".`;
+          if (window.FunEffects) FunEffects.shake(btn);
+          return;
+        }
+        picked.push(word);
+        pickedBtns.push(btn);
+        btn.disabled = true;
+        refreshBuilt();
+        feedback.classList.add('hidden');
+        if (picked.length === item.words.length) {
+          checkBtn.click();
+        }
+      }
+
+      checkBtn.addEventListener('click', () => {
+        const item = SENTENCES[index];
+        if (picked.length !== item.words.length) {
+          feedback.classList.remove('hidden', 'bg-green-100', 'text-green-800');
+          feedback.classList.add('bg-amber-100', 'text-amber-900');
+          feedback.innerHTML = '<strong>Keep going!</strong> Add every word in order.';
+          return;
+        }
+        checked = true;
+        const ok = picked.every((w, i) => w === item.words[i]);
+        if (ok) {
+          score++;
+          updateScoreHud();
+          builtLine.classList.add('correct');
+          feedback.classList.remove('hidden', 'bg-red-100', 'text-red-800');
+          feedback.classList.add('bg-green-100', 'text-green-800');
+          feedback.innerHTML = '<strong>Perfect sentence!</strong> 🎉';
+          if (window.FunEffects) FunEffects.confetti({ count: 12 });
+          checkBtn.classList.add('hidden');
+          nextBtn.classList.remove('hidden');
+          undoBtn.disabled = true;
+          clearBtn.disabled = true;
+        } else {
+          builtLine.classList.add('wrong');
+          feedback.classList.remove('hidden', 'bg-green-100', 'text-green-800');
+          feedback.classList.add('bg-red-100', 'text-red-800');
+          feedback.innerHTML = '<strong>Order matters!</strong> Clear and try again.';
+          if (window.FunEffects) FunEffects.shake(builtLine);
+        }
+      });
+
+      undoBtn.addEventListener('click', () => {
+        if (checked || !picked.length) return;
+        picked.pop();
+        const btn = pickedBtns.pop();
+        if (btn) btn.disabled = false;
+        refreshBuilt();
+        feedback.classList.add('hidden');
+        builtLine.classList.remove('correct', 'wrong');
+      });
+
+      clearBtn.addEventListener('click', () => {
+        if (checked) return;
+        picked = [];
+        pickedBtns.forEach((b) => { b.disabled = false; });
+        pickedBtns = [];
+        refreshBuilt();
+        feedback.classList.add('hidden');
+        builtLine.classList.remove('correct', 'wrong');
+      });
+
+      nextBtn.addEventListener('click', () => {
+        index++;
+        if (index < SENTENCES.length) loadSentence();
+        else finish();
+      });
+
+      function finish() {
+        playScreen.classList.add('hidden');
+        resultScreen.classList.remove('hidden');
+        scoreDisplay.textContent = score;
+        progressBar.style.width = '100%';
+        if (score === SENTENCES.length) {
+          resultMessage.textContent = 'Master builder! Every sentence is perfect! 🌟';
+          if (window.FunEffects) FunEffects.celebratePerfect();
+        } else if (score >= 9) {
+          resultMessage.textContent = 'Great grammar building! 👍';
+        } else {
+          resultMessage.textContent = 'Good try! Build them again! 💪';
+        }
+      }
+
+      restartBtn.addEventListener('click', () => {
+        index = 0;
+        score = 0;
+        updateScoreHud();
+        resultScreen.classList.add('hidden');
+        playScreen.classList.remove('hidden');
+        loadSentence();
+      });
+
+      updateScoreHud();
+      loadSentence();
+    })();
+  </script>
+</body>
+</html>

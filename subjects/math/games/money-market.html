@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Money Market — Math</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    .price-tag { font-size: 2rem; font-weight: 800; color: #059669; }
+    .coin-line { font-size: 1.35rem; line-height: 1.8; }
+  </style>
+</head>
+<body class="game theme-math">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="score-hud" id="score-hud">Score: 0 / 22</div>
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← Math</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+    <div id="play-screen">
+      <header class="mb-6 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2" style="color: var(--accent-dark)">Money Market</h1>
+        <p class="text-lg text-slate-500 font-medium">Count the coins and tap the total!</p>
+        <div class="progress-track"><div id="progress-bar" class="progress-bar-fill"></div></div>
+        <p id="round-label" class="mt-2 text-sm font-semibold" style="color: var(--accent)">Round 1 of 22</p>
+      </header>
+      <div id="game-card" class="question-card p-6 md:p-8 animate-pop">
+        <p class="text-center text-slate-600 font-medium mb-2">Item price:</p>
+        <p class="price-tag text-center mb-4" id="price-display"></p>
+        <p class="text-center text-slate-500 text-sm mb-2">You pay with:</p>
+        <div id="coins-display" class="coin-line text-center mb-8 p-4 bg-amber-50 rounded-xl border-2 border-amber-200"></div>
+        <p class="text-center font-semibold text-slate-700 mb-4">How much money is that?</p>
+        <div id="choices-grid" class="grid grid-cols-2 gap-4 mb-4"></div>
+        <div id="feedback" class="hidden text-center p-4 rounded-xl text-lg font-medium mb-4"></div>
+        <div class="text-center"><button type="button" id="next-btn" class="hidden btn-primary">Next Round 🚀</button></div>
+      </div>
+    </div>
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div class="text-6xl mb-4">🪙</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Market Closed!</h2>
+      <p class="text-2xl font-medium text-slate-600 mb-6">You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">0</span> out of 22!</p>
+      <p id="result-message" class="text-lg text-slate-500 mb-8 font-medium"></p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+  <script src="../../../js/fun-effects.js"></script>
+  <script>
+    (function () {
+      const ROUNDS = [
+        { price: '50¢ sticker', coins: '2 quarters', total: 50, label: '50¢', wrong: [45, 55, 40] },
+        { price: '$1.00', coins: '4 quarters', total: 100, label: '$1.00', wrong: [75, 50, 125] },
+        { price: '35¢', coins: '1 quarter + 1 dime', total: 35, label: '35¢', wrong: [30, 40, 45] },
+        { price: '60¢', coins: '2 quarters + 1 dime', total: 60, label: '60¢', wrong: [55, 50, 70] },
+        { price: '25¢', coins: '1 quarter', total: 25, label: '25¢', wrong: [20, 30, 15] },
+        { price: '41¢', coins: '1 quarter + 1 dime + 1 nickel + 1 penny', total: 41, label: '41¢', wrong: [40, 45, 36] },
+        { price: '75¢', coins: '3 quarters', total: 75, label: '75¢', wrong: [70, 80, 65] },
+        { price: '10¢', coins: '1 dime', total: 10, label: '10¢', wrong: [5, 15, 25] },
+        { price: '55¢', coins: '2 quarters + 1 nickel', total: 55, label: '55¢', wrong: [50, 60, 45] },
+        { price: '86¢', coins: '3 quarters + 1 dime + 1 penny', total: 86, label: '86¢', wrong: [85, 90, 76] },
+        { price: '$1.25', coins: '5 quarters', total: 125, label: '$1.25', wrong: [100, 150, 75] },
+        { price: '30¢', coins: '3 dimes', total: 30, label: '30¢', wrong: [25, 35, 20] },
+        { price: '52¢', coins: '2 quarters + 2 pennies', total: 52, label: '52¢', wrong: [50, 55, 42] },
+        { price: '15¢', coins: '1 dime + 1 nickel', total: 15, label: '15¢', wrong: [10, 20, 25] },
+        { price: '70¢', coins: '2 quarters + 2 dimes', total: 70, label: '70¢', wrong: [65, 75, 60] },
+        { price: '5¢', coins: '1 nickel', total: 5, label: '5¢', wrong: [10, 1, 15] },
+        { price: '95¢', coins: '3 quarters + 2 dimes', total: 95, label: '95¢', wrong: [90, 100, 85] },
+        { price: '20¢', coins: '2 dimes', total: 20, label: '20¢', wrong: [15, 25, 30] },
+        { price: '67¢', coins: '2 quarters + 1 dime + 1 nickel + 2 pennies', total: 67, label: '67¢', wrong: [65, 70, 62] },
+        { price: '$2.00', coins: '8 quarters', total: 200, label: '$2.00', wrong: [150, 175, 125] },
+        { price: '48¢', coins: '1 quarter + 2 dimes + 1 nickel + 3 pennies', total: 48, label: '48¢', wrong: [45, 50, 43] },
+        { price: '33¢', coins: '1 quarter + 1 nickel + 3 pennies', total: 33, label: '33¢', wrong: [30, 35, 28] }
+      ];
+      const TOTAL = ROUNDS.length;
+      let order = ROUNDS.map((_, i) => i);
+      let roundIndex = 0, score = 0, streak = 0, canAnswer = true;
+
+      function formatOpt(cents) {
+        if (cents >= 100 && cents % 100 === 0) return '$' + (cents / 100).toFixed(2);
+        return cents + '¢';
+      }
+
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      const gameCard = document.getElementById('game-card');
+      const scoreHud = document.getElementById('score-hud');
+
+      function updateHud() {
+        scoreHud.textContent = 'Score: ' + score + ' / ' + TOTAL;
+        FunEffects.pulseScore(scoreHud);
+      }
+
+      function loadRound() {
+        canAnswer = true;
+        document.getElementById('feedback').classList.add('hidden');
+        document.getElementById('next-btn').classList.add('hidden');
+        const grid = document.getElementById('choices-grid');
+        grid.innerHTML = '';
+        const r = ROUNDS[order[roundIndex]];
+        document.getElementById('round-label').textContent = 'Round ' + (roundIndex + 1) + ' of ' + TOTAL;
+        document.getElementById('progress-bar').style.width = (roundIndex / TOTAL * 100) + '%';
+        document.getElementById('price-display').textContent = 'Buy for ' + r.price;
+        document.getElementById('coins-display').textContent = r.coins;
+        shuffle([r.total, ...r.wrong]).forEach((c) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'option-btn text-center text-xl font-bold py-5';
+          btn.textContent = formatOpt(c);
+          btn.dataset.cents = c;
+          btn.addEventListener('click', () => pick(c, r, btn));
+          grid.appendChild(btn);
+        });
+      }
+
+      function pick(cents, round, btn) {
+        if (!canAnswer) return;
+        canAnswer = false;
+        const ok = cents === round.total;
+        document.getElementById('choices-grid').querySelectorAll('button').forEach((b) => {
+          b.style.cursor = 'default';
+          if (Number(b.dataset.cents) === round.total) b.classList.add('correct');
+          else if (b === btn && !ok) b.classList.add('wrong');
+        });
+        const feedback = document.getElementById('feedback');
+        feedback.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+        if (ok) {
+          score++; streak++;
+          feedback.classList.add('bg-green-100', 'text-green-800');
+          feedback.innerHTML = '<strong>Cha-ching! 🎉</strong><br>Those coins equal ' + round.label + '.';
+          FunEffects.confetti(); FunEffects.showStreak(streak);
+        } else {
+          streak = 0;
+          FunEffects.shake(gameCard);
+          feedback.classList.add('bg-red-100', 'text-red-800');
+          feedback.innerHTML = '<strong>Count again!</strong><br>The total is ' + round.label + '.';
+        }
+        updateHud();
+        document.getElementById('next-btn').classList.remove('hidden');
+      }
+
+      function showResults() {
+        document.getElementById('play-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+        document.getElementById('score-display').textContent = score;
+        scoreHud.textContent = 'Score: ' + score + ' / ' + TOTAL;
+        const msg = document.getElementById('result-message');
+        if (score === TOTAL) { msg.textContent = 'Money master! 🌟'; FunEffects.celebratePerfect(); }
+        else if (score >= 16) msg.textContent = 'Smart counting! 👍';
+        else msg.textContent = 'Remember: quarter=25¢, dime=10¢, nickel=5¢, penny=1¢ 💪';
+      }
+
+      document.getElementById('next-btn').addEventListener('click', () => {
+        roundIndex++;
+        if (roundIndex < TOTAL) loadRound();
+        else showResults();
+      });
+      document.getElementById('restart-btn').addEventListener('click', () => {
+        roundIndex = 0; score = 0; streak = 0;
+        order = shuffle(order.map((_, i) => i));
+        document.getElementById('result-screen').classList.add('hidden');
+        document.getElementById('play-screen').classList.remove('hidden');
+        updateHud(); loadRound();
+      });
+      order = shuffle(order);
+      updateHud();
+      loadRound();
+    })();
+  </script>
+</body>
+</html>

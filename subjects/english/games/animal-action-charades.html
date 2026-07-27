@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animal Action Charades — English</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body>
+  <div id="app"></div>
+  <script src="../../../js/quiz-engine.js"></script>
+  <script>
+    QuizEngine.mount({
+      subject: 'english',
+      title: '🎭 Animal Action Charades',
+      subtitle: 'Hunt, peck, creep, escape, fight & body coverings',
+      backHref: '../index.html',
+      homeHref: '../../../index.html',
+      perfectMessage: 'Superstar! You know every action and covering! 🌟',
+      goodMessage: 'Wildlife expert in training! 👍',
+      tryAgainMessage: 'Act it out again — you can do it! 💪',
+      quizData: [
+        { question: '🦁 Lions ___ for food in the grasslands.', options: ['peck', 'hunt', 'creep', 'melt'], correctAnswer: 1, explanation: 'Lions hunt — they chase and catch prey.' },
+        { question: '🐔 Chickens ___ seeds on the ground.', options: ['hunt', 'peck', 'escape', 'freeze'], correctAnswer: 1, explanation: 'Birds peck with their beaks to eat.' },
+        { question: '🐍 Snakes ___ quietly through the grass.', options: ['fight', 'peck', 'creep', 'boil'], correctAnswer: 2, explanation: 'To creep is to move slowly and quietly.' },
+        { question: '🐰 Rabbits ___ from foxes when they are scared.', options: ['hunt', 'escape', 'peck', 'melt'], correctAnswer: 1, explanation: 'Escape means run away to stay safe.' },
+        { question: '🐻 Bears may ___ to protect their cubs.', options: ['creep', 'escape', 'fight', 'peck'], correctAnswer: 2, explanation: 'Fight means battle or defend.' },
+        { question: '🦅 Eagles ___ fish from the river.', options: ['peck', 'hunt', 'creep', 'freeze'], correctAnswer: 1, explanation: 'Eagles hunt by catching fish and small animals.' },
+        { question: '🐦 Woodpeckers ___ holes in trees.', options: ['creep', 'peck', 'escape', 'melt'], correctAnswer: 1, explanation: 'Peck means hit quickly with a beak.' },
+        { question: '🐱 Cats ___ up on mice before they pounce.', options: ['hunt', 'creep', 'fight', 'boil'], correctAnswer: 1, explanation: 'Cats creep silently when stalking.' },
+        { question: '🐟 Small fish ___ from bigger fish.', options: ['peck', 'escape', 'hunt', 'freeze'], correctAnswer: 1, explanation: 'Little fish escape predators by swimming away fast.' },
+        { question: '🐜 Ants may ___ when another ant enters their nest.', options: ['creep', 'fight', 'peck', 'melt'], correctAnswer: 1, explanation: 'Ants fight to protect their home.' },
+        { question: '🐕 Dogs have soft ___.', options: ['🪶 Feathers', '🧶 Fur', '🦎 Scales', '🫧 Gills'], correctAnswer: 1, explanation: 'Many mammals, like dogs, have fur.' },
+        { question: '🦜 Parrots have colorful ___.', options: ['🧶 Fur', '🪶 Feathers', '🦎 Scales', '🫧 Gills'], correctAnswer: 1, explanation: 'Birds are covered in feathers.' },
+        { question: '🐍 Snakes have dry ___.', options: ['🧶 Fur', '🪶 Feathers', '🦎 Scales', '🫧 Gills'], correctAnswer: 2, explanation: 'Reptiles like snakes have scales.' },
+        { question: '🦈 Sharks breathe with ___.', options: ['🧶 Fur', '🪽 Wings', '🫧 Gills', '🪶 Feathers'], correctAnswer: 2, explanation: 'Fish and sharks use gills in water.' },
+        { question: '🦅 Eagles use ___ to fly.', options: ['🫧 Gills', '🪽 Wings', '🦎 Scales', '🧶 Fur'], correctAnswer: 1, explanation: 'Birds have wings for flying.' },
+        { question: '🐢 Turtles have a hard shell and ___.', options: ['🧶 Fur', '🦎 Scales', '🪶 Feathers', '🫧 Gills'], correctAnswer: 1, explanation: 'Turtles are reptiles with scales on skin.' },
+        { question: '🐠 Goldfish have ___ and fins.', options: ['🫧 Gills', '🪽 Wings', '🧶 Fur', '🪶 Feathers'], correctAnswer: 0, explanation: 'Fish breathe underwater with gills.' },
+        { question: '🦁 A lion ___ zebras on the savanna.', options: ['pecks', 'hunts', 'escapes', 'freezes'], correctAnswer: 1, explanation: 'Lions hunt other animals for food.' },
+        { question: '🐓 Hens ___ corn from the farmyard.', options: ['hunt', 'peck', 'creep', 'fight'], correctAnswer: 1, explanation: 'Hens peck at food on the ground.' },
+        { question: '🦎 Lizards ___ along the warm rocks.', options: ['peck', 'creep', 'escape', 'melt'], correctAnswer: 1, explanation: 'Lizards creep slowly in the sun.' },
+        { question: '🐎 Horses ___ when a loud storm starts.', options: ['peck', 'creep', 'escape', 'scale'], correctAnswer: 2, explanation: 'Animals escape when they feel danger.' },
+        { question: '🐺 Wolves ___ over territory in a pack.', options: ['peck', 'creep', 'fight', 'gill'], correctAnswer: 2, explanation: 'Wolves may fight to defend their pack.' }
+      ]
+    });
+  </script>
+</body>
+</html>

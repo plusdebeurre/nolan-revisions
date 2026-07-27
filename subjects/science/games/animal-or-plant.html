@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animal or Plant? — Science</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body>
+  <div id="app"></div>
+  <script src="../../../js/quiz-engine.js"></script>
+  <script>
+    QuizEngine.mount({
+      subject: 'science',
+      title: '🐾 Animal or Plant?',
+      subtitle: 'Who makes food with sunlight? Who eats other things?',
+      backHref: '../index.html',
+      homeHref: '../../../index.html',
+      perfectMessage: 'Wow! You know animals from plants! 🌟',
+      goodMessage: 'Nice sorting! Keep it up! 👍',
+      tryAgainMessage: 'Try again — you are learning! 💪',
+      quizData: [
+        {
+          question: '🦁 A lion hunts zebras for dinner. Animal or plant?',
+          options: ['Animal', 'Plant'],
+          correctAnswer: 0,
+          explanation: 'Animals eat other living things (or food made by others). Lions are animals.',
+          hint: 'Plants do not hunt!'
+        },
+        {
+          question: '🌳 An oak tree makes sugar using sunlight in its leaves. Animal or plant?',
+          options: ['Animal', 'Plant'],
+          correctAnswer: 1,
+          explanation: 'Plants make their own food with sunlight, water, and air.',
+          hint: 'Trees have leaves and roots.'
+        },
+        {
+          question: '🐟 A goldfish swims and eats fish flakes. Animal or plant?',
+          options: ['Animal', 'Plant'],
+          correctAnswer: 0,
+          explanation: 'Fish move around and eat — they are animals.',
+          hint: 'It has fins, not flowers.'
+        },
+        {
+          question: '🌻 A sunflower stands still and grows toward the sun. Animal or plant?',
+          options: ['Animal', 'Plant'],
+          correctAnswer: 1,
+          explanation: 'Sunflowers are plants. They make food in their leaves.',
+          hint: 'It grows from a seed in soil.'
+        },
+        {
+          question: '🦋 A butterfly sips nectar from flowers. Animal or plant?',
+          options: ['Animal', 'Plant'],
+          correctAnswer: 0,
+          explanation: 'Butterflies are animals. They fly and drink nectar.',
+          hint: 'Insects are animals too!'
+        },
+        {
+          question: '🌵 A cactus stores water in its stem. Animal or plant?',
+          options: ['Animal', 'Plant'],
+          correctAnswer: 1,
+          explanation: 'Cacti are plants — they use sunlight to make food.',
+          hint: 'It lives in desert soil, not a nest.'
+        },
+        {
+          question: '🐸 A frog catches flies with its tongue. Animal or plant?',
+          options: ['Animal', 'Plant'],
+          correctAnswer: 0,
+          explanation: 'Frogs eat insects. Eating other organisms means animal.',
+          hint: 'It hops and croaks!'
+        },
+        {
+          question: '🍎 An apple tree grows apples around its seeds. Animal or plant?',
+          options: ['Animal', 'Plant'],
+          correctAnswer: 1,
+          explanation: 'Apple trees are plants. The tree makes food; we eat its fruit.',
+          hint: 'Trees have bark and branches.'
+        },
+        {
+          question: '🐛 A caterpillar munches leaves all day. Animal or plant?',
+          options: ['Animal', 'Plant'],
+          correctAnswer: 0,
+          explanation: 'Caterpillars are animals — they eat plants!',
+          hint: 'It will become a butterfly.'
+        },
+        {
+          question: '🌾 Wheat in a field makes grain using sunlight. Animal or plant?',
+          options: ['Animal', 'Plant'],
+          correctAnswer: 1,
+          explanation: 'Wheat is a plant crop. Farmers grow it for food.',
+          hint: 'It is green and grows in rows.'
+        }
+      ]
+    });
+  </script>
+</body>
+</html>

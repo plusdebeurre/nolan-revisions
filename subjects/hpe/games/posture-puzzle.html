@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Posture Puzzle — HPE</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    body.game.theme-hpe { touch-action: none; }
+    .sort-bin {
+      min-height: 140px;
+      border: 3px dashed #cbd5e1;
+      border-radius: 1.25rem;
+      padding: 0.75rem;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .sort-bin.healthy-bin { border-color: #86efac; background: #f0fdf4; }
+    .sort-bin.unhealthy-bin { border-color: #fca5a5; background: #fef2f2; }
+    .sort-bin.highlight { transform: scale(1.02); border-style: solid; }
+    .habit-chip {
+      font-size: 1rem;
+      padding: 0.8rem 1rem;
+      border-radius: 1rem;
+      border: 3px solid #e2e8f0;
+      background: white;
+      font-weight: 600;
+      text-align: center;
+    }
+    .habit-chip.locked { cursor: default; }
+    .bin-title { font-size: 1.3rem; font-weight: 700; text-align: center; margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body class="game theme-hpe min-h-screen">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="score-hud" id="score-hud">Score: 0 / 10</div>
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← HPE</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+
+    <header class="mb-4 text-center animate-pop">
+      <h1 class="text-3xl md:text-4xl font-bold mb-2 drop-shadow-sm" style="color: var(--accent-dark)">🧍 Posture Puzzle</h1>
+      <p class="text-lg text-slate-500 font-medium">Sort habits into healthy or unhealthy for your body!</p>
+      <p id="sort-progress" class="mt-2 text-sm font-semibold" style="color: var(--accent)">0 of 10 sorted</p>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div id="bin-healthy" class="sort-bin healthy-bin" data-accept="healthy">
+        <p class="bin-title text-green-600">💚 Healthy Habit</p>
+        <div class="bin-items flex flex-col gap-2 min-h-[48px]"></div>
+      </div>
+      <div id="bin-unhealthy" class="sort-bin unhealthy-bin" data-accept="unhealthy">
+        <p class="bin-title text-red-600">⚠️ Unhealthy Habit</p>
+        <div class="bin-items flex flex-col gap-2 min-h-[48px]"></div>
+      </div>
+    </div>
+
+    <div id="habits-pool" class="question-card p-4 flex flex-col gap-3 animate-pop"></div>
+
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop mt-6">
+      <div class="text-6xl mb-4">🌟</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Body Boost!</h2>
+      <p class="text-2xl font-medium text-slate-600 mb-6">
+        You scored <span id="final-score" class="font-bold text-3xl" style="color: var(--accent)">0</span> out of 10!
+      </p>
+      <p id="result-msg" class="text-lg text-slate-500 mb-8 font-medium"></p>
+      <button type="button" id="play-again" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+
+  <script src="../../../js/fun-effects.js"></script>
+  <script>
+    (function () {
+      const HABITS = [
+        { id: 'h1', text: '🪑 Sit tall with shoulders back', kind: 'healthy' },
+        { id: 'h2', text: '📱 Hunch over a screen for hours', kind: 'unhealthy' },
+        { id: 'h3', text: '🚶 Take stretch breaks when sitting', kind: 'healthy' },
+        { id: 'h4', text: '🍟 Eat junk food every meal', kind: 'unhealthy' },
+        { id: 'h5', text: '💧 Drink water through the day', kind: 'healthy' },
+        { id: 'h6', text: '🌙 Stay up very late every night', kind: 'unhealthy' },
+        { id: 'h7', text: '⚽ Play active games outside', kind: 'healthy' },
+        { id: 'h8', text: '🛋️ No movement all weekend', kind: 'unhealthy' },
+        { id: 'h9', text: '🧼 Wash hands before meals', kind: 'healthy' },
+        { id: 'h10', text: '🚫 Skip breakfast every day', kind: 'unhealthy' }
+      ];
+      const TOTAL = HABITS.length;
+
+      let score = 0;
+      let sortedCount = 0;
+      let activeEl = null;
+      let startX, startY, initialX = 0, initialY = 0;
+      let activeBins = [];
+      let captureId = null;
+
+      const habitsPool = document.getElementById('habits-pool');
+      const sortProgress = document.getElementById('sort-progress');
+      const scoreHud = document.getElementById('score-hud');
+      const resultScreen = document.getElementById('result-screen');
+
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function updateHud() {
+        scoreHud.textContent = 'Score: ' + score + ' / ' + TOTAL;
+        if (window.FunEffects) FunEffects.pulseScore(scoreHud);
+      }
+
+      function buildGame() {
+        score = 0;
+        sortedCount = 0;
+        habitsPool.innerHTML = '';
+        document.querySelectorAll('.bin-items').forEach(b => { b.innerHTML = ''; });
+        resultScreen.classList.add('hidden');
+        sortProgress.textContent = '0 of ' + TOTAL + ' sorted';
+        updateHud();
+        activeBins = [document.getElementById('bin-healthy'), document.getElementById('bin-unhealthy')];
+
+        shuffle(HABITS).forEach(h => {
+          const el = document.createElement('div');
+          el.className = 'draggable habit-chip';
+          el.dataset.kind = h.kind;
+          el.textContent = h.text;
+          habitsPool.appendChild(el);
+        });
+        habitsPool.querySelectorAll('.draggable').forEach(el => {
+          el.addEventListener('pointerdown', onPointerDown);
+          el.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+        });
+      }
+
+      function onPointerDown(e) {
+        const target = e.target.closest('.draggable');
+        if (!target || target.classList.contains('locked')) return;
+        e.preventDefault();
+        activeEl = target;
+        captureId = e.pointerId;
+        activeEl.setPointerCapture(captureId);
+        activeEl.style.zIndex = 1000;
+        activeEl.style.transform = 'scale(1.05)';
+        startX = e.clientX;
+        startY = e.clientY;
+        initialX = 0;
+        initialY = 0;
+        const transform = window.getComputedStyle(activeEl).transform;
+        if (transform !== 'none') {
+          const matrix = new DOMMatrixReadOnly(transform);
+          initialX = matrix.m41;
+          initialY = matrix.m42;
+        }
+      }
+
+      function onPointerMove(e) {
+        if (!activeEl) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        activeEl.style.transform = 'translate(' + (initialX + dx) + 'px, ' + (initialY + dy) + 'px) scale(1.05)';
+        activeBins.forEach(bin => {
+          const rect = bin.getBoundingClientRect();
+          if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom &&
+              bin.dataset.accept === activeEl.dataset.kind) {
+            bin.classList.add('highlight');
+          } else {
+            bin.classList.remove('highlight');
+          }
+        });
+      }
+
+      function onPointerUp(e) {
+        if (!activeEl) return;
+        if (captureId != null) activeEl.releasePointerCapture(captureId);
+        activeEl.style.zIndex = '';
+        activeBins.forEach(b => b.classList.remove('highlight'));
+        const elRect = activeEl.getBoundingClientRect();
+        let dropped = false;
+        for (const bin of activeBins) {
+          const rect = bin.getBoundingClientRect();
+          if (!(elRect.right < rect.left + 16 || elRect.left > rect.right - 16 ||
+                elRect.bottom < rect.top + 16 || elRect.top > rect.bottom - 16) &&
+              bin.dataset.accept === activeEl.dataset.kind) {
+            bin.querySelector('.bin-items').appendChild(activeEl);
+            activeEl.style.transform = 'none';
+            activeEl.classList.add('locked');
+            activeEl.classList.remove('draggable');
+            dropped = true;
+            sortedCount++;
+            score++;
+            sortProgress.textContent = sortedCount + ' of ' + TOTAL + ' sorted';
+            updateHud();
+            if (window.FunEffects && score % 3 === 0) FunEffects.confetti({ count: 8 });
+            if (sortedCount === TOTAL) finishGame();
+            break;
+          }
+        }
+        if (!dropped) {
+          activeEl.style.transition = 'transform 0.25s ease';
+          activeEl.style.transform = 'translate(0, 0)';
+          setTimeout(() => { activeEl.style.transition = ''; }, 250);
+          if (window.FunEffects) FunEffects.shake(activeEl);
+        }
+        activeEl = null;
+        captureId = null;
+      }
+
+      function finishGame() {
+        document.getElementById('final-score').textContent = String(score);
+        const msg = document.getElementById('result-msg');
+        if (score === TOTAL) {
+          msg.textContent = 'You know healthy habits by heart! Strong body, strong mind! 🌟';
+          if (window.FunEffects) FunEffects.celebratePerfect();
+        } else if (score >= 7) {
+          msg.textContent = 'Nice work! Posture, sleep, and play keep you growing! 👍';
+        } else {
+          msg.textContent = 'Try again — water, sleep, and movement are daily wins! 💪';
+        }
+        resultScreen.classList.remove('hidden');
+      }
+
+      document.addEventListener('pointermove', onPointerMove);
+      document.addEventListener('pointerup', onPointerUp);
+
+      document.getElementById('play-again').addEventListener('click', buildGame);
+      buildGame();
+    })();
+  </script>
+</body>
+</html>

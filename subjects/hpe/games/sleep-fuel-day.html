@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sleep &amp; Fuel Day — HPE</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    .category-label {
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.55rem;
+      border-radius: 9999px;
+      display: inline-block;
+      margin-bottom: 0.35rem;
+    }
+    .cat-sleep { background: #e0e7ff; color: #3730a3; }
+    .cat-water { background: #dbeafe; color: #1d4ed8; }
+    .cat-play { background: #dcfce7; color: #166534; }
+    .cat-hygiene { background: #fce7f3; color: #9d174d; }
+    .day-card {
+      border: 3px solid #e2e8f0;
+      border-radius: 1.25rem;
+      padding: 0.9rem 1rem;
+      background: white;
+      font-weight: 600;
+      font-size: 1rem;
+      text-align: left;
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s, background 0.15s;
+      font-family: inherit;
+      width: 100%;
+    }
+    .day-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+    .day-card.selected {
+      border-color: var(--accent);
+      background: #faf5ff;
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+    }
+    .day-card.selected.weak {
+      border-color: #f59e0b;
+      background: #fffbeb;
+    }
+    .slot-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+    .slot-box {
+      border: 2px dashed #cbd5e1;
+      border-radius: 1rem;
+      padding: 0.65rem;
+      min-height: 4rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-align: center;
+      color: #64748b;
+      background: #f8fafc;
+    }
+    .slot-box.filled {
+      border-style: solid;
+      border-color: var(--accent);
+      background: white;
+      color: #334155;
+    }
+  </style>
+</head>
+<body class="game theme-hpe min-h-screen">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="score-hud" id="score-hud">Day score: 0 / 16</div>
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← HPE</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+
+    <div id="play-screen">
+      <header class="mb-4 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2 drop-shadow-sm" style="color: var(--accent-dark)">🌙 Sleep &amp; Fuel Day</h1>
+        <p class="text-lg text-slate-500 font-medium">Pick one card from each zone: sleep, water, play, and hygiene!</p>
+        <p id="pick-hint" class="mt-2 text-sm font-semibold" style="color: var(--accent)">Choose 4 cards (one per category)</p>
+      </header>
+
+      <div class="question-card p-4 mb-4 animate-pop">
+        <p class="text-center font-bold text-slate-600 mb-2">Your day plan</p>
+        <div class="slot-grid">
+          <div class="slot-box" id="slot-sleep" data-cat="sleep">😴 Sleep</div>
+          <div class="slot-box" id="slot-water" data-cat="water">💧 Water</div>
+          <div class="slot-box" id="slot-play" data-cat="play">⚽ Play</div>
+          <div class="slot-box" id="slot-hygiene" data-cat="hygiene">🪥 Hygiene</div>
+        </div>
+      </div>
+
+      <div id="cards-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 animate-pop"></div>
+
+      <div class="text-center">
+        <button type="button" id="score-day-btn" class="btn-primary opacity-50 pointer-events-none" disabled>Score My Day ✨</button>
+      </div>
+    </div>
+
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div id="result-emoji" class="text-7xl mb-4">☀️</div>
+      <h2 id="result-title" class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Day Complete!</h2>
+      <p class="text-2xl font-medium text-slate-600 mb-4">
+        Day score: <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">0</span> / 16
+      </p>
+      <p id="result-detail" class="text-lg text-slate-500 mb-8 font-medium leading-relaxed"></p>
+      <button type="button" id="play-again" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+
+  <script src="../../../js/fun-effects.js"></script>
+  <script>
+    (function () {
+      const CARDS = [
+        { id: 'sl1', category: 'sleep', text: '😴 9 hours of cozy sleep', points: 4, strong: true },
+        { id: 'sl2', category: 'sleep', text: '🌙 Bedtime story then lights out', points: 4, strong: true },
+        { id: 'sl3', category: 'sleep', text: '📺 Screens until midnight', points: 1, strong: false },
+        { id: 'sl4', category: 'sleep', text: '😵 Only 5 hours of sleep', points: 0, strong: false },
+        { id: 'wa1', category: 'water', text: '💧 Water bottle refilled 3 times', points: 4, strong: true },
+        { id: 'wa2', category: 'water', text: '🥤 Mostly water, no soda', points: 4, strong: true },
+        { id: 'wa3', category: 'water', text: '🧃 Juice only all day', points: 2, strong: false },
+        { id: 'wa4', category: 'water', text: '🚫 Forgot to drink much', points: 0, strong: false },
+        { id: 'pl1', category: 'play', text: '⚽ 30 minutes outside play', points: 4, strong: true },
+        { id: 'pl2', category: 'play', text: '🚴 Bike ride with family', points: 4, strong: true },
+        { id: 'pl3', category: 'play', text: '📱 Games on couch all day', points: 1, strong: false },
+        { id: 'pl4', category: 'play', text: '🛋️ No active break', points: 0, strong: false },
+        { id: 'hy1', category: 'hygiene', text: '🪥 Brush morning and night', points: 4, strong: true },
+        { id: 'hy2', category: 'hygiene', text: '🧼 Wash hands before lunch', points: 4, strong: true },
+        { id: 'hy3', category: 'hygiene', text: '🙈 Skip brushing once', points: 1, strong: false },
+        { id: 'hy4', category: 'hygiene', text: '😷 Never wash hands', points: 0, strong: false }
+      ];
+
+      const CATEGORIES = ['sleep', 'water', 'play', 'hygiene'];
+      const MAX_SCORE = 16;
+      const picks = {};
+
+      const cardsGrid = document.getElementById('cards-grid');
+      const scoreDayBtn = document.getElementById('score-day-btn');
+      const scoreHud = document.getElementById('score-hud');
+      const playScreen = document.getElementById('play-screen');
+      const resultScreen = document.getElementById('result-screen');
+
+      const catClass = {
+        sleep: 'cat-sleep',
+        water: 'cat-water',
+        play: 'cat-play',
+        hygiene: 'cat-hygiene'
+      };
+      const catEmoji = { sleep: '😴', water: '💧', play: '⚽', hygiene: '🪥' };
+
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function getCard(id) {
+        return CARDS.find(c => c.id === id);
+      }
+
+      function livePreviewScore() {
+        let s = 0;
+        CATEGORIES.forEach(cat => {
+          if (picks[cat]) s += getCard(picks[cat]).points;
+        });
+        scoreHud.textContent = 'Day score: ' + s + ' / ' + MAX_SCORE;
+        if (window.FunEffects) FunEffects.pulseScore(scoreHud);
+      }
+
+      function updateSlots() {
+        CATEGORIES.forEach(cat => {
+          const slot = document.getElementById('slot-' + cat);
+          if (picks[cat]) {
+            slot.textContent = getCard(picks[cat]).text;
+            slot.classList.add('filled');
+          } else {
+            slot.textContent = catEmoji[cat] + ' ' + cat.charAt(0).toUpperCase() + cat.slice(1);
+            slot.classList.remove('filled');
+          }
+        });
+        const ready = CATEGORIES.every(cat => picks[cat]);
+        scoreDayBtn.disabled = !ready;
+        scoreDayBtn.classList.toggle('opacity-50', !ready);
+        scoreDayBtn.classList.toggle('pointer-events-none', !ready);
+        livePreviewScore();
+      }
+
+      function renderCards() {
+        CATEGORIES.forEach(cat => { delete picks[cat]; });
+        cardsGrid.innerHTML = '';
+        document.querySelectorAll('.day-card').forEach(() => {});
+        shuffle(CARDS).forEach(c => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'day-card';
+          btn.dataset.id = c.id;
+          btn.dataset.category = c.category;
+          btn.innerHTML = '<span class="category-label ' + catClass[c.category] + '">' + c.category + '</span><br>' + c.text;
+          btn.addEventListener('click', () => toggleCard(c.id, btn));
+          cardsGrid.appendChild(btn);
+        });
+        updateSlots();
+        scoreHud.textContent = 'Day score: 0 / ' + MAX_SCORE;
+      }
+
+      function toggleCard(id, btn) {
+        const card = getCard(id);
+        const cat = card.category;
+        if (picks[cat] === id) {
+          delete picks[cat];
+          btn.classList.remove('selected', 'weak');
+        } else {
+          cardsGrid.querySelectorAll('.day-card[data-category="' + cat + '"]').forEach(b => {
+            b.classList.remove('selected', 'weak');
+          });
+          picks[cat] = id;
+          btn.classList.add('selected');
+          if (!card.strong) btn.classList.add('weak');
+        }
+        updateSlots();
+      }
+
+      function scoreDay() {
+        let total = 0;
+        CATEGORIES.forEach(cat => {
+          total += getCard(picks[cat]).points;
+        });
+        playScreen.classList.add('hidden');
+        resultScreen.classList.remove('hidden');
+        document.getElementById('score-display').textContent = String(total);
+        const detail = document.getElementById('result-detail');
+        const title = document.getElementById('result-title');
+        const emoji = document.getElementById('result-emoji');
+        if (total >= 14) {
+          emoji.textContent = '🌈';
+          title.textContent = 'Supercharged Day!';
+          detail.textContent = 'Great sleep, water, play, and hygiene — your body has top fuel!';
+          if (window.FunEffects) FunEffects.celebratePerfect();
+        } else if (total >= 10) {
+          emoji.textContent = '👍';
+          title.textContent = 'Solid Day!';
+          detail.textContent = 'Nice picks! Swap any weak habit for a stronger card next round.';
+        } else {
+          emoji.textContent = '💪';
+          title.textContent = 'Room to Grow!';
+          detail.textContent = 'Try the 4-point cards in each category for the highest day score.';
+        }
+      }
+
+      scoreDayBtn.addEventListener('click', scoreDay);
+      document.getElementById('play-again').addEventListener('click', () => {
+        resultScreen.classList.add('hidden');
+        playScreen.classList.remove('hidden');
+        renderCards();
+      });
+
+      renderCards();
+    })();
+  </script>
+</body>
+</html>

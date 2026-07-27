@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>My Body Organs Game — HPE</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    body.game.theme-hpe { touch-action: none; overflow-x: hidden; }
+    .phase1-zone {
+      border: 3px dashed #cbd5e1;
+      border-radius: 1rem;
+      background-color: #f8fafc;
+    }
+    .organ-svg { width: 90px; height: 90px; filter: drop-shadow(0 4px 3px rgba(0,0,0,0.15)); }
+    @media (min-width: 768px) { .organ-svg { width: 120px; height: 120px; } }
+    #silhouette-container {
+      position: relative;
+      width: 250px;
+      height: 400px;
+      margin: 0 auto;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400"><path d="M100 20 C70 20, 60 50, 60 70 C60 90, 75 100, 85 105 C70 110, 40 120, 30 150 C20 180, 20 250, 20 250 L45 250 L55 180 L55 380 L90 380 L100 250 L110 380 L145 380 L145 180 L155 250 L180 250 C180 250, 180 180, 170 150 C160 120, 130 110, 115 105 C125 100, 140 90, 140 70 C140 50, 130 20, 100 20 Z" fill="%23e2e8f0" stroke="%2394a3b8" stroke-width="4"/></svg>');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+    .body-drop-zone {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: transparent;
+      border: none;
+    }
+    #zone-brain-body { top: 15px; left: 85px; width: 80px; height: 70px; }
+    #zone-lungs-body { top: 110px; left: 75px; width: 100px; height: 80px; border-radius: 20px; }
+    #zone-heart-body { top: 135px; left: 115px; width: 60px; height: 60px; }
+    #zone-stomach-body { top: 190px; left: 85px; width: 80px; height: 60px; border-radius: 30px; }
+  </style>
+</head>
+<body class="game theme-hpe min-h-screen flex flex-col items-center py-6 px-4">
+  <div class="nav-bar w-full max-w-4xl">
+    <a class="nav-link" href="../index.html">← HPE</a>
+    <a class="nav-link" href="../../../index.html">🏠 Home</a>
+  </div>
+
+  <div class="w-full max-w-4xl game-card p-4 md:p-8 relative">
+    <div class="text-center mb-6" id="title-block">
+      <h1 class="text-3xl md:text-4xl font-bold mb-2 drop-shadow-sm" style="color: var(--accent-dark)">🧬 My Body Game 🧬</h1>
+      <p id="instruction-text" class="text-xl text-slate-600 font-medium">Step 1: Drag the names to the correct organs!</p>
+    </div>
+
+    <div id="phase1" class="animate-pop">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+        <div class="flex flex-col items-center bg-slate-50 p-4 rounded-xl border-2 border-slate-200 shadow-inner">
+          <svg class="organ-svg mb-4" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 45 75 v 15 c 5 5 15 5 20 0 v -15 Z" fill="#ffcc80" stroke="#000" stroke-width="3"/>
+            <path d="M 55 70 c 15 0 25 10 20 25 c -15 5 -25 -10 -20 -25 Z" fill="#e6c2a3" stroke="#000" stroke-width="3"/>
+            <path d="M 15 55 C 5 30 25 10 55 15 C 85 20 95 45 85 65 C 75 80 30 80 15 55 Z" fill="#ffbd99" stroke="#000" stroke-width="3"/>
+            <path d="M 20 40 C 25 20 45 15 55 15 C 40 25 25 35 20 40 Z" fill="#ffffff" opacity="0.5"/>
+            <path d="M 25 35 Q 35 25 45 40 M 45 15 Q 50 30 60 25 M 70 25 Q 60 40 75 50 M 20 50 Q 30 45 40 60 M 40 60 Q 55 50 65 65 M 15 55 Q 25 65 40 55 M 85 45 Q 75 55 80 65" fill="none" stroke="#d88c6b" stroke-width="3" stroke-linecap="round"/>
+            <path d="M 55 75 l 10 10 M 60 72 l 10 10 M 65 70 l 10 10" fill="none" stroke="#906554" stroke-width="2"/>
+          </svg>
+          <div id="zone-brain" class="drop-zone phase1-zone w-full h-12" data-accept="brain"></div>
+        </div>
+        <div class="flex flex-col items-center bg-slate-50 p-4 rounded-xl border-2 border-slate-200 shadow-inner">
+          <svg class="organ-svg mb-4" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <rect x="25" y="10" width="15" height="40" fill="#4dd0e1" stroke="#000" stroke-width="3" rx="2"/>
+            <path d="M 60 38 h 25 v 12 h -25 z" fill="#ffca28" stroke="#000" stroke-width="3"/>
+            <path d="M 85 41 h 8 v 6 h -8 z" fill="#ffca28" stroke="#000" stroke-width="3"/>
+            <path d="M 40 25 C 20 20 10 50 25 75 C 40 100 65 80 70 55 C 75 35 60 25 40 25 Z" fill="#ff5252" stroke="#000" stroke-width="3"/>
+            <path d="M 45 25 V 12 h 6 V 23 M 55 23 V 10 h 6 V 23 M 65 25 V 14 h 6 V 26" fill="#ff5252" stroke="#000" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M 35 30 C 45 40 60 35 70 55" fill="none" stroke="#000" stroke-width="2" opacity="0.3"/>
+          </svg>
+          <div id="zone-heart" class="drop-zone phase1-zone w-full h-12" data-accept="heart"></div>
+        </div>
+        <div class="flex flex-col items-center bg-slate-50 p-4 rounded-xl border-2 border-slate-200 shadow-inner">
+          <svg class="organ-svg mb-4" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 46 5 v 25 l -12 12 v 8 l 12 -12 v 12 m 8 -45 v 25 l 12 12 v 8 l -12 -12" fill="none" stroke="#b2dfdb" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M 46 5 v 25 l -12 12 v 8 l 12 -12 v 12 m 8 -45 v 25 l 12 12 v 8 l -12 -12" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M 42 42 C 25 25 15 45 15 70 C 15 95 35 90 42 85 C 46 80 45 55 42 42 Z" fill="#ffb3cc" stroke="#000" stroke-width="3"/>
+            <path d="M 58 42 C 75 25 85 45 85 70 C 85 95 65 90 58 85 C 54 80 55 70 65 60 C 70 55 60 48 58 42 Z" fill="#ffb3cc" stroke="#000" stroke-width="3"/>
+            <path d="M 16 60 Q 25 65 42 62 M 17 78 Q 28 85 40 78 M 84 60 Q 75 65 65 62 M 83 78 Q 72 85 60 78" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+          <div id="zone-lungs" class="drop-zone phase1-zone w-full h-12" data-accept="lungs"></div>
+        </div>
+        <div class="flex flex-col items-center bg-slate-50 p-4 rounded-xl border-2 border-slate-200 shadow-inner">
+          <svg class="organ-svg mb-4" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 55 5 V 25 C 80 20 95 45 85 65 C 75 85 45 95 25 80 C 20 75 15 70 15 65 C 15 60 25 55 30 65 C 40 80 65 75 70 60 C 75 45 65 35 40 35 V 5 Z" fill="#ffb3cc" stroke="#000" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M 15 65 c -6 -6 -12 0 -12 6 v 4 c 0 6 6 12 12 6 Z" fill="#ffb3cc" stroke="#000" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M 22 75 C 40 90 60 85 75 65" fill="none" stroke="#000" stroke-width="2" opacity="0.2"/>
+          </svg>
+          <div id="zone-stomach" class="drop-zone phase1-zone w-full h-12" data-accept="stomach"></div>
+        </div>
+      </div>
+
+      <div id="labels-container" class="flex flex-wrap justify-center gap-4 bg-slate-100 p-4 rounded-xl border-2 border-slate-200 min-h-[80px]">
+        <div class="draggable label-item bg-white px-6 py-3 rounded-lg border-2 border-slate-300 font-bold text-xl text-slate-700 shadow-sm" data-id="heart">Heart</div>
+        <div class="draggable label-item bg-white px-6 py-3 rounded-lg border-2 border-slate-300 font-bold text-xl text-slate-700 shadow-sm" data-id="brain">Brain</div>
+        <div class="draggable label-item bg-white px-6 py-3 rounded-lg border-2 border-slate-300 font-bold text-xl text-slate-700 shadow-sm" data-id="stomach">Stomach</div>
+        <div class="draggable label-item bg-white px-6 py-3 rounded-lg border-2 border-slate-300 font-bold text-xl text-slate-700 shadow-sm" data-id="lungs">Lungs</div>
+      </div>
+
+      <div class="text-center mt-6">
+        <button type="button" id="btn-next-phase" class="hidden btn-primary">Great! Next Step ➡️</button>
+      </div>
+    </div>
+
+    <div id="phase2" class="hidden animate-pop">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-8">
+        <div id="organs-container" class="flex flex-row md:flex-col flex-wrap justify-center gap-4 bg-slate-100 p-4 rounded-xl border-2 border-slate-200 min-h-[100px] md:w-1/3"></div>
+        <div id="silhouette-container" class="md:w-2/3">
+          <div id="zone-brain-body" class="drop-zone phase2-zone body-drop-zone" data-accept="brain"></div>
+          <div id="zone-lungs-body" class="drop-zone phase2-zone body-drop-zone" data-accept="lungs"></div>
+          <div id="zone-heart-body" class="drop-zone phase2-zone body-drop-zone" data-accept="heart"></div>
+          <div id="zone-stomach-body" class="drop-zone phase2-zone body-drop-zone" data-accept="stomach"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="win-screen" class="hidden text-center py-10 animate-pop">
+      <div class="text-7xl mb-4 animate-tada">🏆</div>
+      <h2 class="text-4xl font-bold text-green-500 mb-4">Amazing Job!</h2>
+      <p class="text-2xl text-slate-600 mb-8 font-medium">You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">8</span> out of 8!</p>
+      <button type="button" onclick="location.reload()" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </div>
+
+  <div id="feedback-toast" class="feedback-toast">Perfect! ✨</div>
+
+  <script src="../../../js/fun-effects.js"></script>
+  <script>
+    let currentPhase = 1;
+    let placedCount = 0;
+    let activeEl = null;
+    let startX, startY, initialX = 0, initialY = 0;
+    let activeZones = [];
+
+    const instructionText = document.getElementById('instruction-text');
+    const phase1 = document.getElementById('phase1');
+    const phase2 = document.getElementById('phase2');
+    const btnNextPhase = document.getElementById('btn-next-phase');
+    const winScreen = document.getElementById('win-screen');
+    const feedbackToast = document.getElementById('feedback-toast');
+    const organsContainerPhase2 = document.getElementById('organs-container');
+    const titleBlock = document.getElementById('title-block');
+    const TOTAL_ORGANS = 8;
+
+    function initPhase1() {
+      currentPhase = 1;
+      placedCount = 0;
+      activeZones = Array.from(document.querySelectorAll('.phase1-zone'));
+      setupDraggables(document.querySelectorAll('.label-item'));
+    }
+
+    function setupDraggables(elements) {
+      elements.forEach(el => {
+        el.addEventListener('pointerdown', onPointerDown);
+        el.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+      });
+      document.addEventListener('pointermove', onPointerMove);
+      document.addEventListener('pointerup', onPointerUp);
+    }
+
+    function onPointerDown(e) {
+      const target = e.target.closest('.draggable');
+      if (!target || target.classList.contains('locked')) return;
+      e.preventDefault();
+      activeEl = target;
+      activeEl.setPointerCapture(e.pointerId);
+      activeEl.style.zIndex = 1000;
+      activeEl.style.transform = 'scale(1.1)';
+      activeEl.classList.add('shadow-xl');
+      startX = e.clientX;
+      startY = e.clientY;
+      const transform = window.getComputedStyle(activeEl).transform;
+      if (transform !== 'none') {
+        const matrix = new DOMMatrixReadOnly(transform);
+        initialX = matrix.m41;
+        initialY = matrix.m42;
+      } else {
+        initialX = 0;
+        initialY = 0;
+      }
+    }
+
+    function onPointerMove(e) {
+      if (!activeEl) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      activeEl.style.transform = `translate(${initialX + dx}px, ${initialY + dy}px) scale(1.1)`;
+      checkHoverHighlight(e.clientX, e.clientY);
+    }
+
+    function onPointerUp(e) {
+      if (!activeEl) return;
+      activeEl.releasePointerCapture(e.pointerId);
+      activeEl.classList.remove('shadow-xl');
+      activeEl.style.zIndex = '';
+      activeZones.forEach(z => z.classList.remove('highlight'));
+      const elRect = activeEl.getBoundingClientRect();
+      let dropped = false;
+      for (const zone of activeZones) {
+        if (zone.dataset.accept === activeEl.dataset.id) {
+          const zoneRect = zone.getBoundingClientRect();
+          if (isOverlapping(elRect, zoneRect)) {
+            snapToZone(activeEl, zone);
+            dropped = true;
+            break;
+          }
+        }
+      }
+      if (!dropped) {
+        activeEl.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        activeEl.style.transform = 'translate(0px, 0px)';
+        setTimeout(() => { activeEl.style.transition = 'transform 0.1s'; }, 300);
+      }
+      activeEl = null;
+    }
+
+    function isOverlapping(rect1, rect2) {
+      return !(rect1.right < rect2.left + 20 ||
+               rect1.left > rect2.right - 20 ||
+               rect1.bottom < rect2.top + 20 ||
+               rect1.top > rect2.bottom - 20);
+    }
+
+    function checkHoverHighlight(mouseX, mouseY) {
+      activeZones.forEach(zone => {
+        const rect = zone.getBoundingClientRect();
+        if (mouseX >= rect.left && mouseX <= rect.right &&
+            mouseY >= rect.top && mouseY <= rect.bottom) {
+          if (zone.dataset.accept === activeEl.dataset.id && zone.classList.contains('phase1-zone')) {
+            zone.classList.add('highlight');
+          }
+        } else {
+          zone.classList.remove('highlight');
+        }
+      });
+    }
+
+    function snapToZone(element, zone) {
+      zone.appendChild(element);
+      element.style.transition = 'none';
+      element.style.transform = 'none';
+      setTimeout(() => { element.style.transition = 'transform 0.1s'; }, 50);
+      element.classList.add('locked');
+      element.classList.remove('draggable');
+      element.style.cursor = 'default';
+      zone.classList.remove('highlight');
+      if (zone.classList.contains('phase1-zone')) {
+        zone.style.borderColor = '#34d399';
+        element.classList.add('bg-green-100', 'border-green-400');
+      }
+      showToast();
+      placedCount++;
+      checkProgress();
+    }
+
+    function showToast() {
+      feedbackToast.style.opacity = '1';
+      feedbackToast.classList.add('animate-pop');
+      setTimeout(() => {
+        feedbackToast.style.opacity = '0';
+        feedbackToast.classList.remove('animate-pop');
+      }, 1000);
+    }
+
+    function checkProgress() {
+      if (currentPhase === 1 && placedCount === 4) {
+        btnNextPhase.classList.remove('hidden');
+        btnNextPhase.classList.add('animate-tada');
+      } else if (currentPhase === 2 && placedCount === 4) {
+        setTimeout(showWinScreen, 500);
+      }
+    }
+
+    btnNextPhase.addEventListener('click', () => {
+      currentPhase = 2;
+      placedCount = 0;
+      phase1.classList.add('hidden');
+      phase2.classList.remove('hidden');
+      instructionText.textContent = 'Step 2: Drag the organs into the correct place in the body!';
+      activeZones = Array.from(document.querySelectorAll('.phase2-zone'));
+      const organs = ['brain', 'heart', 'lungs', 'stomach'];
+      organs.forEach(id => {
+        const parentDiv = document.querySelector(`#zone-${id}`).parentElement;
+        const dragWrapper = document.createElement('div');
+        dragWrapper.className = 'draggable flex flex-col items-center cursor-grab p-1';
+        dragWrapper.dataset.id = id;
+        const imgClone = parentDiv.querySelector('.organ-svg').cloneNode(true);
+        imgClone.style.width = '60px';
+        imgClone.style.height = '60px';
+        imgClone.classList.remove('mb-4');
+        const labelName = parentDiv.querySelector('.label-item').textContent;
+        const labelP = document.createElement('p');
+        labelP.textContent = labelName;
+        labelP.className = 'font-bold text-sm text-slate-700 mt-1';
+        dragWrapper.appendChild(imgClone);
+        dragWrapper.appendChild(labelP);
+        organsContainerPhase2.appendChild(dragWrapper);
+      });
+      setupDraggables(document.querySelectorAll('#organs-container .draggable'));
+    });
+
+    function showWinScreen() {
+      document.getElementById('score-display').textContent = String(TOTAL_ORGANS);
+      if (window.FunEffects) FunEffects.confetti();
+      phase2.classList.add('hidden');
+      titleBlock.classList.add('hidden');
+      winScreen.classList.remove('hidden');
+    }
+
+    initPhase1();
+  </script>
+</body>
+</html>

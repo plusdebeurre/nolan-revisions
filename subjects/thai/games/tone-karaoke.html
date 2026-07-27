@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tone Karaoke — Thai</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Sarabun:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    .syllable-display {
+      font-family: 'Sarabun', sans-serif;
+      font-size: 4rem;
+      font-weight: 700;
+    }
+    .karaoke-wrap {
+      position: relative;
+      height: 2rem;
+      background: #1e293b;
+      border-radius: 999px;
+      overflow: hidden;
+      max-width: 20rem;
+      margin: 0 auto;
+    }
+    .karaoke-fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 0%;
+      background: linear-gradient(90deg, #f472b6, #a855f7, #38bdf8);
+      transition: width 0.35s ease;
+    }
+    .karaoke-mic {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      transform: translate(-50%, -50%);
+      font-size: 1.25rem;
+      transition: left 0.35s ease;
+      z-index: 2;
+    }
+    .tone-btn { min-height: 3.25rem; font-weight: 700; font-size: 1.05rem; }
+  </style>
+</head>
+<body class="game theme-thai">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← Thai</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+    <div id="play-screen">
+      <header class="mb-6 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2" style="color: var(--accent-dark)">🎤 Tone Karaoke</h1>
+        <p class="text-lg text-slate-500">Sing the tone name for each syllable!</p>
+        <div class="karaoke-wrap mt-4 mb-2">
+          <div id="karaoke-fill" class="karaoke-fill"></div>
+          <span id="karaoke-mic" class="karaoke-mic">🎤</span>
+        </div>
+        <p id="score-hud" class="mt-2 text-sm font-semibold" style="color: var(--accent)">Score: 0 · Verse 1 of 12</p>
+      </header>
+      <div class="question-card p-6 md:p-8 animate-pop text-center">
+        <p class="text-slate-500 font-medium mb-2">Which tone mark rules this word?</p>
+        <div id="syllable" class="syllable-display mb-6 text-slate-800">ไก่</div>
+        <div id="choices" class="grid grid-cols-2 gap-3 mb-4"></div>
+        <div id="feedback" class="hidden p-4 rounded-xl text-lg font-medium mb-4"></div>
+        <button type="button" id="next-btn" class="hidden btn-primary">Next verse ⏭</button>
+      </div>
+    </div>
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div class="text-6xl mb-4">🎵</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Encore!</h2>
+      <p class="text-2xl text-slate-600 mb-6">You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">0</span> out of <span id="total-display">12</span>!</p>
+      <p id="result-message" class="text-lg text-slate-500 mb-8"></p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+  <script src="../../../js/fun-effects.js"></script>
+  <script>
+    const NAMES = ['Mai Ek', 'Mai Tho', 'Mai Tri', 'Mai Chattawa'];
+    const ROUNDS = [
+      { syllable: 'ไก่', answer: 0, tip: 'ไก่ uses Mai Ek (่) — low tone on live syllable rules + class.' },
+      { syllable: 'ม้า', answer: 1, tip: 'ม้า has ้ — Mai Tho (falling tone here).' },
+      { syllable: 'น้ำ', answer: 1, tip: 'น้ำ — Mai Tho mark ้.' },
+      { syllable: 'ใบ', answer: 0, tip: 'ใบ tree/leaf — Mai Ek ่ on the vowel cluster.' },
+      { syllable: 'ช้าง', answer: 1, tip: 'ช้าง elephant — ้ is Mai Tho.' },
+      { syllable: 'เรือ', answer: 0, tip: 'เรือ boat — Mai Ek tone pattern.' },
+      { syllable: 'เด็ก', answer: 0, tip: 'เด็ก child — Mai Ek ่.' },
+      { syllable: 'แม่', answer: 0, tip: 'แม่ mother — Mai Ek.' },
+      { syllable: 'ปลา', answer: 0, tip: 'ปลา fish — Mai Ek on live syllable.' },
+      { syllable: 'หมา', answer: 0, tip: 'หมา dog — Mai Ek mark.' },
+      { syllable: 'บ้าน', answer: 1, tip: 'บ้าน house — Mai Tho ้.' },
+      { syllable: 'ดี', answer: 0, tip: 'ดี good — Mai Ek ่.' }
+    ];
+    let i = 0, score = 0, streak = 0, locked = false;
+    const syllableEl = document.getElementById('syllable');
+    const choices = document.getElementById('choices');
+    const feedback = document.getElementById('feedback');
+    const nextBtn = document.getElementById('next-btn');
+    const karaokeFill = document.getElementById('karaoke-fill');
+    const karaokeMic = document.getElementById('karaoke-mic');
+    const scoreHud = document.getElementById('score-hud');
+
+    function updateKaraoke() {
+      const pct = (i / ROUNDS.length) * 100;
+      karaokeFill.style.width = pct + '%';
+      karaokeMic.style.left = Math.max(8, pct) + '%';
+    }
+    function load() {
+      locked = false;
+      feedback.classList.add('hidden');
+      nextBtn.classList.add('hidden');
+      const r = ROUNDS[i];
+      syllableEl.textContent = r.syllable;
+      updateKaraoke();
+      scoreHud.textContent = `Score: ${score} · Verse ${i + 1} of ${ROUNDS.length}`;
+      choices.innerHTML = '';
+      NAMES.forEach((name, idx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'option-btn tone-btn text-center';
+        btn.textContent = name;
+        btn.addEventListener('click', () => pick(idx, r));
+        choices.appendChild(btn);
+      });
+    }
+    function pick(idx, r) {
+      if (locked) return;
+      locked = true;
+      [...choices.children].forEach((b, j) => {
+        if (j === r.answer) b.classList.add('correct');
+        else if (j === idx && idx !== r.answer) b.classList.add('wrong');
+      });
+      feedback.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+      if (idx === r.answer) {
+        score++;
+        streak++;
+        if (window.FunEffects) {
+          FunEffects.showStreak(streak);
+          FunEffects.pulseScore(scoreHud);
+        }
+        feedback.classList.add('bg-green-100', 'text-green-800');
+        feedback.innerHTML = `<strong>On pitch! 🎉</strong><br>${r.tip}`;
+      } else {
+        streak = 0;
+        if (window.FunEffects) FunEffects.shake(syllableEl);
+        feedback.classList.add('bg-red-100', 'text-red-800');
+        feedback.innerHTML = `<strong>Listen again!</strong><br>${r.tip}`;
+      }
+      scoreHud.textContent = `Score: ${score} · Verse ${i + 1} of ${ROUNDS.length}`;
+      nextBtn.classList.remove('hidden');
+    }
+    nextBtn.addEventListener('click', () => {
+      i++;
+      if (i < ROUNDS.length) load();
+      else {
+        karaokeFill.style.width = '100%';
+        karaokeMic.style.left = '96%';
+        document.getElementById('play-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+        document.getElementById('score-display').textContent = score;
+        document.getElementById('total-display').textContent = ROUNDS.length;
+        document.getElementById('result-message').textContent =
+          score === ROUNDS.length ? 'Tone superstar! 🌟' : score >= 9 ? 'Great singing! 👍' : 'Hum the marks again! 💪';
+        if (score === ROUNDS.length && window.FunEffects) FunEffects.confetti();
+      }
+    });
+    document.getElementById('restart-btn').addEventListener('click', () => {
+      i = 0; score = 0; streak = 0;
+      document.getElementById('result-screen').classList.add('hidden');
+      document.getElementById('play-screen').classList.remove('hidden');
+      load();
+    });
+    load();
+  </script>
+</body>
+</html>

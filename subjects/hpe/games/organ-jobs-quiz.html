@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Organ Jobs Quiz — HPE</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body>
+  <div id="app"></div>
+  <script src="../../../js/quiz-engine.js"></script>
+  <script>
+    QuizEngine.mount({
+      subject: 'hpe',
+      title: '🫀 Organ Jobs Quiz',
+      subtitle: 'What do your organs do?',
+      backHref: '../index.html',
+      homeHref: '../../../index.html',
+      perfectMessage: 'Perfect! You know what every organ does! 🌟',
+      goodMessage: 'Great job! Your body knowledge is growing! 👍',
+      tryAgainMessage: 'Good try! Play again to learn more! 💪',
+      quizData: [
+        {
+          question: 'What is the main job of the brain?',
+          options: ['Pump blood', 'Help you think, move, and feel', 'Digest food', 'Help you breathe'],
+          correctAnswer: 1,
+          explanation: 'The brain is the boss of your body. It helps you think, move, and feel things.',
+          hint: 'It lives inside your head and helps you learn at school!'
+        },
+        {
+          question: 'What does the heart do?',
+          options: ['Breaks down food', 'Pumps blood around your body', 'Fills your lungs with air', 'Stores memories'],
+          correctAnswer: 1,
+          explanation: 'The heart works like a pump, sending blood to every part of you.',
+          hint: 'You can feel it beating when you run!'
+        },
+        {
+          question: 'Your lungs help you…',
+          options: ['Chew food', 'Breathe in air', 'Think faster', 'Grow taller overnight'],
+          correctAnswer: 1,
+          explanation: 'Lungs bring fresh air in and push used air out so your body gets oxygen.',
+          hint: 'Take a deep breath — that is your lungs working!'
+        },
+        {
+          question: 'The stomach helps your body by…',
+          options: ['Pumping blood', 'Digesting the food you eat', 'Controlling your legs', 'Making you sneeze'],
+          correctAnswer: 1,
+          explanation: 'The stomach mixes and breaks down food so your body can use the energy.',
+          hint: 'It is in your belly, below your lungs.'
+        },
+        {
+          question: 'Which organ controls thinking and feeling?',
+          options: ['Heart', 'Stomach', 'Brain', 'Lungs'],
+          correctAnswer: 2,
+          explanation: 'The brain sends messages so you can think, learn, and feel emotions.'
+        },
+        {
+          question: 'Which organ pumps blood to your muscles when you exercise?',
+          options: ['Lungs', 'Heart', 'Stomach', 'Brain'],
+          correctAnswer: 1,
+          explanation: 'When you run or jump, your heart beats faster to send blood to your muscles.'
+        },
+        {
+          question: 'When you take a big breath before a race, which organs fill with air?',
+          options: ['Stomach', 'Lungs', 'Heart', 'Brain'],
+          correctAnswer: 1,
+          explanation: 'Air goes into your lungs so oxygen can travel through your blood.'
+        },
+        {
+          question: 'After you eat lunch, which organ starts breaking the food down?',
+          options: ['Brain', 'Heart', 'Stomach', 'Lungs'],
+          correctAnswer: 2,
+          explanation: 'The stomach churns food so your body can absorb nutrients and get energy.'
+        }
+      ]
+    });
+  </script>
+</body>
+</html>

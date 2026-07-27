@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pronoun Rescue — English</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body>
+  <div id="app"></div>
+  <script src="../../../js/quiz-engine.js"></script>
+  <script>
+    QuizEngine.mount({
+      subject: 'english',
+      title: '🦉 Pronoun Rescue',
+      subtitle: 'Subject & Object Pronouns — Unit 2',
+      backHref: '../index.html',
+      homeHref: '../../../index.html',
+      perfectMessage: 'You saved every animal with perfect pronouns! 🌟',
+      goodMessage: 'Awesome grammar hero! 👍',
+      tryAgainMessage: 'Practice again — the animals need you! 💪',
+      quizData: [
+        {
+          question: '🐕 The dog is happy. ___ runs in the park.',
+          options: ['I', 'He', 'They', 'We'],
+          correctAnswer: 1,
+          explanation: "Use 'He' for one boy or male animal (the dog)."
+        },
+        {
+          question: '🐱 The cat is sleepy. Give a blanket to ___.',
+          options: ['her', 'him', 'it', 'them'],
+          correctAnswer: 2,
+          explanation: "Use 'it' for one animal when we do not say he or she."
+        },
+        {
+          question: '🦁 Lions are strong. ___ live in groups.',
+          options: ['She', 'It', 'They', 'He'],
+          correctAnswer: 2,
+          explanation: "Use 'They' for more than one animal (lions)."
+        },
+        {
+          question: '🐸 The frog is wet. I see ___ on the leaf.',
+          options: ['it', 'us', 'you', 'I'],
+          correctAnswer: 0,
+          explanation: "Use 'it' as the object pronoun for one frog."
+        },
+        {
+          question: '🦜 Parrots are loud. ___ sing every morning.',
+          options: ['He', 'She', 'They', 'Me'],
+          correctAnswer: 2,
+          explanation: "Use 'They' as the subject for many parrots."
+        },
+        {
+          question: '🐢 The turtle is slow. Mom helps ___.',
+          options: ['I', 'we', 'it', 'you'],
+          correctAnswer: 2,
+          explanation: "After 'helps,' use the object pronoun 'it' for the turtle."
+        },
+        {
+          question: '🐟 We feed the goldfish. ___ are hungry.',
+          options: ['It', 'They', 'She', 'He'],
+          correctAnswer: 1,
+          explanation: "Two or more fish → subject pronoun 'They.'"
+        },
+        {
+          question: '🦅 The eagle is flying. I watch ___.',
+          options: ['her', 'him', 'it', 'them'],
+          correctAnswer: 2,
+          explanation: "Use 'it' when watching one bird."
+        },
+        {
+          question: '🐘 Elephants are big. ___ drink lots of water.',
+          options: ['She', 'They', 'It', 'Me'],
+          correctAnswer: 1,
+          explanation: "Many elephants → 'They' at the start of the sentence."
+        },
+        {
+          question: '🐕 My puppy loves me. I play with ___.',
+          options: ['us', 'them', 'him', 'I'],
+          correctAnswer: 2,
+          explanation: "One male puppy → object pronoun 'him' after 'with.'"
+        }
+      ]
+    });
+  </script>
+</body>
+</html>

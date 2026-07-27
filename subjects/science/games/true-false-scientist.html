@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>True or False Scientist — Science</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    .tf-btn { min-height: 3.5rem; font-size: 1.25rem; }
+  </style>
+</head>
+<body class="game theme-science">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="score-hud" id="score-hud">Score: 0 / 24</div>
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← Science</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+    <div id="play-screen">
+      <header class="mb-6 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2" style="color: var(--accent-dark)">🔬 True or False Scientist</h1>
+        <p class="text-lg text-slate-500 font-medium">Quick facts about plants &amp; living things!</p>
+        <div class="progress-track"><div id="progress-bar" class="progress-bar-fill"></div></div>
+        <p id="round-label" class="mt-2 text-sm font-semibold" style="color: var(--accent)">Statement 1 of 24</p>
+      </header>
+      <div id="game-card" class="question-card p-6 md:p-8 animate-pop">
+        <h2 id="statement" class="text-xl md:text-2xl font-semibold text-center text-slate-700 leading-snug mb-8"></h2>
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <button type="button" id="btn-true" class="tf-btn btn-primary bg-green-600 hover:bg-green-700">✅ True</button>
+          <button type="button" id="btn-false" class="tf-btn btn-primary bg-rose-600 hover:bg-rose-700">❌ False</button>
+        </div>
+        <div id="feedback" class="hidden text-center p-4 rounded-xl text-lg font-medium mb-4"></div>
+        <div class="text-center"><button type="button" id="next-btn" class="hidden btn-primary">Next 🚀</button></div>
+      </div>
+    </div>
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div class="text-6xl mb-4">🥼</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Lab Complete!</h2>
+      <p class="text-2xl font-medium text-slate-600 mb-6">You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">0</span> out of 24!</p>
+      <p id="result-message" class="text-lg text-slate-500 mb-8 font-medium"></p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+  <script src="../../../js/fun-effects.js"></script>
+  <script>
+    (function () {
+      const STATEMENTS = [
+        { text: 'Plants make their own food using sunlight.', answer: true, why: 'Leaves use light, water, and air to make sugar.' },
+        { text: 'Rocks are living because they sit in the garden.', answer: false, why: 'Rocks do not grow, breathe, or reproduce.' },
+        { text: 'Roots take in water from the soil.', answer: true, why: 'Roots act like straws underground.' },
+        { text: 'A car is a living thing because it moves.', answer: false, why: 'Cars are machines — they do not grow or have babies.' },
+        { text: 'All living things need water to stay alive.', answer: true, why: 'Water helps every cell in plants and animals.' },
+        { text: 'Leaves release oxygen during photosynthesis.', answer: true, why: 'Oxygen is a gas plants give off as they make food.' },
+        { text: 'Seeds cannot grow without water.', answer: true, why: 'Water softens the seed coat so the plant can sprout.' },
+        { text: 'Fire is a living thing because it spreads.', answer: false, why: 'Fire is not alive — it is a chemical reaction.' },
+        { text: 'The stem holds the plant up and carries water.', answer: true, why: 'Stems are like pipes and a backbone.' },
+        { text: 'Fish breathe underwater using gills.', answer: true, why: 'Gills take oxygen from the water.' },
+        { text: 'Plants do not need air at all.', answer: false, why: 'Plants use carbon dioxide from the air.' },
+        { text: 'A butterfly is a living thing.', answer: true, why: 'It grows, moves, eats, and lays eggs.' },
+        { text: 'Fruit often protects seeds inside.', answer: true, why: 'Apples and berries wrap seeds safely.' },
+        { text: 'Clouds are living because they change shape.', answer: false, why: 'Clouds are made of tiny water drops in the sky.' },
+        { text: 'Cacti can live in deserts with little rain.', answer: true, why: 'They store water in their stems.' },
+        { text: 'Only animals are living — plants are not.', answer: false, why: 'Plants are living too!' },
+        { text: 'Germination is when a seed starts to grow.', answer: true, why: 'The root and shoot appear during germination.' },
+        { text: 'Trees are plants.', answer: true, why: 'Trees have roots, stems, and leaves.' },
+        { text: 'A robot puppy is alive because it barks.', answer: false, why: 'Robots are built by people; they do not grow on their own.' },
+        { text: 'Photosynthesis happens mostly in the leaves.', answer: true, why: 'Green leaves catch sunlight.' },
+        { text: 'Mushrooms on pizza are the same as green plants making food.', answer: false, why: 'Fungi do not photosynthesize like green plants.' },
+        { text: 'Living things can grow bigger over time.', answer: true, why: 'Growth is one sign of life.' },
+        { text: 'You can keep a plant healthy in a dark closet forever.', answer: false, why: 'Without light, the plant cannot make food.' },
+        { text: 'Bees help flowers make seeds by moving pollen.', answer: true, why: 'Pollination helps plants reproduce.' }
+      ];
+      const TOTAL = STATEMENTS.length;
+      let roundIndex = 0, score = 0, streak = 0, canAnswer = true;
+
+      const scoreHud = document.getElementById('score-hud');
+      const statementEl = document.getElementById('statement');
+      const feedback = document.getElementById('feedback');
+      const nextBtn = document.getElementById('next-btn');
+      const gameCard = document.getElementById('game-card');
+      const btnTrue = document.getElementById('btn-true');
+      const btnFalse = document.getElementById('btn-false');
+      const playScreen = document.getElementById('play-screen');
+      const resultScreen = document.getElementById('result-screen');
+
+      function updateHud() {
+        scoreHud.textContent = 'Score: ' + score + ' / ' + TOTAL;
+        FunEffects.pulseScore(scoreHud);
+      }
+
+      function showStatement() {
+        canAnswer = true;
+        feedback.classList.add('hidden');
+        nextBtn.classList.add('hidden');
+        btnTrue.disabled = false;
+        btnFalse.disabled = false;
+        const s = STATEMENTS[roundIndex];
+        statementEl.textContent = s.text;
+        document.getElementById('round-label').textContent = 'Statement ' + (roundIndex + 1) + ' of ' + TOTAL;
+        document.getElementById('progress-bar').style.width = (roundIndex / TOTAL * 100) + '%';
+      }
+
+      function answer(pickedTrue) {
+        if (!canAnswer) return;
+        canAnswer = false;
+        btnTrue.disabled = true;
+        btnFalse.disabled = true;
+        const s = STATEMENTS[roundIndex];
+        const correct = pickedTrue === s.answer;
+        if (correct) {
+          score++;
+          streak++;
+          FunEffects.showStreak(streak);
+          FunEffects.confetti({ count: 8 });
+          feedback.className = 'text-center p-4 rounded-xl text-lg font-medium mb-4 bg-green-50 text-green-800 border-2 border-green-200';
+          feedback.textContent = 'Correct! ' + s.why;
+        } else {
+          streak = 0;
+          FunEffects.shake(gameCard);
+          feedback.className = 'text-center p-4 rounded-xl text-lg font-medium mb-4 bg-amber-50 text-amber-900 border-2 border-amber-200';
+          feedback.textContent = (s.answer ? 'It was TRUE. ' : 'It was FALSE. ') + s.why;
+        }
+        feedback.classList.remove('hidden');
+        updateHud();
+        nextBtn.classList.remove('hidden');
+      }
+
+      btnTrue.addEventListener('click', () => answer(true));
+      btnFalse.addEventListener('click', () => answer(false));
+
+      nextBtn.addEventListener('click', () => {
+        roundIndex++;
+        if (roundIndex >= TOTAL) {
+          playScreen.classList.add('hidden');
+          resultScreen.classList.remove('hidden');
+          document.getElementById('score-display').textContent = String(score);
+          const msg = document.getElementById('result-message');
+          if (score === TOTAL) {
+            msg.textContent = 'Scientist superstar — every fact correct! 🌟';
+            FunEffects.celebratePerfect();
+          } else if (score >= TOTAL * 0.7) {
+            msg.textContent = 'Solid science brain! 👍';
+          } else {
+            msg.textContent = 'Read the hints and try again! 💪';
+          }
+          return;
+        }
+        showStatement();
+      });
+
+      document.getElementById('restart-btn').addEventListener('click', () => {
+        roundIndex = 0;
+        score = 0;
+        streak = 0;
+        updateHud();
+        resultScreen.classList.add('hidden');
+        playScreen.classList.remove('hidden');
+        showStatement();
+      });
+
+      updateHud();
+      showStatement();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plant Needs Garden — Science</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body>
+  <div id="app"></div>
+  <script src="../../../js/quiz-engine.js"></script>
+  <script>
+    QuizEngine.mount({
+      subject: 'science',
+      title: '🪴 Plant Needs Garden',
+      subtitle: 'Help the sad plant — pick what it really needs!',
+      backHref: '../index.html',
+      homeHref: '../../../index.html',
+      perfectMessage: 'Your garden would be perfect! Every plant is happy! 🌻',
+      goodMessage: 'Great gardener! You know what plants need! 👍',
+      tryAgainMessage: 'Keep watering your brain — play again! 💪',
+      quizData: [
+        {
+          question: '🥀 This plant looks dry and droopy. What does it need most?',
+          options: ['Candy', 'Water', 'Video games', 'A hat'],
+          correctAnswer: 1,
+          explanation: 'Plants drink water through their roots. Without water, they wilt.',
+          hint: 'Think about what you drink when you are thirsty!'
+        },
+        {
+          question: '🌱 A seedling in a dark closet stays tiny. What is missing?',
+          options: ['Sunlight', 'Umbrellas', 'Ice cream', 'Loud music'],
+          correctAnswer: 0,
+          explanation: 'Plants use sunlight in their leaves to make food and grow.',
+          hint: 'Plants love bright days!'
+        },
+        {
+          question: '🪴 Roots are stuck in air with no dirt. What should we add?',
+          options: ['Soil', 'Pizza', 'Soap bubbles', 'Stickers'],
+          correctAnswer: 0,
+          explanation: 'Soil holds the plant steady and gives nutrients and space for roots.',
+          hint: 'Gardeners put plants in the ground or potting mix.'
+        },
+        {
+          question: '🌿 Leaves turn yellow in a sealed box with no fresh air. What helps?',
+          options: ['Air', 'Chocolate', 'A pillow', 'Paint'],
+          correctAnswer: 0,
+          explanation: 'Plants need air (including a gas called carbon dioxide) to stay healthy.',
+          hint: 'You breathe air — plants use air too!'
+        },
+        {
+          question: '🌻 Big sunflowers are squished in a tiny pot. What do they need?',
+          options: ['More space', 'More candy', 'A TV', 'Snow'],
+          correctAnswer: 0,
+          explanation: 'Plants need room for roots and stems to grow big and strong.',
+          hint: 'Would you like to live in a box too small for you?'
+        },
+        {
+          question: '😢 A cactus gets zero water for weeks. Pick the real need.',
+          options: ['Water (sometimes)', 'Soda', 'Comic books', 'Rain boots on the plant'],
+          correctAnswer: 0,
+          explanation: 'Even desert plants need some water to live.',
+          hint: 'Not too much — but not none!'
+        },
+        {
+          question: '🌳 A tree in deep shade never grows tall. What would help?',
+          options: ['Sunlight', 'Umbrellas', 'Video games', 'Glue'],
+          correctAnswer: 0,
+          explanation: 'Without enough light, plants cannot make the food they need.',
+          hint: 'Trees in sunny places often grow best.'
+        },
+        {
+          question: '🪴 Which is NOT something a plant needs to live?',
+          options: ['Sunlight', 'Water', 'Candy', 'Soil or support'],
+          correctAnswer: 2,
+          explanation: 'Plants do not eat candy! They make food from light, water, and air.',
+          hint: 'Plants are not kids at a birthday party!'
+        },
+        {
+          question: '🌱 Farmer puts seeds in rich earth, not on the driveway. Why?',
+          options: ['Soil gives nutrients and holds water', 'Soil tastes like cake', 'Driveways are for scooters only', 'Seeds like the color gray'],
+          correctAnswer: 0,
+          explanation: 'Good soil feeds roots and keeps water where the plant can use it.',
+          hint: 'Roots live underground.'
+        },
+        {
+          question: '🥀 Plant leaves look pale indoors away from windows. Best fix?',
+          options: ['Move it to sunlight', 'Give it an umbrella', 'Feed it chips', 'Hide it under the bed'],
+          correctAnswer: 0,
+          explanation: 'Light helps leaves stay green and make food for the whole plant.',
+          hint: 'Windows let in something plants love.'
+        }
+      ]
+    });
+  </script>
+</body>
+</html>

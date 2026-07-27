@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tone Mark Match — Thai</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Sarabun:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    .tone-mark {
+      font-family: 'Sarabun', sans-serif;
+      font-size: 3.5rem;
+      line-height: 1;
+      font-weight: 700;
+    }
+    .name-btn {
+      min-height: 3.5rem;
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body class="game theme-thai">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← Thai</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+    <div id="play-screen">
+      <header class="mb-6 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2" style="color: var(--accent-dark)">🎵 Tone Mark Match</h1>
+        <p class="text-lg text-slate-500">Tap the correct name for each tone mark!</p>
+        <div class="progress-track"><div id="progress-bar" class="progress-bar-fill"></div></div>
+        <p id="round-label" class="mt-2 text-sm font-semibold" style="color: var(--accent)">Round 1 of 8</p>
+      </header>
+      <div class="question-card p-6 md:p-8 animate-pop text-center">
+        <p class="text-slate-500 font-medium mb-2">What is this mark called?</p>
+        <div id="mark-display" class="tone-mark mb-6 text-slate-800">่</div>
+        <div id="choices" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4"></div>
+        <div id="feedback" class="hidden p-4 rounded-xl text-lg font-medium mb-4"></div>
+        <button type="button" id="next-btn" class="hidden btn-primary">Next 🚀</button>
+      </div>
+    </div>
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div class="text-6xl mb-4">🏆</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Tone Master!</h2>
+      <p class="text-2xl text-slate-600 mb-6">You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">0</span> out of 8!</p>
+      <p id="result-message" class="text-lg text-slate-500 mb-8"></p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+  <script>
+    const NAMES = ['Mai Ek', 'Mai Tho', 'Mai Tri', 'Mai Chattawa'];
+    const ROUNDS = [
+      { mark: '่', answer: 0, tip: '่ is Mai Ek — the first tone mark.' },
+      { mark: '้', answer: 1, tip: '้ is Mai Tho (like Thai “2”).' },
+      { mark: '๊', answer: 2, tip: '๊ is Mai Tri.' },
+      { mark: '๋', answer: 3, tip: '๋ is Mai Chattawa — like a tiny plus.' },
+      { mark: '้', answer: 1, tip: '้ again — Mai Tho!' },
+      { mark: '๋', answer: 3, tip: '๋ is Mai Chattawa.' },
+      { mark: '่', answer: 0, tip: '่ is Mai Ek.' },
+      { mark: '๊', answer: 2, tip: '๊ is Mai Tri.' }
+    ];
+    let i = 0, score = 0, locked = false;
+    const markDisplay = document.getElementById('mark-display');
+    const choices = document.getElementById('choices');
+    const feedback = document.getElementById('feedback');
+    const nextBtn = document.getElementById('next-btn');
+    const progressBar = document.getElementById('progress-bar');
+    const roundLabel = document.getElementById('round-label');
+
+    function load() {
+      locked = false;
+      feedback.classList.add('hidden');
+      nextBtn.classList.add('hidden');
+      const r = ROUNDS[i];
+      markDisplay.textContent = r.mark;
+      roundLabel.textContent = `Round ${i + 1} of ${ROUNDS.length}`;
+      progressBar.style.width = `${(i / ROUNDS.length) * 100}%`;
+      choices.innerHTML = '';
+      NAMES.forEach((name, idx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'option-btn name-btn text-center';
+        btn.textContent = name;
+        btn.addEventListener('click', () => pick(idx, btn));
+        choices.appendChild(btn);
+      });
+    }
+    function pick(idx, btn) {
+      if (locked) return;
+      locked = true;
+      const r = ROUNDS[i];
+      [...choices.children].forEach((b, j) => {
+        if (j === r.answer) b.classList.add('correct');
+        else if (j === idx && idx !== r.answer) b.classList.add('wrong');
+      });
+      feedback.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+      if (idx === r.answer) {
+        score++;
+        feedback.classList.add('bg-green-100', 'text-green-800');
+        feedback.innerHTML = `<strong>Yes! 🎉</strong><br>${r.tip}`;
+      } else {
+        feedback.classList.add('bg-red-100', 'text-red-800');
+        feedback.innerHTML = `<strong>Almost!</strong><br>${r.tip}`;
+      }
+      nextBtn.classList.remove('hidden');
+    }
+    nextBtn.addEventListener('click', () => {
+      i++;
+      if (i < ROUNDS.length) load();
+      else {
+        document.getElementById('play-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+        document.getElementById('score-display').textContent = score;
+        document.getElementById('result-message').textContent =
+          score === ROUNDS.length ? 'Perfect tones! 🌟' : score >= 6 ? 'Great listening! 👍' : 'Practice the marks again! 💪';
+        progressBar.style.width = '100%';
+      }
+    });
+    document.getElementById('restart-btn').addEventListener('click', () => {
+      i = 0; score = 0;
+      document.getElementById('result-screen').classList.add('hidden');
+      document.getElementById('play-screen').classList.remove('hidden');
+      load();
+    });
+    load();
+  </script>
+</body>
+</html>

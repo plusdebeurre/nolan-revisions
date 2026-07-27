@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thai Mega Quiz (40) — Thai</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Sarabun:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    #question-text, .option-btn { font-family: 'Fredoka', 'Sarabun', sans-serif; }
+    .option-btn .thai-script, #question-text .thai-script { font-family: 'Sarabun', sans-serif; font-size: 1.15em; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script src="../../../js/quiz-engine.js"></script>
+  <script>
+    QuizEngine.mount({
+      subject: 'thai',
+      title: '🎒 Thai Mega Quiz',
+      subtitle: '40 questions — Grade 2 catch-up',
+      backHref: '../index.html',
+      homeHref: '../../../index.html',
+      perfectMessage: 'Perfect 40/40! You are a Thai Master! 🌟',
+      goodMessage: 'Great job! Keep practicing your Thai! 👍',
+      tryAgainMessage: 'Good try! Play again to catch up more! 💪',
+      goodThreshold: 0.75,
+      quizData: [
+        {
+          question: 'How many consonants are in the Thai alphabet?',
+          options: ['32', '42', '44', '46'],
+          correctAnswer: 2,
+          explanation: 'The Thai alphabet has 44 consonants!',
+          hint: 'It is more than 40, but not quite 50.'
+        },
+        {
+          question: 'What is the FIRST consonant of the alphabet?',
+          options: ['ข (Khor Khai)', 'ก (Gor Kai)', 'ค (Khor Khwai)', 'ง (Ngor Ngu)'],
+          correctAnswer: 1,
+          explanation: 'The alphabet always starts with ก (Gor Kai — the chicken).',
+          hint: 'Think of the chicken letter!'
+        },
+        {
+          question: 'What is the VERY LAST consonant of the alphabet?',
+          options: ['ฮ (Hor Nok-huk — owl)', 'ห (Hor Heep)', 'อ (Or Ang)', 'ง (Ngor Ngu)'],
+          correctAnswer: 0,
+          explanation: 'The last consonant is ฮ (Hor Nok-huk — the owl)!',
+          hint: 'Look for the owl letter.'
+        },
+        {
+          question: 'Which 2 consonants are NOT used anymore today?',
+          options: ['ก and ข', 'ฃ (Khuat) and ฅ (Khon)', 'ฎ and ฏ', 'พ and ฟ'],
+          correctAnswer: 1,
+          explanation: 'ฃ (Khuat) and ฅ (Khon) are obsolete — we do not use them now.',
+          hint: 'They look a lot like ข and ค.'
+        },
+        {
+          question: 'How many consonant classes (Trai Yang) are there?',
+          options: ['2', '3', '4', '5'],
+          correctAnswer: 1,
+          explanation: 'There are 3 classes: Middle, High, and Low — important for tones!',
+          hint: 'Middle, High, and…?'
+        },
+        {
+          question: 'How many MIDDLE consonants are there (อักษรกลาง)?',
+          options: ['7', '9', '11', '24'],
+          correctAnswer: 1,
+          explanation: 'There are 9 middle consonants.',
+          hint: 'Less than 10.'
+        },
+        {
+          question: 'How many HIGH consonants are there (อักษรสูง)?',
+          options: ['9', '11', '14', '24'],
+          correctAnswer: 1,
+          explanation: 'There are 11 high consonants.',
+          hint: 'One more than 10.'
+        },
+        {
+          question: 'How many LOW consonants are there (อักษรต่ำ)?',
+          options: ['9', '11', '24', '44'],
+          correctAnswer: 2,
+          explanation: 'Low is the biggest group: 24 consonants!',
+          hint: 'Almost half of all 44 consonants.'
+        },
+        {
+          question: 'Which of these is a MIDDLE consonant: ข, ก, ค, or ง?',
+          options: ['ข (Khor Khai)', 'ก (Gor Kai)', 'ค (Khor Khwai)', 'ง (Ngor Ngu)'],
+          correctAnswer: 1,
+          explanation: 'ก (Gor Kai) is the leader of the middle consonants!',
+          hint: 'The first letter of the alphabet is middle.'
+        },
+        {
+          question: 'Which class does ข (Khor Khai) belong to?',
+          options: ['Middle', 'High', 'Low', 'It is not a consonant'],
+          correctAnswer: 1,
+          explanation: 'ข (Khor Khai) is a HIGH consonant.',
+          hint: 'Not middle — think “high” like a kite (khai).'
+        },
+        {
+          question: 'How many vowel SOUNDS are there in Thai in total?',
+          options: ['18', '21', '24', '32'],
+          correctAnswer: 3,
+          explanation: 'There are 32 vowel sounds in Thai!',
+          hint: 'More than 30.'
+        },
+        {
+          question: 'How many SHORT vowels are there (เสียงสั้น)?',
+          options: ['10', '14', '18', '21'],
+          correctAnswer: 2,
+          explanation: 'There are 18 short vowels.',
+          hint: 'Between 15 and 20.'
+        },
+        {
+          question: 'How many LONG vowels are there (เสียงยาว)?',
+          options: ['12', '14', '18', '32'],
+          correctAnswer: 1,
+          explanation: 'There are 14 long vowels.',
+          hint: 'Fewer than the short ones.'
+        },
+        {
+          question: 'Which of these vowels is SHORT: -า, -ี, -ะ, or -ู?',
+          options: ['-า (Aa)', '-ี (Ii)', '-ะ (A)', '-ู (Uu)'],
+          correctAnswer: 2,
+          explanation: '-ะ (A) is said very quickly — it is short!',
+          hint: 'Look for the little open circle vowel.'
+        },
+        {
+          question: 'Which of these vowels is LONG: -ิ, -ุ, เ-ะ, or -า?',
+          options: ['-ิ (I)', '-ุ (U)', 'เ-ะ (E short)', '-า (Aa)'],
+          correctAnswer: 3,
+          explanation: '-า (Aa) is a long vowel!',
+          hint: 'The tall “aa” line stretches the sound.'
+        },
+        {
+          question: 'What is the name of this tone mark: ่ ?',
+          options: ['Mai Ek', 'Mai Tho', 'Mai Tri', 'Mai Chattawa'],
+          correctAnswer: 0,
+          explanation: '่ is Mai Ek — the first tone mark!',
+          hint: 'Ek means “one” / first.'
+        },
+        {
+          question: 'What is the name of this tone mark: ้ ?',
+          options: ['Mai Ek', 'Mai Tho', 'Mai Tri', 'Mai Chattawa'],
+          correctAnswer: 1,
+          explanation: '้ is Mai Tho (like an old Thai “2”).',
+          hint: 'Tho is linked to the number two.'
+        },
+        {
+          question: 'What is the name of this tone mark: ๊ ?',
+          options: ['Mai Ek', 'Mai Tho', 'Mai Tri', 'Mai Chattawa'],
+          correctAnswer: 2,
+          explanation: '๊ is Mai Tri — it looks a bit like Thai digit 7!',
+          hint: 'Tri sounds like “three”.'
+        },
+        {
+          question: 'What is the name of this tone mark: ๋ ?',
+          options: ['Mai Ek', 'Mai Tho', 'Mai Tri', 'Mai Chattawa'],
+          correctAnswer: 3,
+          explanation: '๋ is Mai Chattawa — like a tiny plus sign!',
+          hint: 'The last tone mark name is the longest word.'
+        },
+        {
+          question: 'How many TONE SOUNDS are there in total (including the normal/common tone)?',
+          options: ['3', '4', '5', '6'],
+          correctAnswer: 2,
+          explanation: '5 tone sounds: common (samun), Ek, Tho, Tri, Chattawa.',
+          hint: 'Count the common tone plus the 4 marks.'
+        },
+        {
+          question: "The family 'Mae K. Ka' (แม่ ก กา) contains which kind of words?",
+          options: ['Words ending in NG', 'Words with NO final consonant', 'Words ending in M', 'Words ending in K'],
+          correctAnswer: 1,
+          explanation: 'Mae K. Ka = live open syllables with no final consonant. Example: หมา (maa).',
+          hint: 'Nothing after the vowel!'
+        },
+        {
+          question: "The family 'Mae Kong' (แม่กง) ends with which sound?",
+          options: ['M (ม)', 'N (น)', 'NG (ง)', 'K (ก)'],
+          correctAnswer: 2,
+          explanation: 'Mae Kong = NG sound (ง), like in ช้าง (chang)!',
+          hint: 'Kong has the “ng” sound.'
+        },
+        {
+          question: "The family 'Mae Kon' (แม่กน) ends with which sound?",
+          options: ['M (ม)', 'N (น)', 'NG (ง)', 'Y (ย)'],
+          correctAnswer: 1,
+          explanation: 'Mae Kon = N sound (น), like in บ้าน (baan)!',
+          hint: 'Kon ends with N.'
+        },
+        {
+          question: "The family 'Mae Kom' (แม่กม) ends with which sound?",
+          options: ['M (ม)', 'N (น)', 'W (ว)', 'P (บ)'],
+          correctAnswer: 0,
+          explanation: 'Mae Kom = M sound (ม), like in ส้ม (som)!',
+          hint: 'Kom ends with Mmmm.'
+        },
+        {
+          question: "The family 'Mae Gey' (แม่เกย) ends with which sound?",
+          options: ['W (ว)', 'Y (ย)', 'N (น)', 'K (ก)'],
+          correctAnswer: 1,
+          explanation: 'Mae Gey = Y sound (ย), like in ยาย (yaay)!',
+          hint: 'Gey ends with a “y” glide.'
+        },
+        {
+          question: "The family 'Mae Geow' (แม่เกอว) ends with which sound?",
+          options: ['W (ว)', 'Y (ย)', 'M (ม)', 'T (ด)'],
+          correctAnswer: 0,
+          explanation: 'Mae Geow = W sound (ว), like in แมว (maew)!',
+          hint: 'Geow has a “w” at the end.'
+        },
+        {
+          question: "The family 'Mae Gok' (แม่กก) ends with which sound?",
+          options: ['K (ก)', 'T (ด)', 'P (บ)', 'N (น)'],
+          correctAnswer: 0,
+          explanation: 'Mae Gok = K sound (ก), like in นก (nok)!',
+          hint: 'Gok ends with a hard K.'
+        },
+        {
+          question: "The family 'Mae God' (แม่กด) ends with which sound?",
+          options: ['K (ก)', 'M (ม)', 'T or D (ด)', 'NG (ง)'],
+          correctAnswer: 2,
+          explanation: 'Mae God = T/D sound (ด), like in เป็ด (ped)!',
+          hint: 'God ends with a stopped T/D.'
+        },
+        {
+          question: "The family 'Mae Gob' (แม่กบ) ends with which sound?",
+          options: ['K (ก)', 'P or B (บ)', 'N (น)', 'Y (ย)'],
+          correctAnswer: 1,
+          explanation: 'Mae Gob = P/B sound (บ), like in กบ (gop)!',
+          hint: 'Gob ends with a lip stop — P/B.'
+        },
+        {
+          question: 'What Arabic number is this Thai digit: ๑ ?',
+          options: ['0', '1', '2', '3'],
+          correctAnswer: 1,
+          explanation: '๑ = 1 (nueng)!',
+          hint: 'It looks a bit like a fancy 1.'
+        },
+        {
+          question: 'What Arabic number is this Thai digit: ๒ ?',
+          options: ['1', '2', '3', '4'],
+          correctAnswer: 1,
+          explanation: '๒ = 2 (song)!',
+          hint: 'Second digit after ๑.'
+        },
+        {
+          question: 'What Arabic number is this Thai digit: ๓ ?',
+          options: ['2', '3', '4', '5'],
+          correctAnswer: 1,
+          explanation: '๓ = 3 (sam)!',
+          hint: 'Three loops for three?'
+        },
+        {
+          question: 'What Arabic number is this Thai digit: ๔ ?',
+          options: ['3', '4', '5', '6'],
+          correctAnswer: 1,
+          explanation: '๔ = 4 (si)!',
+          hint: 'Right after ๓.'
+        },
+        {
+          question: 'What Arabic number is this Thai digit: ๕ ?',
+          options: ['4', '5', '6', '7'],
+          correctAnswer: 1,
+          explanation: '๕ = 5 (ha)!',
+          hint: 'Half of ten.'
+        },
+        {
+          question: 'What Arabic number is this Thai digit: ๖ ?',
+          options: ['5', '6', '7', '8'],
+          correctAnswer: 1,
+          explanation: '๖ = 6 (hok)!',
+          hint: 'After ๕.'
+        },
+        {
+          question: 'What Arabic number is this Thai digit: ๗ ?',
+          options: ['6', '7', '8', '9'],
+          correctAnswer: 1,
+          explanation: '๗ = 7 (chet)!',
+          hint: 'Looks a bit like a 7.'
+        },
+        {
+          question: 'What Arabic number is this Thai digit: ๘ ?',
+          options: ['5', '6', '8', '9'],
+          correctAnswer: 2,
+          explanation: '๘ = 8 (paet)!',
+          hint: 'Not 9 — one before nine.'
+        },
+        {
+          question: 'What Arabic number is this Thai digit: ๙ ?',
+          options: ['7', '8', '9', '0'],
+          correctAnswer: 2,
+          explanation: '๙ = 9 (kao)!',
+          hint: 'The last single digit before 10.'
+        },
+        {
+          question: 'How do you READ the number ๑๑ (11)?',
+          options: ['Sip-nueng', 'Nueng-sip', 'Sip-et', 'Sip-song'],
+          correctAnswer: 2,
+          explanation: "When 1 is at the end of a number, we say 'et'. So 11 is Sip-et!",
+          hint: 'Not “nueng” at the end — special ending sound.'
+        },
+        {
+          question: "In the story 'Nam Sai', what do the baby elephants Bai Bok and Bai Bua eat?",
+          options: ['Bananas', 'Crushed ice with syrup (น้ำแข็งกด — nam khaeng kot)', 'Rice', 'Candy'],
+          correctAnswer: 1,
+          explanation: 'They love น้ำแข็งกด (nam khaeng kot) — crushed ice with syrup!',
+          hint: 'Something cold and sweet to eat.'
+        }
+      ]
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Photosynthesis Factory — Science</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    .ing-btn { transition: transform 0.15s; }
+    .ing-btn:active:not(:disabled) { transform: scale(0.96); }
+    .ing-btn.done { opacity: 0.45; pointer-events: none; }
+    .factory-slot { min-height: 3.5rem; border: 3px dashed #86efac; border-radius: 1rem; background: #f0fdf4; }
+  </style>
+</head>
+<body class="game theme-science">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="score-hud" id="score-hud">Score: 0 / 10</div>
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← Science</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+    <div id="play-screen">
+      <header class="mb-6 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2" style="color: var(--accent-dark)">☀️ Photosynthesis Factory</h1>
+        <p class="text-lg text-slate-500 font-medium">Tap ingredients in order: Sun → Water → CO₂</p>
+        <div class="progress-track"><div id="progress-bar" class="progress-bar-fill"></div></div>
+        <p id="round-label" class="mt-2 text-sm font-semibold" style="color: var(--accent)">Round 1 of 10</p>
+      </header>
+      <div class="question-card p-6 md:p-8 animate-pop">
+        <p id="plant-name" class="text-center text-xl font-semibold text-green-800 mb-4">🌿 Help this leaf make food!</p>
+        <div id="belt" class="factory-slot flex flex-wrap justify-center gap-2 p-3 mb-4 min-h-[4rem]"></div>
+        <p class="text-center text-sm text-slate-500 mb-3">Tap the next ingredient:</p>
+        <div id="ing-grid" class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4"></div>
+        <div id="output" class="hidden text-center p-4 rounded-xl bg-green-50 border-2 border-green-200 mb-4 animate-pop">
+          <p class="text-lg font-bold text-green-800">Made: 🍃 Plant food + 💨 Oxygen!</p>
+        </div>
+        <div class="text-center"><button type="button" id="next-btn" class="hidden btn-primary">Next Round 🚀</button></div>
+      </div>
+    </div>
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div class="text-6xl mb-4">🌻</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Factory Complete!</h2>
+      <p class="text-2xl font-medium text-slate-600 mb-6">You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">0</span> out of 10!</p>
+      <p id="result-message" class="text-lg text-slate-500 mb-8 font-medium"></p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+  <script src="../../../js/fun-effects.js"></script>
+  <script>
+    (function () {
+      const ORDER = ['sun', 'water', 'co2'];
+      const ING = {
+        sun: { label: '☀️ Sunlight', key: 'sun' },
+        water: { label: '💧 Water', key: 'water' },
+        co2: { label: '🌬️ CO₂ (air)', key: 'co2' },
+        food: { label: '🍃 Food (sugar)', key: 'food' },
+        o2: { label: '💨 Oxygen', key: 'o2' }
+      };
+      const ROUNDS = [
+        { plant: '🌿 Maple leaf' },
+        { plant: '🌻 Sunflower' },
+        { plant: '🌵 Cactus (still needs light!)' },
+        { plant: '🍃 Fern frond' },
+        { plant: '🌳 Oak leaf' },
+        { plant: '🪴 Houseplant' },
+        { plant: '🌾 Wheat stalk' },
+        { plant: '🥬 Lettuce' },
+        { plant: '🌺 Hibiscus leaf' },
+        { plant: '🎋 Bamboo shoot' }
+      ];
+      const TOTAL = ROUNDS.length;
+      let roundIndex = 0, score = 0, streak = 0, step = 0, roundPerfect = true;
+
+      const scoreHud = document.getElementById('score-hud');
+      const progressBar = document.getElementById('progress-bar');
+      const roundLabel = document.getElementById('round-label');
+      const plantName = document.getElementById('plant-name');
+      const belt = document.getElementById('belt');
+      const ingGrid = document.getElementById('ing-grid');
+      const output = document.getElementById('output');
+      const nextBtn = document.getElementById('next-btn');
+      const playScreen = document.getElementById('play-screen');
+      const resultScreen = document.getElementById('result-screen');
+
+      function updateHud() {
+        scoreHud.textContent = 'Score: ' + score + ' / ' + TOTAL;
+        FunEffects.pulseScore(scoreHud);
+      }
+
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function buildIngredientGrid() {
+        ingGrid.innerHTML = '';
+        const keys = shuffle(['sun', 'water', 'co2', 'food', 'o2']);
+        keys.forEach((k) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'ing-btn question-card p-4 text-lg font-bold text-slate-700 hover:bg-green-50';
+          btn.dataset.key = k;
+          btn.textContent = ING[k].label;
+          btn.addEventListener('click', () => onIngTap(btn, k));
+          ingGrid.appendChild(btn);
+        });
+      }
+
+      function onIngTap(btn, key) {
+        if (nextBtn.classList.contains('hidden') === false) return;
+        const expected = ORDER[step];
+        if (key === expected) {
+          step++;
+          btn.classList.add('done');
+          const chip = document.createElement('span');
+          chip.className = 'px-3 py-1 bg-white rounded-lg border-2 border-green-400 font-semibold text-sm';
+          chip.textContent = ING[key].label;
+          belt.appendChild(chip);
+          FunEffects.confetti({ count: 8 });
+          if (step === ORDER.length) {
+            output.classList.remove('hidden');
+            ingGrid.querySelectorAll('button').forEach((b) => { b.disabled = true; });
+            if (roundPerfect) {
+              score++;
+              streak++;
+              FunEffects.showStreak(streak);
+            } else {
+              streak = 0;
+            }
+            updateHud();
+            nextBtn.classList.remove('hidden');
+          }
+        } else if (key === 'food' || key === 'o2') {
+          FunEffects.shake(btn);
+          roundPerfect = false;
+          streak = 0;
+        } else {
+          FunEffects.shake(btn);
+          roundPerfect = false;
+          streak = 0;
+        }
+      }
+
+      function startRound() {
+        step = 0;
+        roundPerfect = true;
+        belt.innerHTML = '';
+        output.classList.add('hidden');
+        nextBtn.classList.add('hidden');
+        plantName.textContent = ROUNDS[roundIndex].plant + ' — build the recipe!';
+        roundLabel.textContent = 'Round ' + (roundIndex + 1) + ' of ' + TOTAL;
+        progressBar.style.width = ((roundIndex) / TOTAL * 100) + '%';
+        buildIngredientGrid();
+      }
+
+      nextBtn.addEventListener('click', () => {
+        roundIndex++;
+        if (roundIndex >= TOTAL) {
+          showResult();
+          return;
+        }
+        startRound();
+      });
+
+      function showResult() {
+        playScreen.classList.add('hidden');
+        resultScreen.classList.remove('hidden');
+        document.getElementById('score-display').textContent = String(score);
+        const msg = document.getElementById('result-message');
+        if (score === TOTAL) {
+          msg.textContent = 'Perfect factory worker! Every batch was spotless! 🌟';
+          FunEffects.celebratePerfect();
+        } else if (score >= TOTAL * 0.7) {
+          msg.textContent = 'Great job! You know how plants make food! 👍';
+        } else {
+          msg.textContent = 'Remember: Sun, then Water, then CO₂! 💪';
+        }
+      }
+
+      document.getElementById('restart-btn').addEventListener('click', () => {
+        roundIndex = 0;
+        score = 0;
+        streak = 0;
+        updateHud();
+        resultScreen.classList.add('hidden');
+        playScreen.classList.remove('hidden');
+        startRound();
+      });
+
+      updateHud();
+      startRound();
+    })();
+  </script>
+</body>
+</html>

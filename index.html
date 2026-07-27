@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nolan's Learning Adventure</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/shared.css">
+</head>
+<body class="hub theme-hub">
+  <main class="min-h-screen flex flex-col items-center justify-center px-4 py-10">
+    <header class="text-center mb-10 animate-pop max-w-2xl">
+      <p class="text-lg font-semibold text-slate-500 mb-2">Grade 2</p>
+      <h1 class="text-4xl md:text-6xl font-bold text-slate-800 leading-tight mb-3">Nolan's Learning Adventure</h1>
+      <p class="text-xl text-slate-600">Pick a subject and play!</p>
+    </header>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 w-full max-w-3xl animate-pop">
+      <a class="hub-tile" style="border-color: var(--math-border)" href="subjects/math/index.html">
+        <div class="emoji">🔢</div>
+        <h2 style="color: var(--math-dark)">Math</h2>
+        <p>Numbers, patterns &amp; sharing</p>
+      </a>
+      <a class="hub-tile" style="border-color: var(--science-border)" href="subjects/science/index.html">
+        <div class="emoji">🌿</div>
+        <h2 style="color: var(--science-dark)">Science</h2>
+        <p>Plants &amp; living things</p>
+      </a>
+      <a class="hub-tile" style="border-color: var(--english-border)" href="subjects/english/index.html">
+        <div class="emoji">📚</div>
+        <h2 style="color: var(--english-dark)">English</h2>
+        <p>Animals, words &amp; matter</p>
+      </a>
+      <a class="hub-tile" style="border-color: var(--hpe-border)" href="subjects/hpe/index.html">
+        <div class="emoji">💪</div>
+        <h2 style="color: var(--hpe-dark)">HPE</h2>
+        <p>Body, teeth &amp; movement</p>
+      </a>
+      <a class="hub-tile sm:col-span-2 sm:max-w-md sm:mx-auto sm:w-full" style="border-color: var(--thai-border)" href="subjects/thai/index.html">
+        <div class="emoji">🇹🇭</div>
+        <h2 style="color: var(--thai-dark)">Thai</h2>
+        <p>Alphabet, tones, digits &amp; stories</p>
+      </a>
+    </div>
+  </main>
+</body>
+</html>

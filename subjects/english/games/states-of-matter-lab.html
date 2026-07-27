@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>States of Matter Lab — English</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body>
+  <div id="app"></div>
+  <script src="../../../js/quiz-engine.js"></script>
+  <script>
+    QuizEngine.mount({
+      subject: 'english',
+      title: '🧊 States of Matter Lab',
+      subtitle: 'Solid, Liquid & Gas — Unit 3',
+      backHref: '../index.html',
+      homeHref: '../../../index.html',
+      perfectMessage: 'Lab genius! You mastered matter! 🌟',
+      goodMessage: 'Solid work in the science lab! 👍',
+      tryAgainMessage: 'Heat it up with another try! 💪',
+      quizData: [
+        {
+          question: '🧊 Ice — Sort it! Which state of matter is ice?',
+          options: ['Solid', 'Liquid', 'Gas', 'Steam'],
+          correctAnswer: 0,
+          explanation: 'Ice is hard and keeps its shape. It is a solid.'
+        },
+        {
+          question: '🧃 Juice — Sort it! Which state of matter is juice?',
+          options: ['Solid', 'Liquid', 'Gas', 'Rock'],
+          correctAnswer: 1,
+          explanation: 'Juice flows and takes the shape of its cup. It is a liquid.'
+        },
+        {
+          question: '💨 Steam — Sort it! Which state of matter is steam?',
+          options: ['Solid', 'Liquid', 'Gas', 'Ice'],
+          correctAnswer: 2,
+          explanation: 'Steam spreads out in the air. It is a gas.'
+        },
+        {
+          question: 'Cause: The sun is very hot on the ice. What is the effect?',
+          options: ['The ice melts', 'The ice freezes', 'The ice gets harder', 'The water turns to ice'],
+          correctAnswer: 0,
+          explanation: 'Heat melts ice and turns it into liquid water.'
+        },
+        {
+          question: 'Cause: It is freezing cold at night. What happens to the puddle?',
+          options: ['It boils away', 'It freezes into ice', 'It stays liquid forever', 'It becomes juice'],
+          correctAnswer: 1,
+          explanation: 'Cold makes liquid water freeze into solid ice.'
+        },
+        {
+          question: 'Cause: We boil water in a kettle. What do we see?',
+          options: ['More ice forms', 'Steam (gas) rises', 'The water turns solid', 'Nothing changes'],
+          correctAnswer: 1,
+          explanation: 'Boiling makes liquid water turn into gas (steam).'
+        },
+        {
+          question: '🧊 Which word describes a solid?',
+          options: ['It flows like juice', 'It keeps its shape', 'It fills the whole room', 'It is always wet'],
+          correctAnswer: 1,
+          explanation: 'Solids like ice or rocks keep their own shape.'
+        },
+        {
+          question: '🧃 Put these in order: cold ice → warm sun. What happens first?',
+          options: ['Ice melts to water', 'Water freezes to ice', 'Water boils to steam', 'Steam turns to ice'],
+          correctAnswer: 0,
+          explanation: 'Warm sun melts solid ice into liquid water.'
+        },
+        {
+          question: '💨 Gas can ___ and spread everywhere.',
+          options: ['stay in one cube shape', 'flow like a drink', 'fill a big space', 'never move'],
+          correctAnswer: 2,
+          explanation: 'Gases like steam spread out and fill space.'
+        },
+        {
+          question: 'Cause: We put juice in the freezer. What is the effect?',
+          options: ['It becomes solid ice', 'It becomes steam', 'It disappears', 'It stays juice forever'],
+          correctAnswer: 0,
+          explanation: 'Very cold temperatures freeze liquids into solids.'
+        }
+      ]
+    });
+  </script>
+</body>
+</html>

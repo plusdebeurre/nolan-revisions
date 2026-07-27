@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Habitat Match — Science</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body class="game theme-science">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="score-hud" id="score-hud">Score: 0 / 14</div>
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← Science</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+    <div id="play-screen">
+      <header class="mb-6 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2" style="color: var(--accent-dark)">🏞️ Habitat Match</h1>
+        <p class="text-lg text-slate-500 font-medium">Where does this living thing belong?</p>
+        <div class="progress-track"><div id="progress-bar" class="progress-bar-fill"></div></div>
+        <p id="round-label" class="mt-2 text-sm font-semibold" style="color: var(--accent)">Question 1 of 14</p>
+      </header>
+      <div class="question-card p-6 md:p-8 animate-pop">
+        <p id="creature" class="text-3xl md:text-4xl font-bold text-center text-slate-800 mb-6"></p>
+        <div id="choices" class="grid grid-cols-1 gap-3 mb-4"></div>
+        <div id="feedback" class="hidden text-center p-4 rounded-xl text-lg font-medium mb-4"></div>
+        <div class="text-center"><button type="button" id="next-btn" class="hidden btn-primary">Next 🚀</button></div>
+      </div>
+    </div>
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div class="text-6xl mb-4">🦎</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Habitat Hero!</h2>
+      <p class="text-2xl font-medium text-slate-600 mb-6">You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">0</span> out of 14!</p>
+      <p id="result-message" class="text-lg text-slate-500 mb-8 font-medium"></p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+  <script src="../../../js/fun-effects.js"></script>
+  <script>
+    (function () {
+      const PAIRS = [
+        { creature: '🐟 Goldfish', habitat: 'pond', hint: 'Fresh water with plants' },
+        { creature: '🌵 Cactus', habitat: 'desert', hint: 'Hot and dry' },
+        { creature: '🐧 Penguin', habitat: 'ice', hint: 'Cold and snowy' },
+        { creature: '🐸 Frog', habitat: 'pond', hint: 'Wet and muddy' },
+        { creature: '🐿️ Squirrel', habitat: 'forest', hint: 'Trees and nuts' },
+        { creature: '🐫 Camel', habitat: 'desert', hint: 'Sandy dunes' },
+        { creature: '🦭 Seal', habitat: 'ocean', hint: 'Salt water' },
+        { creature: '🌿 Lily pad plant', habitat: 'pond', hint: 'Floating on still water' },
+        { creature: '🦅 Eagle', habitat: 'forest', hint: 'Nests in tall trees' },
+        { creature: '🦀 Hermit crab', habitat: 'beach', hint: 'Sand and tide pools' },
+        { creature: '🌲 Pine tree', habitat: 'forest', hint: 'Woods and mountains' },
+        { creature: '🐠 Clownfish', habitat: 'ocean', hint: 'Coral reef sea' },
+        { creature: '🦎 Desert lizard', habitat: 'desert', hint: 'Rocks and sun' },
+        { creature: '🐻‍❄️ Polar bear', habitat: 'ice', hint: 'Arctic ice floes' }
+      ];
+      const HABITAT_LABELS = {
+        pond: '💧 Pond / freshwater',
+        desert: '🏜️ Desert',
+        ice: '🧊 Ice / Arctic',
+        forest: '🌲 Forest',
+        ocean: '🌊 Ocean',
+        beach: '🏖️ Beach / coast'
+      };
+      const TOTAL = PAIRS.length;
+      let roundIndex = 0, score = 0, streak = 0, canAnswer = true;
+
+      const scoreHud = document.getElementById('score-hud');
+      const creatureEl = document.getElementById('creature');
+      const choicesEl = document.getElementById('choices');
+      const feedback = document.getElementById('feedback');
+      const nextBtn = document.getElementById('next-btn');
+      const playScreen = document.getElementById('play-screen');
+      const resultScreen = document.getElementById('result-screen');
+
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function updateHud() {
+        scoreHud.textContent = 'Score: ' + score + ' / ' + TOTAL;
+        FunEffects.pulseScore(scoreHud);
+      }
+
+      function wrongHabitats(correct) {
+        return shuffle(Object.keys(HABITAT_LABELS).filter((h) => h !== correct)).slice(0, 2);
+      }
+
+      function showRound() {
+        canAnswer = true;
+        feedback.classList.add('hidden');
+        nextBtn.classList.add('hidden');
+        const item = PAIRS[roundIndex];
+        creatureEl.textContent = item.creature;
+        document.getElementById('round-label').textContent = 'Question ' + (roundIndex + 1) + ' of ' + TOTAL;
+        document.getElementById('progress-bar').style.width = (roundIndex / TOTAL * 100) + '%';
+        const opts = shuffle([item.habitat, ...wrongHabitats(item.habitat)]);
+        choicesEl.innerHTML = '';
+        opts.forEach((h) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'question-card p-4 text-lg font-bold text-slate-700 text-left hover:bg-green-50';
+          btn.textContent = HABITAT_LABELS[h];
+          btn.addEventListener('click', () => onChoice(btn, h, item));
+          choicesEl.appendChild(btn);
+        });
+      }
+
+      function onChoice(btn, picked, item) {
+        if (!canAnswer) return;
+        canAnswer = false;
+        if (picked === item.habitat) {
+          score++;
+          streak++;
+          FunEffects.showStreak(streak);
+          FunEffects.confetti({ count: 10 });
+          feedback.className = 'text-center p-4 rounded-xl text-lg font-medium mb-4 bg-green-50 text-green-800 border-2 border-green-200';
+          feedback.textContent = 'Yes! ' + item.hint + ' ✨';
+        } else {
+          streak = 0;
+          FunEffects.shake(btn);
+          feedback.className = 'text-center p-4 rounded-xl text-lg font-medium mb-4 bg-red-50 text-red-800 border-2 border-red-200';
+          feedback.textContent = 'Not quite. ' + item.creature + ' lives in: ' + HABITAT_LABELS[item.habitat];
+        }
+        feedback.classList.remove('hidden');
+        updateHud();
+        nextBtn.classList.remove('hidden');
+      }
+
+      nextBtn.addEventListener('click', () => {
+        roundIndex++;
+        if (roundIndex >= TOTAL) {
+          playScreen.classList.add('hidden');
+          resultScreen.classList.remove('hidden');
+          document.getElementById('score-display').textContent = String(score);
+          const msg = document.getElementById('result-message');
+          if (score === TOTAL) {
+            msg.textContent = 'Every habitat matched! 🌟';
+            FunEffects.celebratePerfect();
+          } else if (score >= TOTAL * 0.7) {
+            msg.textContent = 'Great ecology thinking! 👍';
+          } else {
+            msg.textContent = 'Play again to learn where animals and plants live! 💪';
+          }
+          return;
+        }
+        showRound();
+      });
+
+      document.getElementById('restart-btn').addEventListener('click', () => {
+        roundIndex = 0;
+        score = 0;
+        streak = 0;
+        updateHud();
+        resultScreen.classList.add('hidden');
+        playScreen.classList.remove('hidden');
+        showRound();
+      });
+
+      updateHud();
+      showRound();
+    })();
+  </script>
+</body>
+</html>

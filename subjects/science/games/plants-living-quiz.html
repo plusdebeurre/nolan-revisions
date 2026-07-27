@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plants & Living Quiz — Science</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body>
+  <div id="app"></div>
+  <script src="../../../js/quiz-engine.js"></script>
+  <script>
+    QuizEngine.mount({
+      subject: 'science',
+      title: '🌿 Plants & Living Quiz',
+      subtitle: 'Revision: Plants & Living Things',
+      perfectMessage: 'Perfect! You know your plants and living things! 🌟',
+      goodMessage: 'Great job! Almost exam-ready! 👍',
+      tryAgainMessage: 'Good try! Play again to grow stronger! 💪',
+      quizData: [
+        {
+          question: "Which part of the plant 'drinks' water from the soil?",
+          options: ['The leaves', 'The stem', 'The roots', 'The flower'],
+          correctAnswer: 2,
+          explanation: 'Roots act like straws that suck up water from under the ground.'
+        },
+        {
+          question: 'Which of these is NOT a living thing?',
+          options: ['A bird', 'A rock', 'A tree', 'A cat'],
+          correctAnswer: 1,
+          explanation: 'A rock does not grow, breathe, or have babies.'
+        },
+        {
+          question: 'What do leaves need to make food?',
+          options: ['Ice cream', 'Sunlight', 'An umbrella', 'Music'],
+          correctAnswer: 1,
+          explanation: 'Sunlight gives the plant the energy it needs to live.'
+        },
+        {
+          question: 'A robot can move. Why is it not a living thing?',
+          options: ['Because it is blue', 'Because it cannot reproduce', 'Because it is too heavy', 'Because it has batteries'],
+          correctAnswer: 1,
+          explanation: 'To be living, a thing must be able to grow and reproduce on its own.'
+        },
+        {
+          question: 'Which part supports the plant so it stands straight?',
+          options: ['The roots', 'The fruit', 'The stem', 'The seeds'],
+          correctAnswer: 2,
+          explanation: 'The stem is like the skeleton or the back of the plant.'
+        },
+        {
+          question: 'What happens if you put a plant in total darkness?',
+          options: ['It turns blue', 'It will die', 'It will sing', 'It will grow better'],
+          correctAnswer: 1,
+          explanation: 'Without light, the plant cannot make its food.'
+        },
+        {
+          question: "Which word means 'to have babies' or 'to make seeds'?",
+          options: ['Breathe', 'Move', 'Reproduce', 'Eat'],
+          correctAnswer: 2,
+          explanation: 'Reproduction allows living things to create a new generation.'
+        },
+        {
+          question: 'Where do plants make their food?',
+          options: ['In the roots', 'In the leaves', 'In the stores', 'In the rocks'],
+          correctAnswer: 1,
+          explanation: 'Food is created in the leaves with the help of sunlight.'
+        },
+        {
+          question: 'Which one is a living thing?',
+          options: ['A scooter', 'A cloud', 'A coconut tree', 'A balloon'],
+          correctAnswer: 2,
+          explanation: 'A coconut tree is a plant; it grows and needs water and light.'
+        },
+        {
+          question: 'What do we call the part that protects the seeds?',
+          options: ['The root', 'The fruit', 'The stem', 'The leaf'],
+          correctAnswer: 1,
+          explanation: 'The fruit holds and protects the seeds so they can grow into a new plant.'
+        }
+      ]
+    });
+  </script>
+</body>
+</html>

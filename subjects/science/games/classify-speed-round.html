@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Classify Speed Round — Science</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    .boss-track { height: 0.65rem; border-radius: 9999px; background: #fecaca; overflow: hidden; }
+    .boss-fill { height: 100%; background: linear-gradient(90deg, #ef4444, #f97316); transition: width 0.1s linear; }
+    .speed-btn { min-height: 3.25rem; font-size: 1.15rem; }
+  </style>
+</head>
+<body class="game theme-science">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="score-hud" id="score-hud">Score: 0 / 18</div>
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← Science</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+    <div id="play-screen">
+      <header class="mb-4 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2" style="color: var(--accent-dark)">⚡ Classify Speed Round</h1>
+        <p class="text-lg text-slate-500 font-medium">Living or non-living — beat the boss timer!</p>
+        <p class="text-sm font-semibold mt-2 text-rose-600">⏱️ Boss timer</p>
+        <div class="boss-track max-w-md mx-auto mt-1"><div id="boss-fill" class="boss-fill" style="width: 100%"></div></div>
+        <p id="item-label" class="mt-2 text-sm font-semibold" style="color: var(--accent)">Item 1 of 18</p>
+      </header>
+      <div class="question-card p-6 md:p-8 animate-pop">
+        <p id="item" class="text-4xl md:text-5xl font-bold text-center text-slate-800 mb-8"></p>
+        <div class="grid grid-cols-2 gap-4">
+          <button type="button" id="btn-living" class="speed-btn btn-primary bg-green-600 hover:bg-green-700">🌱 Living</button>
+          <button type="button" id="btn-not" class="speed-btn btn-primary bg-slate-600 hover:bg-slate-700">🪨 Not living</button>
+        </div>
+      </div>
+    </div>
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div class="text-6xl mb-4">🏁</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Time!</h2>
+      <p class="text-2xl font-medium text-slate-600 mb-6">You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">0</span> out of 18!</p>
+      <p id="result-detail" class="text-lg text-slate-500 mb-4 font-medium"></p>
+      <p id="result-message" class="text-lg text-slate-500 mb-8 font-medium"></p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+  <script src="../../../js/fun-effects.js"></script>
+  <script>
+    (function () {
+      const ITEMS = [
+        { label: '🐕 Puppy', living: true },
+        { label: '🪨 Pebble', living: false },
+        { label: '🌳 Oak tree', living: true },
+        { label: '🚗 Toy car', living: false },
+        { label: '🐟 Minnow', living: true },
+        { label: '💧 Raindrop', living: false },
+        { label: '🦋 Butterfly', living: true },
+        { label: '📱 Tablet', living: false },
+        { label: '🌿 Moss', living: true },
+        { label: '☁️ Cloud', living: false },
+        { label: '🐸 Tadpole', living: true },
+        { label: '🔥 Campfire', living: false },
+        { label: '🍄 Mushroom', living: true },
+        { label: '🪑 Wooden chair', living: false },
+        { label: '🌻 Sunflower', living: true },
+        { label: '🤖 Robot', living: false },
+        { label: '🐜 Ant', living: true },
+        { label: '🧱 Brick', living: false }
+      ];
+      const TOTAL = ITEMS.length;
+      const BOSS_MS = 55000;
+      let itemIndex = 0, score = 0, streak = 0, canAnswer = true;
+      let bossStart = 0, bossTimer = null, gameOver = false;
+
+      const scoreHud = document.getElementById('score-hud');
+      const itemEl = document.getElementById('item');
+      const bossFill = document.getElementById('boss-fill');
+      const btnLiving = document.getElementById('btn-living');
+      const btnNot = document.getElementById('btn-not');
+      const playScreen = document.getElementById('play-screen');
+      const resultScreen = document.getElementById('result-screen');
+
+      function updateHud() {
+        scoreHud.textContent = 'Score: ' + score + ' / ' + TOTAL;
+        FunEffects.pulseScore(scoreHud);
+      }
+
+      function showItem() {
+        if (gameOver || itemIndex >= TOTAL) return;
+        canAnswer = true;
+        itemEl.textContent = ITEMS[itemIndex].label;
+        document.getElementById('item-label').textContent = 'Item ' + (itemIndex + 1) + ' of ' + TOTAL;
+      }
+
+      function tickBoss() {
+        if (gameOver) return;
+        const elapsed = Date.now() - bossStart;
+        const left = Math.max(0, BOSS_MS - elapsed);
+        bossFill.style.width = (left / BOSS_MS * 100) + '%';
+        if (left <= 0) endGame('Timer ran out!');
+      }
+
+      function startBoss() {
+        bossStart = Date.now();
+        if (bossTimer) clearInterval(bossTimer);
+        bossTimer = setInterval(tickBoss, 100);
+      }
+
+      function answer(livingPick) {
+        if (!canAnswer || gameOver) return;
+        canAnswer = false;
+        const item = ITEMS[itemIndex];
+        const ok = livingPick === item.living;
+        if (ok) {
+          score++;
+          streak++;
+          FunEffects.showStreak(streak);
+          FunEffects.confetti({ count: 6 });
+        } else {
+          streak = 0;
+          FunEffects.shake(itemEl);
+        }
+        updateHud();
+        itemIndex++;
+        if (itemIndex >= TOTAL) {
+          endGame('All items classified!');
+          return;
+        }
+        setTimeout(showItem, 280);
+      }
+
+      function endGame(reason) {
+        gameOver = true;
+        if (bossTimer) clearInterval(bossTimer);
+        playScreen.classList.add('hidden');
+        resultScreen.classList.remove('hidden');
+        document.getElementById('score-display').textContent = String(score);
+        document.getElementById('result-detail').textContent = reason;
+        const msg = document.getElementById('result-message');
+        if (score === TOTAL) {
+          msg.textContent = 'Lightning classifier! Perfect run! 🌟';
+          FunEffects.celebratePerfect();
+        } else if (score >= TOTAL * 0.7) {
+          msg.textContent = 'Fast thinking! 👍';
+        } else {
+          msg.textContent = 'Living things grow and reproduce; non-living do not! 💪';
+        }
+      }
+
+      btnLiving.addEventListener('click', () => answer(true));
+      btnNot.addEventListener('click', () => answer(false));
+
+      document.getElementById('restart-btn').addEventListener('click', () => {
+        itemIndex = 0;
+        score = 0;
+        streak = 0;
+        gameOver = false;
+        updateHud();
+        resultScreen.classList.add('hidden');
+        playScreen.classList.remove('hidden');
+        bossFill.style.width = '100%';
+        startBoss();
+        showItem();
+      });
+
+      updateHud();
+      startBoss();
+      showItem();
+    })();
+  </script>
+</body>
+</html>

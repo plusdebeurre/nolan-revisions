@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Midterm Explorer Quiz — English</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body>
+  <div id="app"></div>
+  <script src="../../../js/quiz-engine.js"></script>
+  <script>
+    QuizEngine.mount({
+      subject: 'english',
+      title: '🌿 English Explorer',
+      subtitle: 'Midterm Revision — Oxford Discover 2',
+      perfectMessage: 'Amazing! Midterm champion! 🌟',
+      goodMessage: 'Great job! You are almost ready! 👍',
+      tryAgainMessage: 'Good try! Play again to get stronger! 💪',
+      quizData: [
+        {
+          question: 'Which animal group has feathers and wings?',
+          options: ['Mammals', 'Birds', 'Reptiles', 'Fish'],
+          correctAnswer: 1,
+          explanation: 'Only birds have feathers to help them fly and stay warm!'
+        },
+        {
+          question: 'What do fish use to breathe underwater?',
+          options: ['Lungs', 'Nose', 'Gills', 'Fins'],
+          correctAnswer: 2,
+          explanation: 'Gills take oxygen from the water so fish can breathe.'
+        },
+        {
+          question: 'Which word means 100% of the time?',
+          options: ['Never', 'Sometimes', 'Usually', 'Always'],
+          correctAnswer: 3,
+          explanation: 'Always means every single time (100%).'
+        },
+        {
+          question: "Complete the sentence: 'The cat is hungry. Give some food to ___.'",
+          options: ['it', 'them', 'us', 'him'],
+          correctAnswer: 0,
+          explanation: "We use 'it' for one animal."
+        },
+        {
+          question: "Which state of matter is 'Ice'?",
+          options: ['Liquid', 'Solid', 'Gas', 'Steam'],
+          correctAnswer: 1,
+          explanation: "Ice is hard and keeps its shape, so it's a solid."
+        },
+        {
+          question: 'What happens to water when it gets very hot?',
+          options: ['It freezes', 'It turns to ice', 'It becomes a gas', 'It stays solid'],
+          correctAnswer: 2,
+          explanation: 'Heat turns liquid water into gas (steam).'
+        },
+        {
+          question: "Choose the correct pronoun: 'Monkeys are funny. I like ___.'",
+          options: ['her', 'them', 'it', 'me'],
+          correctAnswer: 1,
+          explanation: "We use 'them' because there are many monkeys (plural)."
+        },
+        {
+          question: 'Which of these animals is an Amphibian?',
+          options: ['A shark', 'A frog', 'A lion', 'A parrot'],
+          correctAnswer: 1,
+          explanation: 'Frogs are amphibians! They live in water and on land.'
+        },
+        {
+          question: "If something 'flows' and takes the shape of its cup, it is a...",
+          options: ['Solid', 'Gas', 'Liquid', 'Rock'],
+          correctAnswer: 2,
+          explanation: 'Liquids like water or juice flow and change shape.'
+        },
+        {
+          question: "Cause: 'The sun is very hot.' What is the Effect?",
+          options: ['The ice melts', 'The ice freezes', 'It is winter', 'The water turns to ice'],
+          correctAnswer: 0,
+          explanation: 'Heat causes ice to melt and turn into liquid.'
+        }
+      ]
+    });
+  </script>
+</body>
+</html>

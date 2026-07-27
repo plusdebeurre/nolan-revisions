@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digit Bingo — Thai</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Sarabun:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    .call-number {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 5rem;
+      font-weight: 700;
+      color: var(--accent-dark);
+      line-height: 1;
+    }
+    .bingo-board {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.5rem;
+    }
+    .bingo-cell {
+      font-family: 'Sarabun', sans-serif;
+      font-size: clamp(1.75rem, 6vw, 2.25rem);
+      font-weight: 700;
+      min-height: 3.25rem;
+      border-radius: 0.75rem;
+      border: 3px solid var(--card-border);
+      background: white;
+    }
+    .bingo-cell.marked {
+      background: #fef3c7;
+      border-color: #f59e0b;
+      opacity: 0.85;
+    }
+    .bingo-cell.hit {
+      background: #dcfce7;
+      border-color: #22c55e;
+    }
+    .bingo-cell.wrong {
+      background: #fee2e2;
+      border-color: #ef4444;
+    }
+  </style>
+</head>
+<body class="game theme-thai">
+  <main class="w-full max-w-lg mx-auto px-4 py-6">
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← Thai</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+    <div id="play-screen">
+      <header class="mb-6 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2" style="color: var(--accent-dark)">🎯 Digit Bingo</h1>
+        <p class="text-lg text-slate-500">Caller says a number — tap the Thai digit!</p>
+        <p id="score-hud" class="mt-3 text-sm font-semibold" style="color: var(--accent)">Score: 0 · Call 1 of 18</p>
+      </header>
+      <div class="question-card p-6 animate-pop text-center">
+        <p class="text-slate-500 font-medium mb-1">Call:</p>
+        <div id="call-display" class="call-number mb-4">7</div>
+        <div id="bingo-board" class="bingo-board mb-4"></div>
+        <p id="status-msg" class="text-slate-600 font-medium min-h-[1.5rem]">Find it on your board!</p>
+      </div>
+    </div>
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div class="text-6xl mb-4">🎱</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Bingo!</h2>
+      <p class="text-2xl text-slate-600 mb-6">You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">0</span> out of <span id="total-display">18</span>!</p>
+      <p id="result-message" class="text-lg text-slate-500 mb-8"></p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+  <script src="../../../js/fun-effects.js"></script>
+  <script>
+    const THAI_DIGITS = ['๐', '๑', '๒', '๓', '๔', '๕', '๖', '๗', '๘', '๙'];
+    const CALLS = [3, 7, 1, 9, 5, 0, 8, 2, 6, 4, 11, 15, 12, 20, 9, 7, 4, 2];
+    const BOARD_LAYOUT = [2, 7, 1, 9, 4, 6, 0, 8, 3, 5];
+    let callIndex = 0, score = 0, streak = 0, locked = false;
+    const callDisplay = document.getElementById('call-display');
+    const boardEl = document.getElementById('bingo-board');
+    const statusMsg = document.getElementById('status-msg');
+    const scoreHud = document.getElementById('score-hud');
+
+    function buildBoard() {
+      boardEl.innerHTML = '';
+      BOARD_LAYOUT.forEach((digit) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'bingo-cell';
+        btn.dataset.digit = String(digit);
+        btn.textContent = THAI_DIGITS[digit];
+        btn.addEventListener('click', () => onTap(btn, digit));
+        boardEl.appendChild(btn);
+      });
+    }
+    function currentTarget() {
+      const n = CALLS[callIndex];
+      if (n <= 9) return { mode: 'single', value: n, label: String(n) };
+      return { mode: 'read', value: n, label: String(n), hint: n === 11 ? 'Sip-et uses ๑ + ๑' : 'Read the tens and ones!' };
+    }
+    function loadCall() {
+      locked = false;
+      const t = currentTarget();
+      callDisplay.textContent = t.label;
+      scoreHud.textContent = `Score: ${score} · Call ${callIndex + 1} of ${CALLS.length}`;
+      statusMsg.textContent = t.mode === 'read' ? 'Bonus call — tap the first digit you hear!' : 'Find it on your board!';
+      [...boardEl.children].forEach((b) => {
+        if (!b.classList.contains('marked')) b.classList.remove('wrong', 'hit');
+      });
+    }
+    function expectedDigit(t) {
+      if (t.mode === 'single') return t.value;
+      if (t.value === 11) return 1;
+      if (t.value === 15) return 1;
+      if (t.value === 12) return 1;
+      if (t.value === 20) return 2;
+      return Math.floor(t.value / 10);
+    }
+    function onTap(btn, digit) {
+      if (locked || btn.classList.contains('marked')) return;
+      locked = true;
+      const t = currentTarget();
+      const want = expectedDigit(t);
+      if (digit === want) {
+        score++;
+        streak++;
+        btn.classList.add('hit');
+        if (t.mode === 'single') btn.classList.add('marked');
+        statusMsg.textContent = t.mode === 'read'
+          ? `Yes! ${t.label} starts with ${THAI_DIGITS[want]} — ${t.hint || ''}`
+          : `Correct! ${THAI_DIGITS[digit]} = ${digit}`;
+        if (window.FunEffects) {
+          FunEffects.showStreak(streak);
+          FunEffects.pulseScore(scoreHud);
+        }
+        setTimeout(nextCall, 700);
+      } else {
+        streak = 0;
+        btn.classList.add('wrong');
+        statusMsg.textContent = `Not that one — look for ${THAI_DIGITS[want]} (${want}).`;
+        if (window.FunEffects) FunEffects.shake(btn);
+        setTimeout(() => {
+          btn.classList.remove('wrong');
+          locked = false;
+        }, 650);
+      }
+      scoreHud.textContent = `Score: ${score} · Call ${callIndex + 1} of ${CALLS.length}`;
+    }
+    function nextCall() {
+      callIndex++;
+      if (callIndex < CALLS.length) loadCall();
+      else showResult();
+    }
+    function showResult() {
+      document.getElementById('play-screen').classList.add('hidden');
+      document.getElementById('result-screen').classList.remove('hidden');
+      document.getElementById('score-display').textContent = score;
+      document.getElementById('total-display').textContent = CALLS.length;
+      document.getElementById('result-message').textContent =
+        score === CALLS.length ? 'Full house! ๑๐๑ 🌟' : score >= 14 ? 'Sharp digit ears! 👍' : 'Practice ๐–๙ on the board! 💪';
+      if (score === CALLS.length && window.FunEffects) FunEffects.confetti();
+    }
+    document.getElementById('restart-btn').addEventListener('click', () => {
+      callIndex = 0; score = 0; streak = 0;
+      document.getElementById('result-screen').classList.add('hidden');
+      document.getElementById('play-screen').classList.remove('hidden');
+      buildBoard();
+      loadCall();
+    });
+    buildBoard();
+    loadCall();
+  </script>
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cause & Effect Chain — English</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    .chain-chip {
+      min-height: 3.25rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 1rem;
+      border: 3px solid #e2e8f0;
+      background: #fff;
+      padding: 0.75rem 1rem;
+      text-align: left;
+      transition: transform 0.12s, border-color 0.12s;
+    }
+    .chain-chip.selected {
+      border-color: var(--accent-dark);
+      background: #ecfdf5;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+    }
+    .chain-chip.matched {
+      opacity: 0.5;
+      pointer-events: none;
+      border-color: #22c55e;
+      background: #dcfce7;
+    }
+    .chain-chip.wrong-flash {
+      border-color: #ef4444;
+      background: #fee2e2;
+      animation: shake 0.4s ease;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+  </style>
+</head>
+<body class="game theme-english">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="score-hud" id="live-score-hud">Score: 0 / 12</div>
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← English</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+
+    <div id="play-screen">
+      <header class="mb-6 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2 drop-shadow-sm" style="color: var(--accent-dark)">🔗 Cause & Effect Chain</h1>
+        <p class="text-lg text-slate-500 font-medium">Tap a <strong>cause</strong>, then its <strong>effect</strong>!</p>
+        <div class="progress-track">
+          <div id="progress-bar" class="progress-bar-fill"></div>
+        </div>
+        <p id="round-label" class="mt-2 text-sm font-semibold" style="color: var(--accent)">Round 1 of 12</p>
+        <p id="live-score-line" class="live-score-line">Score: 0</p>
+      </header>
+
+      <div class="question-card p-6 md:p-8 animate-pop">
+        <p class="text-center font-semibold text-slate-600 mb-3">Causes</p>
+        <div id="causes-col" class="grid gap-3 mb-6"></div>
+        <p class="text-center font-semibold text-slate-600 mb-3">Effects</p>
+        <div id="effects-col" class="grid gap-3 mb-4"></div>
+        <div id="feedback" class="hidden text-center p-4 rounded-xl text-lg font-medium mb-4"></div>
+        <div class="text-center">
+          <button type="button" id="next-btn" class="hidden btn-primary">Next Round 🚀</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div class="text-6xl mb-4">🎉</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Chain Complete!</h2>
+      <p class="text-2xl font-medium text-slate-600 mb-6">
+        You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">0</span> out of 12!
+      </p>
+      <p id="result-message" class="text-lg text-slate-500 mb-8 font-medium"></p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+  <script src="../../../js/fun-effects.js"></script>
+  <script>
+    (function () {
+      const ROUNDS = [
+        { cause: '☀️ The sun is very hot.', effect: '🧊 The ice melts.' },
+        { cause: '❄️ It is freezing cold.', effect: '💧 The puddle freezes.' },
+        { cause: '🔥 We boil water in a kettle.', effect: '💨 Steam rises.' },
+        { cause: '🧊 We put juice in the freezer.', effect: '🍧 The juice turns to ice.' },
+        { cause: '🌡️ Heat warms the chocolate.', effect: '🍫 The chocolate melts.' },
+        { cause: '🌙 Night air gets cold.', effect: '🧊 Water on the window freezes.' },
+        { cause: '☀️ Sun shines on the snowman.', effect: '💧 The snowman melts.' },
+        { cause: '🔥 Fire heats the metal pan.', effect: '🥵 The pan gets very hot.' },
+        { cause: '🧊 We leave water outside in winter.', effect: '🧊 The water becomes ice.' },
+        { cause: '💨 Wind blows on wet clothes.', effect: '👕 The clothes dry faster.' },
+        { cause: '🌧️ Rain falls on the dry garden.', effect: '🌱 Plants grow green.' },
+        { cause: '🐕 The dog sees a squirrel.', effect: '🏃 The dog runs to hunt it.' }
+      ];
+
+      let roundIndex = 0;
+      let totalScore = 0;
+      let selectedCause = null;
+      let matched = false;
+
+      const playScreen = document.getElementById('play-screen');
+      const resultScreen = document.getElementById('result-screen');
+      const causesCol = document.getElementById('causes-col');
+      const effectsCol = document.getElementById('effects-col');
+      const feedback = document.getElementById('feedback');
+      const nextBtn = document.getElementById('next-btn');
+      const progressBar = document.getElementById('progress-bar');
+      const roundLabel = document.getElementById('round-label');
+      const scoreDisplay = document.getElementById('score-display');
+      const resultMessage = document.getElementById('result-message');
+      const restartBtn = document.getElementById('restart-btn');
+      const liveScoreHud = document.getElementById('live-score-hud');
+      const liveScoreLine = document.getElementById('live-score-line');
+
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function updateHud() {
+        liveScoreHud.textContent = `Score: ${totalScore} / ${ROUNDS.length}`;
+        liveScoreLine.textContent = `Score: ${totalScore}`;
+      }
+
+      function loadRound() {
+        selectedCause = null;
+        matched = false;
+        feedback.classList.add('hidden');
+        nextBtn.classList.add('hidden');
+        roundLabel.textContent = `Round ${roundIndex + 1} of ${ROUNDS.length}`;
+        progressBar.style.width = `${(roundIndex / ROUNDS.length) * 100}%`;
+
+        const pair = ROUNDS[roundIndex];
+        const decoyEffects = shuffle(
+          ROUNDS.filter((_, i) => i !== roundIndex).map((r) => r.effect)
+        ).slice(0, 2);
+
+        causesCol.innerHTML = '';
+        const causeBtn = document.createElement('button');
+        causeBtn.type = 'button';
+        causeBtn.className = 'chain-chip';
+        causeBtn.textContent = pair.cause;
+        causeBtn.addEventListener('click', () => {
+          if (matched) return;
+          causesCol.querySelectorAll('.chain-chip').forEach((b) => b.classList.remove('selected'));
+          causeBtn.classList.add('selected');
+          selectedCause = pair.cause;
+        });
+        causesCol.appendChild(causeBtn);
+
+        effectsCol.innerHTML = '';
+        shuffle([pair.effect, ...decoyEffects]).forEach((text) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'chain-chip';
+          btn.textContent = text;
+          btn.dataset.effect = text;
+          btn.addEventListener('click', () => pickEffect(btn, text, pair));
+          effectsCol.appendChild(btn);
+        });
+      }
+
+      function pickEffect(btn, text, pair) {
+        if (matched) return;
+        if (!selectedCause) {
+          feedback.classList.remove('hidden', 'bg-green-100', 'text-green-800');
+          feedback.classList.add('bg-amber-100', 'text-amber-900');
+          feedback.textContent = 'Pick the cause first, then the effect!';
+          return;
+        }
+        if (text === pair.effect) {
+          matched = true;
+          btn.classList.add('matched');
+          causesCol.querySelector('.chain-chip')?.classList.add('matched');
+          totalScore++;
+          updateHud();
+          if (window.FunEffects) {
+            FunEffects.confetti({ count: 14 });
+            FunEffects.pulseScore(liveScoreLine);
+          }
+          feedback.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'bg-amber-100', 'text-amber-900');
+          feedback.classList.add('bg-green-100', 'text-green-800');
+          feedback.innerHTML = '<strong>Linked!</strong> That effect matches the cause.';
+          nextBtn.classList.remove('hidden');
+        } else {
+          btn.classList.add('wrong-flash');
+          feedback.classList.remove('hidden', 'bg-green-100', 'text-green-800');
+          feedback.classList.add('bg-red-100', 'text-red-800');
+          feedback.textContent = 'Not that effect — try again!';
+          if (window.FunEffects) FunEffects.shake(btn);
+          setTimeout(() => btn.classList.remove('wrong-flash'), 450);
+        }
+      }
+
+      nextBtn.addEventListener('click', () => {
+        roundIndex++;
+        if (roundIndex < ROUNDS.length) loadRound();
+        else finish();
+      });
+
+      function finish() {
+        playScreen.classList.add('hidden');
+        resultScreen.classList.remove('hidden');
+        scoreDisplay.textContent = totalScore;
+        progressBar.style.width = '100%';
+        if (totalScore === ROUNDS.length) {
+          resultMessage.textContent = 'Science star! Every chain is correct! 🌟';
+          if (window.FunEffects) FunEffects.celebratePerfect();
+        } else if (totalScore >= 9) {
+          resultMessage.textContent = 'Strong cause-and-effect thinking! 👍';
+        } else {
+          resultMessage.textContent = 'Play again to link them all! 💪';
+        }
+      }
+
+      restartBtn.addEventListener('click', () => {
+        roundIndex = 0;
+        totalScore = 0;
+        updateHud();
+        resultScreen.classList.add('hidden');
+        playScreen.classList.remove('hidden');
+        loadRound();
+      });
+
+      updateHud();
+      loadRound();
+    })();
+  </script>
+</body>
+</html>

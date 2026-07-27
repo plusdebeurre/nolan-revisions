@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Frequency Meter — English</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    .meter-wrap {
+      position: relative;
+      height: 2.75rem;
+      border-radius: 9999px;
+      background: linear-gradient(90deg, #ef4444 0%, #f59e0b 25%, #eab308 50%, #84cc16 75%, #22c55e 100%);
+      overflow: hidden;
+      border: 3px solid #cbd5e1;
+    }
+    .meter-marker {
+      position: absolute;
+      top: -4px;
+      bottom: -4px;
+      width: 6px;
+      margin-left: -3px;
+      background: #1e293b;
+      border-radius: 4px;
+      box-shadow: 0 0 0 2px #fff;
+      transition: left 0.5s ease;
+    }
+    .meter-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #64748b;
+      margin-top: 0.35rem;
+      padding: 0 0.15rem;
+    }
+    .freq-btn {
+      min-height: 3.75rem;
+      font-size: 1.2rem;
+      font-weight: 700;
+      border-radius: 1rem;
+      border: 3px solid var(--card-border);
+      background: #fff;
+      transition: transform 0.12s;
+    }
+    .freq-btn:active:not(:disabled) {
+      transform: scale(0.97);
+    }
+    .freq-btn.correct {
+      border-color: #22c55e;
+      background: #dcfce7;
+    }
+    .freq-btn.wrong {
+      border-color: #ef4444;
+      background: #fee2e2;
+    }
+    .sentence-blank {
+      display: inline-block;
+      min-width: 6rem;
+      border-bottom: 4px dashed var(--accent);
+      color: var(--accent-dark);
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body class="game theme-english">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← English</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+
+    <div id="play-screen">
+      <header class="mb-6 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2 drop-shadow-sm" style="color: var(--accent-dark)">📊 Frequency Meter</h1>
+        <p class="text-lg text-slate-500 font-medium">Match the adverb to how often it happens!</p>
+        <div class="progress-track">
+          <div id="progress-bar" class="progress-bar-fill"></div>
+        </div>
+        <p id="round-label" class="mt-2 text-sm font-semibold" style="color: var(--accent)">Round 1 of 8</p>
+      </header>
+
+      <div class="question-card p-6 md:p-8 animate-pop">
+        <p id="prompt-type" class="text-center text-sm font-bold uppercase tracking-wide text-slate-400 mb-3">Fill the blank</p>
+        <div id="sentence-area" class="text-xl md:text-2xl font-semibold text-center text-slate-700 leading-relaxed mb-6"></div>
+
+        <div class="mb-2 text-center text-slate-500 font-medium text-sm">How often? (0% → 100%)</div>
+        <div class="meter-wrap mb-1">
+          <div id="meter-marker" class="meter-marker" style="left: 50%"></div>
+        </div>
+        <div class="meter-labels mb-8">
+          <span>Never 0%</span>
+          <span>Hardly ever</span>
+          <span>Sometimes</span>
+          <span>Usually</span>
+          <span>Always 100%</span>
+        </div>
+
+        <div id="adverb-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4"></div>
+        <div id="feedback" class="hidden text-center p-4 rounded-xl text-lg font-medium mb-4"></div>
+        <div class="text-center">
+          <button type="button" id="next-btn" class="hidden btn-primary">Next Round 🚀</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div class="text-6xl mb-4">⭐</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Meter Master!</h2>
+      <p class="text-2xl font-medium text-slate-600 mb-6">
+        You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">0</span> out of 8!
+      </p>
+      <p id="result-message" class="text-lg text-slate-500 mb-8 font-medium"></p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      const ADVERBS = [
+        { word: 'Always', pct: 100 },
+        { word: 'Usually', pct: 80 },
+        { word: 'Sometimes', pct: 50 },
+        { word: 'Hardly ever', pct: 10 },
+        { word: 'Never', pct: 0 }
+      ];
+
+      const ROUNDS = [
+        {
+          mode: 'blank',
+          before: '🐕 Dogs',
+          after: ' bark at the mail carrier.',
+          answer: 'Always',
+          pct: 100,
+          explain: 'Always means 100% — every time!'
+        },
+        {
+          mode: 'meter',
+          sentence: 'The meter shows about 80%. Which adverb fits?',
+          answer: 'Usually',
+          pct: 80,
+          explain: 'Usually is about 80% — most of the time, but not every time.'
+        },
+        {
+          mode: 'blank',
+          before: '🦁 Nolan',
+          after: ' sees a lion at the zoo (only on special trips).',
+          answer: 'Sometimes',
+          pct: 50,
+          explain: 'Sometimes is about 50% — now and then.'
+        },
+        {
+          mode: 'meter',
+          sentence: 'The meter is at 0%. Pick the right adverb.',
+          answer: 'Never',
+          pct: 0,
+          explain: 'Never means 0% — not at all.'
+        },
+        {
+          mode: 'blank',
+          before: '🐸 Frogs',
+          after: ' jump in winter when it is very cold.',
+          answer: 'Hardly ever',
+          pct: 10,
+          explain: 'Hardly ever is about 10% — almost never.'
+        },
+        {
+          mode: 'blank',
+          before: '☀️ The sun',
+          after: ' rises in the morning.',
+          answer: 'Always',
+          pct: 100,
+          explain: 'The sun rises every morning — that is always!'
+        },
+        {
+          mode: 'meter',
+          sentence: 'About half the time (50%). Which word do we use?',
+          answer: 'Sometimes',
+          pct: 50,
+          explain: 'Sometimes matches the middle of the meter — 50%.'
+        },
+        {
+          mode: 'blank',
+          before: '🦈 I',
+          after: ' swim with sharks.',
+          answer: 'Never',
+          pct: 0,
+          explain: 'Never is 0% — I do not swim with sharks at all!'
+        }
+      ];
+
+      let roundIndex = 0;
+      let score = 0;
+      let canAnswer = true;
+
+      const playScreen = document.getElementById('play-screen');
+      const resultScreen = document.getElementById('result-screen');
+      const promptType = document.getElementById('prompt-type');
+      const sentenceArea = document.getElementById('sentence-area');
+      const meterMarker = document.getElementById('meter-marker');
+      const adverbGrid = document.getElementById('adverb-grid');
+      const feedback = document.getElementById('feedback');
+      const nextBtn = document.getElementById('next-btn');
+      const progressBar = document.getElementById('progress-bar');
+      const roundLabel = document.getElementById('round-label');
+      const scoreDisplay = document.getElementById('score-display');
+      const resultMessage = document.getElementById('result-message');
+      const restartBtn = document.getElementById('restart-btn');
+
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function setMeter(pct) {
+        meterMarker.style.left = `${pct}%`;
+      }
+
+      function loadRound() {
+        canAnswer = true;
+        feedback.classList.add('hidden');
+        nextBtn.classList.add('hidden');
+        adverbGrid.innerHTML = '';
+
+        const round = ROUNDS[roundIndex];
+        roundLabel.textContent = `Round ${roundIndex + 1} of ${ROUNDS.length}`;
+        progressBar.style.width = `${(roundIndex / ROUNDS.length) * 100}%`;
+
+        if (round.mode === 'blank') {
+          promptType.textContent = 'Fill the blank';
+          sentenceArea.innerHTML = `${round.before} <span class="sentence-blank">?</span> ${round.after}`;
+          setMeter(round.pct);
+        } else {
+          promptType.textContent = 'Read the meter';
+          sentenceArea.textContent = round.sentence;
+          setMeter(round.pct);
+        }
+
+        shuffle(ADVERBS.map((a) => a.word)).forEach((word) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'freq-btn option-btn py-4';
+          btn.textContent = word;
+          btn.addEventListener('click', () => pick(word, round, btn));
+          adverbGrid.appendChild(btn);
+        });
+      }
+
+      function pick(word, round, btn) {
+        if (!canAnswer) return;
+        canAnswer = false;
+        const correct = word === round.answer;
+        const buttons = adverbGrid.querySelectorAll('button');
+        buttons.forEach((b) => {
+          b.disabled = true;
+          if (b.textContent === round.answer) b.classList.add('correct');
+          else if (b === btn && !correct) b.classList.add('wrong');
+        });
+
+        feedback.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+        if (correct) {
+          score++;
+          feedback.classList.add('bg-green-100', 'text-green-800');
+          feedback.innerHTML = `<strong>Well done! 🎉</strong><br>${round.explain}`;
+        } else {
+          feedback.classList.add('bg-red-100', 'text-red-800');
+          feedback.innerHTML = `<strong>Oops! 🙈</strong><br>The answer is <strong>${round.answer}</strong>. ${round.explain}`;
+        }
+        nextBtn.classList.remove('hidden');
+      }
+
+      nextBtn.addEventListener('click', () => {
+        roundIndex++;
+        if (roundIndex < ROUNDS.length) loadRound();
+        else showResults();
+      });
+
+      function showResults() {
+        playScreen.classList.add('hidden');
+        resultScreen.classList.remove('hidden');
+        scoreDisplay.textContent = score;
+        progressBar.style.width = '100%';
+        if (score === ROUNDS.length) resultMessage.textContent = 'Perfect! You read the frequency meter! 🌟';
+        else if (score >= 6) resultMessage.textContent = 'Great job with adverbs of frequency! 👍';
+        else resultMessage.textContent = 'Keep practicing always, usually, and sometimes! 💪';
+      }
+
+      restartBtn.addEventListener('click', () => {
+        roundIndex = 0;
+        score = 0;
+        resultScreen.classList.add('hidden');
+        playScreen.classList.remove('hidden');
+        loadRound();
+      });
+
+      loadRound();
+    })();
+  </script>
+</body>
+</html>

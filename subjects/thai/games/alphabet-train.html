@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alphabet Train — Thai</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Sarabun:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    .thai-hero {
+      font-family: 'Sarabun', sans-serif;
+      font-size: 4.5rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .train-track {
+      height: 0.5rem;
+      background: linear-gradient(90deg, #fcd34d, #f59e0b, #fcd34d);
+      background-size: 200% 100%;
+      animation: track-shine 2s linear infinite;
+      border-radius: 999px;
+    }
+    @keyframes track-shine {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 200% 50%; }
+    }
+    .letter-opt {
+      font-family: 'Sarabun', sans-serif;
+      font-size: 2.25rem;
+      font-weight: 700;
+      min-height: 4rem;
+    }
+  </style>
+</head>
+<body class="game theme-thai">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← Thai</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+    <div id="play-screen">
+      <header class="mb-6 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2" style="color: var(--accent-dark)">🚂 Alphabet Train</h1>
+        <p class="text-lg text-slate-500">What comes next in the consonant line?</p>
+        <div class="train-track mt-4 mb-2 max-w-md mx-auto"></div>
+        <div class="progress-track"><div id="progress-bar" class="progress-bar-fill"></div></div>
+        <p id="score-hud" class="mt-2 text-sm font-semibold" style="color: var(--accent)">Score: 0 · Round 1 of 24</p>
+      </header>
+      <div class="question-card p-6 md:p-8 animate-pop text-center">
+        <p class="text-slate-500 font-medium mb-2">After this letter comes…</p>
+        <div id="current-letter" class="thai-hero mb-6 text-slate-800">ก</div>
+        <div id="choices" class="grid grid-cols-2 gap-3 mb-4"></div>
+        <div id="feedback" class="hidden p-4 rounded-xl text-lg font-medium mb-4"></div>
+        <button type="button" id="next-btn" class="hidden btn-primary">Next car 🚃</button>
+      </div>
+    </div>
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div class="text-6xl mb-4">🏆</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">End of the line!</h2>
+      <p class="text-2xl text-slate-600 mb-6">You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">0</span> out of <span id="total-display">24</span>!</p>
+      <p id="result-message" class="text-lg text-slate-500 mb-8"></p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+  <script src="../../../js/fun-effects.js"></script>
+  <script>
+    const ALPHABET = ['ก','ข','ฃ','ค','ฅ','ฆ','ง','จ','ฉ','ช','ซ','ฌ','ญ','ฎ','ฏ','ด','ต','ถ','ท','ธ','น','บ','ป','ผ','ฝ','พ','ฟ','ภ','ม','ย','ร','ล','ว','ศ','ษ','ส','ห','ฬ','อ','ฮ'];
+    const ROUNDS = [
+      { after: 0, tip: 'After ก (gor gai) comes ข (khor khai).' },
+      { after: 1, tip: 'After ข comes ฃ — rare letter, then ค.' },
+      { after: 3, tip: 'After ค (khor kwai) comes ฅ.' },
+      { after: 5, tip: 'After ฆ comes ง (ngor ngu).' },
+      { after: 6, tip: 'After ง comes จ (jor jaan).' },
+      { after: 7, tip: 'After จ comes ฉ (chor ching).' },
+      { after: 9, tip: 'After ช comes ซ (sor so).' },
+      { after: 11, tip: 'After ฌ comes ญ (yor ying).' },
+      { after: 13, tip: 'After ฎ comes ฏ (tor tao).' },
+      { after: 15, tip: 'After ด comes ต (tor tao).' },
+      { after: 16, tip: 'After ต comes ถ (thor thung).' },
+      { after: 18, tip: 'After ท comes ธ (thor thong).' },
+      { after: 20, tip: 'After น comes บ (bor bai mai).' },
+      { after: 21, tip: 'After บ comes ป (por plaa).' },
+      { after: 23, tip: 'After ฝ comes พ (phor phaan).' },
+      { after: 25, tip: 'After ฟ comes ภ (phor samphao).' },
+      { after: 27, tip: 'After ม comes ย (yor yak).' },
+      { after: 28, tip: 'After ย comes ร (ror rua).' },
+      { after: 29, tip: 'After ร comes ล (lor ling).' },
+      { after: 30, tip: 'After ล comes ว (wor waen).' },
+      { after: 32, tip: 'After ศ comes ษ (sor rue-si).' },
+      { after: 34, tip: 'After ส comes ห (hor heep).' },
+      { after: 36, tip: 'After ห comes ฬ (lor chulaa).' },
+      { after: 37, tip: 'After ฬ comes อ (or aang).' }
+    ];
+    let i = 0, score = 0, streak = 0, locked = false;
+    const currentLetter = document.getElementById('current-letter');
+    const choices = document.getElementById('choices');
+    const feedback = document.getElementById('feedback');
+    const nextBtn = document.getElementById('next-btn');
+    const progressBar = document.getElementById('progress-bar');
+    const scoreHud = document.getElementById('score-hud');
+
+    function shuffle(a) {
+      const x = a.slice();
+      for (let n = x.length - 1; n > 0; n--) {
+        const j = Math.floor(Math.random() * (n + 1));
+        [x[n], x[j]] = [x[j], x[n]];
+      }
+      return x;
+    }
+    function wrongOptions(correctIdx) {
+      const pool = [correctIdx - 2, correctIdx - 1, correctIdx + 1, correctIdx + 2, correctIdx + 3]
+        .filter((n) => n >= 0 && n < ALPHABET.length && n !== correctIdx);
+      const uniq = [...new Set(pool)];
+      while (uniq.length < 3) {
+        const r = Math.floor(Math.random() * ALPHABET.length);
+        if (r !== correctIdx && !uniq.includes(r)) uniq.push(r);
+      }
+      return uniq.slice(0, 3).map((n) => ALPHABET[n]);
+    }
+    function load() {
+      locked = false;
+      feedback.classList.add('hidden');
+      nextBtn.classList.add('hidden');
+      const r = ROUNDS[i];
+      const letter = ALPHABET[r.after];
+      const answerIdx = r.after + 1;
+      const answer = ALPHABET[answerIdx];
+      currentLetter.textContent = letter;
+      progressBar.style.width = `${(i / ROUNDS.length) * 100}%`;
+      scoreHud.textContent = `Score: ${score} · Round ${i + 1} of ${ROUNDS.length}`;
+      choices.innerHTML = '';
+      shuffle([answer, ...wrongOptions(answerIdx)]).forEach((opt) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'option-btn letter-opt text-center';
+        btn.textContent = opt;
+        btn.addEventListener('click', () => pick(opt, answer, r, btn));
+        choices.appendChild(btn);
+      });
+    }
+    function pick(opt, answer, r, btn) {
+      if (locked) return;
+      locked = true;
+      [...choices.children].forEach((b) => {
+        if (b.textContent === answer) b.classList.add('correct');
+        else if (b === btn && opt !== answer) b.classList.add('wrong');
+      });
+      feedback.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+      if (opt === answer) {
+        score++;
+        streak++;
+        if (window.FunEffects) {
+          FunEffects.showStreak(streak);
+          FunEffects.pulseScore(scoreHud);
+        }
+        feedback.classList.add('bg-green-100', 'text-green-800');
+        feedback.innerHTML = `<strong>Choo choo! 🎉</strong><br>${r.tip}`;
+      } else {
+        streak = 0;
+        if (window.FunEffects) FunEffects.shake(currentLetter);
+        feedback.classList.add('bg-red-100', 'text-red-800');
+        feedback.innerHTML = `<strong>Check the train order!</strong><br>${r.tip}`;
+      }
+      scoreHud.textContent = `Score: ${score} · Round ${i + 1} of ${ROUNDS.length}`;
+      nextBtn.classList.remove('hidden');
+    }
+    nextBtn.addEventListener('click', () => {
+      i++;
+      if (i < ROUNDS.length) load();
+      else {
+        document.getElementById('play-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+        document.getElementById('score-display').textContent = score;
+        document.getElementById('total-display').textContent = ROUNDS.length;
+        document.getElementById('result-message').textContent =
+          score === ROUNDS.length ? 'Full alphabet train! 🌟' : score >= 18 ? 'Strong Trai Yang order! 👍' : 'Ride the train again! 💪';
+        progressBar.style.width = '100%';
+        if (score === ROUNDS.length && window.FunEffects) FunEffects.confetti();
+      }
+    });
+    document.getElementById('restart-btn').addEventListener('click', () => {
+      i = 0; score = 0; streak = 0;
+      document.getElementById('result-screen').classList.add('hidden');
+      document.getElementById('play-screen').classList.remove('hidden');
+      load();
+    });
+    load();
+  </script>
+</body>
+</html>

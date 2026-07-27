@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Number Bond Builder — Math</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    .bond-target {
+      font-size: clamp(3rem, 14vw, 4.5rem);
+      font-weight: 800;
+      color: var(--accent-dark);
+    }
+    .num-pick {
+      min-width: 4rem;
+      padding: 1rem 1.25rem;
+      border-radius: 1rem;
+      border: 3px solid #e2e8f0;
+      background: white;
+      font-size: 1.75rem;
+      font-weight: 700;
+      transition: transform 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .num-pick:hover:not(:disabled) { transform: scale(1.05); border-color: var(--accent); }
+    .num-pick.selected { border-color: var(--accent); background: #fffbeb; }
+    .num-pick.correct-pair { border-color: #22c55e; background: #dcfce7; }
+    .num-pick:disabled { cursor: default; opacity: 0.85; }
+  </style>
+</head>
+<body class="game theme-math">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="score-hud" id="score-hud">Score: 0 / 28</div>
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← Math</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+
+    <div id="play-screen">
+      <header class="mb-6 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2 drop-shadow-sm" style="color: var(--accent-dark)">Number Bond Builder</h1>
+        <p class="text-lg text-slate-500 font-medium">Tap two numbers that make the target!</p>
+        <div class="progress-track"><div id="progress-bar" class="progress-bar-fill"></div></div>
+        <p id="round-label" class="mt-2 text-sm font-semibold" style="color: var(--accent)">Round 1 of 28</p>
+      </header>
+      <div id="game-card" class="question-card p-6 md:p-8 animate-pop">
+        <p class="text-center text-slate-600 font-medium mb-2">Make this number:</p>
+        <p class="bond-target text-center mb-6" id="target-display">10</p>
+        <div id="choices-row" class="flex flex-wrap justify-center gap-3 mb-6"></div>
+        <div id="feedback" class="hidden text-center p-4 rounded-xl text-lg font-medium mb-4"></div>
+        <div class="text-center"><button type="button" id="next-btn" class="hidden btn-primary">Next Round 🚀</button></div>
+      </div>
+    </div>
+
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div class="text-6xl mb-4">🔗</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Bonds Complete!</h2>
+      <p class="text-2xl font-medium text-slate-600 mb-6">You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">0</span> out of 28!</p>
+      <p id="result-message" class="text-lg text-slate-500 mb-8 font-medium"></p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+  <script src="../../../js/fun-effects.js"></script>
+  <script>
+    (function () {
+      const ROUNDS = [
+        { target: 10, nums: [3, 7, 4, 6, 2, 8] }, { target: 10, nums: [1, 9, 5, 5, 2, 3] },
+        { target: 10, nums: [4, 6, 7, 3, 0, 10] }, { target: 10, nums: [8, 2, 5, 4, 1, 9] },
+        { target: 10, nums: [6, 4, 2, 8, 3, 7] }, { target: 10, nums: [9, 1, 6, 5, 4, 2] },
+        { target: 20, nums: [12, 8, 15, 5, 11, 9] }, { target: 20, nums: [14, 6, 13, 7, 10, 10] },
+        { target: 20, nums: [17, 3, 16, 4, 18, 2] }, { target: 20, nums: [11, 9, 8, 12, 5, 15] },
+        { target: 20, nums: [19, 1, 6, 14, 7, 13] }, { target: 20, nums: [10, 10, 15, 5, 2, 18] },
+        { target: 100, nums: [60, 40, 55, 45, 70, 30] }, { target: 100, nums: [25, 75, 50, 50, 80, 20] },
+        { target: 100, nums: [90, 10, 35, 65, 48, 52] }, { target: 100, nums: [33, 67, 41, 59, 15, 85] },
+        { target: 100, nums: [72, 28, 64, 36, 91, 9] }, { target: 100, nums: [44, 56, 38, 62, 50, 50] },
+        { target: 10, nums: [5, 5, 3, 6, 4, 1] }, { target: 20, nums: [3, 17, 4, 16, 9, 11] },
+        { target: 100, nums: [27, 73, 54, 46, 88, 12] }, { target: 10, nums: [7, 2, 3, 8, 1, 4] },
+        { target: 20, nums: [5, 15, 12, 8, 6, 14] }, { target: 100, nums: [19, 81, 66, 34, 77, 23] },
+        { target: 10, nums: [10, 0, 6, 3, 4, 5] }, { target: 20, nums: [18, 2, 13, 7, 16, 4] },
+        { target: 100, nums: [58, 42, 29, 71, 95, 5] }, { target: 10, nums: [2, 5, 8, 9, 1, 7] }
+      ];
+      const TOTAL = ROUNDS.length;
+      let order = ROUNDS.map((_, i) => i);
+      let roundIndex = 0, score = 0, streak = 0, canAnswer = true;
+      let selected = [];
+
+      const playScreen = document.getElementById('play-screen');
+      const resultScreen = document.getElementById('result-screen');
+      const gameCard = document.getElementById('game-card');
+      const choicesRow = document.getElementById('choices-row');
+      const feedback = document.getElementById('feedback');
+      const nextBtn = document.getElementById('next-btn');
+      const progressBar = document.getElementById('progress-bar');
+      const roundLabel = document.getElementById('round-label');
+      const targetDisplay = document.getElementById('target-display');
+      const scoreHud = document.getElementById('score-hud');
+      const scoreDisplay = document.getElementById('score-display');
+      const resultMessage = document.getElementById('result-message');
+
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function updateHud() {
+        scoreHud.textContent = 'Score: ' + score + ' / ' + TOTAL;
+        FunEffects.pulseScore(scoreHud);
+      }
+
+      function loadRound() {
+        canAnswer = true;
+        selected = [];
+        feedback.classList.add('hidden');
+        nextBtn.classList.add('hidden');
+        choicesRow.innerHTML = '';
+        const r = ROUNDS[order[roundIndex]];
+        roundLabel.textContent = 'Round ' + (roundIndex + 1) + ' of ' + TOTAL;
+        progressBar.style.width = (roundIndex / TOTAL * 100) + '%';
+        targetDisplay.textContent = String(r.target);
+        r.nums.forEach((n) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'num-pick';
+          btn.textContent = n;
+          btn.dataset.val = n;
+          btn.addEventListener('click', () => tapNum(btn, r));
+          choicesRow.appendChild(btn);
+        });
+      }
+
+      function tapNum(btn, round) {
+        if (!canAnswer) return;
+        if (btn.classList.contains('selected')) {
+          btn.classList.remove('selected');
+          selected = selected.filter((b) => b !== btn);
+          return;
+        }
+        if (selected.length >= 2) return;
+        btn.classList.add('selected');
+        selected.push(btn);
+        if (selected.length < 2) return;
+        canAnswer = false;
+        const a = Number(selected[0].dataset.val);
+        const b = Number(selected[1].dataset.val);
+        const ok = a + b === round.target;
+        feedback.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+        choicesRow.querySelectorAll('.num-pick').forEach((el) => { el.disabled = true; });
+        if (ok) {
+          score++;
+          streak++;
+          selected.forEach((el) => el.classList.add('correct-pair'));
+          feedback.classList.add('bg-green-100', 'text-green-800');
+          feedback.innerHTML = '<strong>Perfect bond! 🎉</strong><br>' + a + ' + ' + b + ' = ' + round.target;
+          FunEffects.confetti();
+          FunEffects.showStreak(streak);
+        } else {
+          streak = 0;
+          FunEffects.shake(gameCard);
+          feedback.classList.add('bg-red-100', 'text-red-800');
+          feedback.innerHTML = '<strong>Not quite!</strong><br>Find two numbers that add to ' + round.target + '.';
+        }
+        updateHud();
+        nextBtn.classList.remove('hidden');
+      }
+
+      function showResults() {
+        playScreen.classList.add('hidden');
+        resultScreen.classList.remove('hidden');
+        progressBar.style.width = '100%';
+        scoreDisplay.textContent = score;
+        scoreHud.textContent = 'Score: ' + score + ' / ' + TOTAL;
+        if (score === TOTAL) { resultMessage.textContent = 'Bond master! You know 10, 20, and 100! 🌟'; FunEffects.celebratePerfect(); }
+        else if (score >= Math.floor(TOTAL * 0.7)) resultMessage.textContent = 'Great bonding skills! 👍';
+        else resultMessage.textContent = 'Keep hunting pairs that fit the target! 💪';
+      }
+
+      nextBtn.addEventListener('click', () => {
+        roundIndex++;
+        if (roundIndex < TOTAL) loadRound();
+        else showResults();
+      });
+      document.getElementById('restart-btn').addEventListener('click', () => {
+        roundIndex = 0; score = 0; streak = 0;
+        order = shuffle(order.map((_, i) => i));
+        resultScreen.classList.add('hidden');
+        playScreen.classList.remove('hidden');
+        updateHud();
+        loadRound();
+      });
+
+      order = shuffle(order);
+      updateHud();
+      loadRound();
+    })();
+  </script>
+</body>
+</html>

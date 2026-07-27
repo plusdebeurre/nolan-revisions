@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plant Parts Label — Science</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body class="game theme-science">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← Science</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+
+    <header class="text-center mb-4 animate-pop" id="header-section">
+      <h1 class="text-3xl md:text-4xl font-bold mb-2 drop-shadow-sm" style="color: var(--accent-dark)">🌱 Plant Parts Label</h1>
+      <p class="text-lg text-slate-500 font-medium">Drag each label to the right part!</p>
+      <p id="progress-text" class="mt-2 text-sm font-semibold" style="color: var(--accent)">0 of 5 placed</p>
+    </header>
+
+    <div id="game-area" class="question-card p-4 md:p-6 animate-pop">
+      <div class="relative mx-auto max-w-sm mb-6">
+        <svg viewBox="0 0 280 360" class="w-full h-auto" aria-hidden="true">
+          <ellipse cx="140" cy="340" rx="90" ry="18" fill="#a16207" opacity="0.35"/>
+          <path d="M120 320 Q140 280 160 320 L155 340 L125 340 Z" fill="#854d0e"/>
+          <rect x="132" y="120" width="16" height="210" rx="8" fill="#65a30d"/>
+          <ellipse cx="95" cy="200" rx="42" ry="22" fill="#4ade80" transform="rotate(-25 95 200)"/>
+          <ellipse cx="185" cy="190" rx="42" ry="22" fill="#22c55e" transform="rotate(25 185 190)"/>
+          <ellipse cx="140" cy="95" rx="38" ry="28" fill="#f472b6"/>
+          <circle cx="125" cy="88" r="8" fill="#fde047"/>
+          <circle cx="140" cy="82" r="8" fill="#fde047"/>
+          <circle cx="155" cy="88" r="8" fill="#fde047"/>
+          <ellipse cx="140" cy="55" rx="22" ry="18" fill="#ef4444"/>
+        </svg>
+        <div id="zone-roots" class="drop-zone absolute border-4 border-dashed border-purple-300 rounded-xl bg-white/80 min-h-[3rem] w-[42%] left-[29%] bottom-[2%]" data-accept="roots"></div>
+        <div id="zone-stem" class="drop-zone absolute border-4 border-dashed border-purple-300 rounded-xl bg-white/80 min-h-[3rem] w-[28%] left-[36%] top-[52%]" data-accept="stem"></div>
+        <div id="zone-leaves" class="drop-zone absolute border-4 border-dashed border-purple-300 rounded-xl bg-white/80 min-h-[3rem] w-[38%] right-[2%] top-[38%]" data-accept="leaves"></div>
+        <div id="zone-flower" class="drop-zone absolute border-4 border-dashed border-purple-300 rounded-xl bg-white/80 min-h-[3rem] w-[36%] left-[32%] top-[14%]" data-accept="flower"></div>
+        <div id="zone-fruit" class="drop-zone absolute border-4 border-dashed border-purple-300 rounded-xl bg-white/80 min-h-[3rem] w-[28%] left-[8%] top-[4%]" data-accept="fruit"></div>
+      </div>
+
+      <p class="text-center text-slate-600 font-medium mb-3">Labels</p>
+      <div id="label-bank" class="flex flex-wrap justify-center gap-3 min-h-[4rem]">
+        <div class="draggable label-chip bg-white px-5 py-3 rounded-xl border-3 border-slate-300 font-bold text-lg text-slate-700 shadow-sm" data-id="roots">Roots</div>
+        <div class="draggable label-chip bg-white px-5 py-3 rounded-xl border-3 border-slate-300 font-bold text-lg text-slate-700 shadow-sm" data-id="stem">Stem</div>
+        <div class="draggable label-chip bg-white px-5 py-3 rounded-xl border-3 border-slate-300 font-bold text-lg text-slate-700 shadow-sm" data-id="leaves">Leaves</div>
+        <div class="draggable label-chip bg-white px-5 py-3 rounded-xl border-3 border-slate-300 font-bold text-lg text-slate-700 shadow-sm" data-id="flower">Flower</div>
+        <div class="draggable label-chip bg-white px-5 py-3 rounded-xl border-3 border-slate-300 font-bold text-lg text-slate-700 shadow-sm" data-id="fruit">Fruit</div>
+      </div>
+    </div>
+
+    <div id="win-screen" class="hidden question-card p-8 text-center animate-pop mt-4">
+      <div class="text-6xl mb-4 animate-tada">🌻</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Amazing!</h2>
+      <p class="text-2xl text-slate-600 mb-2 font-medium">You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">5</span> out of 5!</p>
+      <p id="score-bonus" class="text-lg text-slate-500 mb-8 hidden">Perfect — no wrong tries!</p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+
+  <div id="feedback-toast" class="feedback-toast">Perfect spot! ✨</div>
+
+  <script src="../../../js/fun-effects.js"></script>
+  <script>
+    let activeEl = null;
+    let startX, startY, initialX = 0, initialY = 0;
+    let placedCount = 0;
+    let wrongAttempts = 0;
+    const TOTAL = 5;
+    const activeZones = Array.from(document.querySelectorAll('.drop-zone'));
+    const progressText = document.getElementById('progress-text');
+    const feedbackToast = document.getElementById('feedback-toast');
+    const winScreen = document.getElementById('win-screen');
+    const gameArea = document.getElementById('game-area');
+    const headerSection = document.getElementById('header-section');
+
+    function setupDraggables(elements) {
+      elements.forEach((el) => {
+        el.addEventListener('pointerdown', onPointerDown);
+        el.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+      });
+    }
+
+    document.addEventListener('pointermove', onPointerMove);
+    document.addEventListener('pointerup', onPointerUp);
+
+    function onPointerDown(e) {
+      const target = e.target.closest('.draggable');
+      if (!target || target.classList.contains('locked')) return;
+      e.preventDefault();
+      activeEl = target;
+      activeEl.setPointerCapture(e.pointerId);
+      activeEl.style.zIndex = 1000;
+      activeEl.style.transform = 'scale(1.08)';
+      activeEl.classList.add('shadow-xl');
+      startX = e.clientX;
+      startY = e.clientY;
+      const transform = window.getComputedStyle(activeEl).transform;
+      if (transform !== 'none') {
+        const matrix = new DOMMatrixReadOnly(transform);
+        initialX = matrix.m41;
+        initialY = matrix.m42;
+      } else {
+        initialX = 0;
+        initialY = 0;
+      }
+    }
+
+    function onPointerMove(e) {
+      if (!activeEl) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      activeEl.style.transform = `translate(${initialX + dx}px, ${initialY + dy}px) scale(1.08)`;
+      checkHoverHighlight(e.clientX, e.clientY);
+    }
+
+    function onPointerUp(e) {
+      if (!activeEl) return;
+      activeEl.releasePointerCapture(e.pointerId);
+      activeEl.classList.remove('shadow-xl');
+      activeEl.style.zIndex = '';
+      activeZones.forEach((z) => z.classList.remove('highlight'));
+
+      const elRect = activeEl.getBoundingClientRect();
+      let dropped = false;
+
+      for (const zone of activeZones) {
+        if (zone.dataset.accept !== activeEl.dataset.id) continue;
+        const zoneRect = zone.getBoundingClientRect();
+        if (isOverlapping(elRect, zoneRect)) {
+          snapToZone(activeEl, zone);
+          dropped = true;
+          break;
+        }
+      }
+
+      if (!dropped) {
+        wrongAttempts++;
+        activeEl.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        activeEl.style.transform = 'translate(0px, 0px)';
+        setTimeout(() => { activeEl.style.transition = 'transform 0.1s'; }, 300);
+      }
+      activeEl = null;
+    }
+
+    function isOverlapping(rect1, rect2) {
+      return !(rect1.right < rect2.left + 16 ||
+        rect1.left > rect2.right - 16 ||
+        rect1.bottom < rect2.top + 16 ||
+        rect1.top > rect2.bottom - 16);
+    }
+
+    function checkHoverHighlight(mouseX, mouseY) {
+      activeZones.forEach((zone) => {
+        const rect = zone.getBoundingClientRect();
+        const inside = mouseX >= rect.left && mouseX <= rect.right &&
+          mouseY >= rect.top && mouseY <= rect.bottom;
+        if (inside && zone.dataset.accept === activeEl.dataset.id) {
+          zone.classList.add('highlight');
+        } else {
+          zone.classList.remove('highlight');
+        }
+      });
+    }
+
+    function snapToZone(element, zone) {
+      zone.appendChild(element);
+      element.style.transition = 'none';
+      element.style.transform = 'none';
+      element.style.fontSize = '0.85rem';
+      element.style.padding = '0.35rem 0.5rem';
+      setTimeout(() => { element.style.transition = 'transform 0.1s'; }, 50);
+      element.classList.add('locked', 'bg-green-100', 'border-green-400');
+      element.classList.remove('draggable');
+      element.style.cursor = 'default';
+      zone.classList.remove('highlight');
+      zone.style.borderColor = '#22c55e';
+      zone.style.borderStyle = 'solid';
+      showToast();
+      placedCount++;
+      progressText.textContent = `${placedCount} of ${TOTAL} placed`;
+      if (placedCount === TOTAL) {
+        setTimeout(showWin, 600);
+      }
+    }
+
+    function showToast() {
+      feedbackToast.style.opacity = '1';
+      feedbackToast.classList.add('animate-pop');
+      setTimeout(() => {
+        feedbackToast.style.opacity = '0';
+        feedbackToast.classList.remove('animate-pop');
+      }, 900);
+    }
+
+    function showWin() {
+      const scoreEl = document.getElementById('score-display');
+      const bonusEl = document.getElementById('score-bonus');
+      scoreEl.textContent = String(placedCount);
+      bonusEl.classList.toggle('hidden', wrongAttempts > 0);
+      if (wrongAttempts === 0 && window.FunEffects) FunEffects.confetti();
+      gameArea.classList.add('hidden');
+      headerSection.classList.add('hidden');
+      winScreen.classList.remove('hidden');
+    }
+
+    function resetGame() {
+      placedCount = 0;
+      wrongAttempts = 0;
+      progressText.textContent = `0 of ${TOTAL} placed`;
+      winScreen.classList.add('hidden');
+      headerSection.classList.remove('hidden');
+      gameArea.classList.remove('hidden');
+      const bank = document.getElementById('label-bank');
+      const labels = [
+        { id: 'roots', text: 'Roots' },
+        { id: 'stem', text: 'Stem' },
+        { id: 'leaves', text: 'Leaves' },
+        { id: 'flower', text: 'Flower' },
+        { id: 'fruit', text: 'Fruit' }
+      ];
+      bank.innerHTML = '';
+      labels.forEach(({ id, text }) => {
+        const div = document.createElement('div');
+        div.className = 'draggable label-chip bg-white px-5 py-3 rounded-xl border-3 border-slate-300 font-bold text-lg text-slate-700 shadow-sm';
+        div.dataset.id = id;
+        div.textContent = text;
+        bank.appendChild(div);
+      });
+      activeZones.forEach((zone) => {
+        zone.innerHTML = '';
+        zone.style.borderColor = '';
+        zone.style.borderStyle = '';
+      });
+      setupDraggables(document.querySelectorAll('#label-bank .draggable'));
+    }
+
+    document.getElementById('restart-btn').addEventListener('click', resetGame);
+    setupDraggables(document.querySelectorAll('#label-bank .draggable'));
+  </script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thai Digits Race — Thai</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Sarabun:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    .digit-hero {
+      font-family: 'Sarabun', sans-serif;
+      font-size: 5rem;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--accent-dark);
+    }
+  </style>
+</head>
+<body class="game theme-thai">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← Thai</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+    <div id="play-screen">
+      <header class="mb-6 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2" style="color: var(--accent-dark)">🔢 Thai Digits Race</h1>
+        <p class="text-lg text-slate-500">Tap the matching number — fast!</p>
+        <div class="progress-track"><div id="progress-bar" class="progress-bar-fill"></div></div>
+        <p id="round-label" class="mt-2 text-sm font-semibold" style="color: var(--accent)">Round 1 of 10</p>
+      </header>
+      <div class="question-card p-6 md:p-8 animate-pop text-center">
+        <p id="prompt" class="text-slate-500 font-medium mb-3">What number is this?</p>
+        <div id="digit-display" class="digit-hero mb-8">๑</div>
+        <div id="choices" class="grid grid-cols-2 gap-4 mb-4"></div>
+        <div id="feedback" class="hidden p-4 rounded-xl text-lg font-medium mb-4"></div>
+        <button type="button" id="next-btn" class="hidden btn-primary">Next 🚀</button>
+      </div>
+    </div>
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div class="text-6xl mb-4">🏁</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Race Complete!</h2>
+      <p class="text-2xl text-slate-600 mb-6">You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">0</span> out of 10!</p>
+      <p id="result-message" class="text-lg text-slate-500 mb-8"></p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+  <script>
+    const ROUNDS = [
+      { type: 'digit', show: '๑', answer: '1', wrong: ['2', '3', '7'], tip: '๑ = 1 (nueng)' },
+      { type: 'digit', show: '๒', answer: '2', wrong: ['1', '5', '8'], tip: '๒ = 2 (song)' },
+      { type: 'digit', show: '๓', answer: '3', wrong: ['2', '4', '8'], tip: '๓ = 3 (sam)' },
+      { type: 'digit', show: '๔', answer: '4', wrong: ['3', '5', '9'], tip: '๔ = 4 (si)' },
+      { type: 'digit', show: '๕', answer: '5', wrong: ['4', '6', '8'], tip: '๕ = 5 (ha)' },
+      { type: 'digit', show: '๖', answer: '6', wrong: ['5', '7', '9'], tip: '๖ = 6 (hok)' },
+      { type: 'digit', show: '๗', answer: '7', wrong: ['1', '6', '8'], tip: '๗ = 7 (chet)' },
+      { type: 'digit', show: '๘', answer: '8', wrong: ['3', '6', '9'], tip: '๘ = 8 (paet)' },
+      { type: 'digit', show: '๙', answer: '9', wrong: ['0', '7', '8'], tip: '๙ = 9 (kao)' },
+      { type: 'read', show: '๑๑', answer: 'Sip-et', wrong: ['Sip-nueng', 'Nueng-sip', 'Sip-song'], tip: "11 ends with 'et' — Sip-et!" }
+    ];
+    let i = 0, score = 0, locked = false;
+    const digitDisplay = document.getElementById('digit-display');
+    const prompt = document.getElementById('prompt');
+    const choices = document.getElementById('choices');
+    const feedback = document.getElementById('feedback');
+    const nextBtn = document.getElementById('next-btn');
+    const progressBar = document.getElementById('progress-bar');
+    const roundLabel = document.getElementById('round-label');
+
+    function shuffle(a) {
+      const x = a.slice();
+      for (let n = x.length - 1; n > 0; n--) {
+        const j = Math.floor(Math.random() * (n + 1));
+        [x[n], x[j]] = [x[j], x[n]];
+      }
+      return x;
+    }
+    function load() {
+      locked = false;
+      feedback.classList.add('hidden');
+      nextBtn.classList.add('hidden');
+      const r = ROUNDS[i];
+      digitDisplay.textContent = r.show;
+      prompt.textContent = r.type === 'read' ? 'How do you READ this number?' : 'What number is this?';
+      roundLabel.textContent = `Round ${i + 1} of ${ROUNDS.length}`;
+      progressBar.style.width = `${(i / ROUNDS.length) * 100}%`;
+      choices.innerHTML = '';
+      shuffle([r.answer, ...r.wrong]).forEach((opt) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'option-btn text-center text-2xl font-bold';
+        btn.textContent = opt;
+        btn.addEventListener('click', () => pick(opt, btn, r));
+        choices.appendChild(btn);
+      });
+    }
+    function pick(opt, btn, r) {
+      if (locked) return;
+      locked = true;
+      [...choices.children].forEach((b) => {
+        if (b.textContent === r.answer) b.classList.add('correct');
+        else if (b === btn && opt !== r.answer) b.classList.add('wrong');
+      });
+      feedback.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+      if (opt === r.answer) {
+        score++;
+        feedback.classList.add('bg-green-100', 'text-green-800');
+        feedback.innerHTML = `<strong>Yes! 🎉</strong><br>${r.tip}`;
+      } else {
+        feedback.classList.add('bg-red-100', 'text-red-800');
+        feedback.innerHTML = `<strong>Oops!</strong><br>${r.tip}`;
+      }
+      nextBtn.classList.remove('hidden');
+    }
+    nextBtn.addEventListener('click', () => {
+      i++;
+      if (i < ROUNDS.length) load();
+      else {
+        document.getElementById('play-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+        document.getElementById('score-display').textContent = score;
+        document.getElementById('result-message').textContent =
+          score === 10 ? 'Digit champion! Sip-et forever! 🌟' : score >= 7 ? 'Great counting! 👍' : 'Practice ๑–๙ again! 💪';
+        progressBar.style.width = '100%';
+      }
+    });
+    document.getElementById('restart-btn').addEventListener('click', () => {
+      i = 0; score = 0;
+      document.getElementById('result-screen').classList.add('hidden');
+      document.getElementById('play-screen').classList.remove('hidden');
+      load();
+    });
+    load();
+  </script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nam Sai Story Quiz — Thai</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Sarabun:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body>
+  <div id="app"></div>
+  <script src="../../../js/quiz-engine.js"></script>
+  <script>
+    QuizEngine.mount({
+      subject: 'thai',
+      title: '🧊 Nam Sai Story Quiz',
+      subtitle: 'Bai Bok, Bai Bua & friends',
+      backHref: '../index.html',
+      homeHref: '../../../index.html',
+      perfectMessage: 'Story star! Nam Sai hero! 🌟',
+      goodMessage: 'Great memory of the story! 👍',
+      tryAgainMessage: 'Read the story again, then replay! 💪',
+      quizData: [
+        {
+          question: 'Who are Bai Bok and Bai Bua?',
+          options: ['Two birds', 'Two baby elephants', 'Two cats', 'Two teachers'],
+          correctAnswer: 1,
+          explanation: 'Bai Bok and Bai Bua are the baby elephants in the story!'
+        },
+        {
+          question: 'What do Bai Bok and Bai Bua love to eat?',
+          options: ['Hot soup', 'Crushed ice with syrup (น้ำแข็งกด)', 'Spicy noodles', 'Only leaves'],
+          correctAnswer: 1,
+          explanation: 'They eat น้ำแข็งกด (nam khaeng kot) — crushed ice with syrup!'
+        },
+        {
+          question: 'What does น้ำแข็ง mean?',
+          options: ['Banana', 'Ice', 'Waterfall', 'Sunshine'],
+          correctAnswer: 1,
+          explanation: 'น้ำแข็ง means ice (cold water that is hard)!'
+        },
+        {
+          question: 'Nam Sai is the name of…',
+          options: ['A car', 'The story / place in the chapter', 'A tone mark', 'A vowel'],
+          correctAnswer: 1,
+          explanation: 'Nam Sai is the story chapter Nolan studies in Thai class.'
+        },
+        {
+          question: 'น้ำแข็งกด is best described as…',
+          options: ['Fried rice', 'Crushed ice with sweet syrup', 'Grilled fish', 'Coconut milk only'],
+          correctAnswer: 1,
+          explanation: 'Nam khaeng kot is crushed ice pressed with syrup — yummy and cold!'
+        },
+        {
+          question: 'Which Thai digit is “one”?',
+          options: ['๒', '๑', '๓', '๕'],
+          correctAnswer: 1,
+          explanation: '๑ = 1. (Story bonus: count one ice cup!)'
+        },
+        {
+          question: 'If the elephants eat TWO ice treats, which Thai digit shows 2?',
+          options: ['๑', '๒', '๔', '๗'],
+          correctAnswer: 1,
+          explanation: '๒ = 2 (song).'
+        },
+        {
+          question: 'Why is Thai story vocab useful?',
+          options: ['Only for math', 'It helps you read and talk about what happens in the book', 'It replaces Trai Yang', 'It is only for adults'],
+          correctAnswer: 1,
+          explanation: 'Knowing story words helps you understand the chapter and talk about it!'
+        }
+      ]
+    });
+  </script>
+</body>
+</html>

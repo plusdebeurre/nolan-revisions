@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seed Journey — Science</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    .stage-btn { cursor: pointer; user-select: none; }
+    .stage-btn.picked { border-color: #22c55e; background: #dcfce7; opacity: 0.85; }
+    .order-num { display: inline-flex; width: 1.75rem; height: 1.75rem; align-items: center; justify-content: center;
+      border-radius: 9999px; background: var(--accent); color: white; font-size: 0.85rem; font-weight: 700; margin-right: 0.35rem; }
+  </style>
+</head>
+<body class="game theme-science">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="score-hud" id="score-hud">Score: 0 / 8</div>
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← Science</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+    <div id="play-screen">
+      <header class="mb-6 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2" style="color: var(--accent-dark)">🌱 Seed Journey</h1>
+        <p class="text-lg text-slate-500 font-medium">Tap the germination stages in time order (1 → 5)</p>
+        <div class="progress-track"><div id="progress-bar" class="progress-bar-fill"></div></div>
+        <p id="round-label" class="mt-2 text-sm font-semibold" style="color: var(--accent)">Round 1 of 8</p>
+      </header>
+      <div class="question-card p-6 md:p-8 animate-pop">
+        <p id="seed-label" class="text-center font-semibold text-amber-800 mb-4">🫘 Bean seed in soil</p>
+        <div id="picked-row" class="min-h-[3rem] flex flex-wrap gap-2 justify-center mb-4 p-2 rounded-xl bg-slate-50 border-2 border-dashed border-slate-200"></div>
+        <div id="stages" class="flex flex-col gap-3 mb-4"></div>
+        <div id="feedback" class="hidden text-center p-4 rounded-xl text-lg font-medium mb-4"></div>
+        <div class="text-center"><button type="button" id="next-btn" class="hidden btn-primary">Next Round 🚀</button></div>
+      </div>
+    </div>
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div class="text-6xl mb-4">🌻</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Germination Pro!</h2>
+      <p class="text-2xl font-medium text-slate-600 mb-6">You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">0</span> out of 8!</p>
+      <p id="result-message" class="text-lg text-slate-500 mb-8 font-medium"></p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+  <script src="../../../js/fun-effects.js"></script>
+  <script>
+    (function () {
+      const STAGES = [
+        { id: 'seed', order: 1, text: '🫘 Dry seed buried in soil' },
+        { id: 'swell', order: 2, text: '💧 Seed swells — it drank water' },
+        { id: 'root', order: 3, text: '🪱 Root pushes downward' },
+        { id: 'shoot', order: 4, text: '🌿 Shoot pushes upward' },
+        { id: 'leaves', order: 5, text: '🍃 First green leaves open' }
+      ];
+      const SEEDS = ['🫘 Bean', '🌻 Sunflower', '🌽 Corn', '🌾 Wheat', '🥜 Pea', '🌺 Marigold', '🍅 Tomato', '🥒 Cucumber'];
+      const TOTAL = SEEDS.length;
+      let roundIndex = 0, score = 0, streak = 0, picked = [];
+
+      const scoreHud = document.getElementById('score-hud');
+      const stagesEl = document.getElementById('stages');
+      const pickedRow = document.getElementById('picked-row');
+      const nextBtn = document.getElementById('next-btn');
+      const feedback = document.getElementById('feedback');
+      const playScreen = document.getElementById('play-screen');
+      const resultScreen = document.getElementById('result-screen');
+
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function updateHud() {
+        scoreHud.textContent = 'Score: ' + score + ' / ' + TOTAL;
+        FunEffects.pulseScore(scoreHud);
+      }
+
+      function renderStages() {
+        picked = [];
+        pickedRow.innerHTML = '';
+        feedback.classList.add('hidden');
+        nextBtn.classList.add('hidden');
+        stagesEl.innerHTML = '';
+        shuffle(STAGES).forEach((s) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'stage-btn question-card p-4 text-left font-semibold text-slate-700';
+          btn.dataset.id = s.id;
+          btn.dataset.order = String(s.order);
+          btn.textContent = s.text;
+          btn.addEventListener('click', () => onStageTap(btn, s));
+          stagesEl.appendChild(btn);
+        });
+        document.getElementById('seed-label').textContent = SEEDS[roundIndex] + ' — put the story in order';
+        document.getElementById('round-label').textContent = 'Round ' + (roundIndex + 1) + ' of ' + TOTAL;
+        document.getElementById('progress-bar').style.width = (roundIndex / TOTAL * 100) + '%';
+      }
+
+      function onStageTap(btn, stage) {
+        if (btn.classList.contains('picked') || !nextBtn.classList.contains('hidden') && feedback.classList.contains('hidden') === false) return;
+        if (picked.length >= STAGES.length) return;
+        const nextOrder = picked.length + 1;
+        if (stage.order !== nextOrder) {
+          FunEffects.shake(btn);
+          streak = 0;
+          return;
+        }
+        btn.classList.add('picked');
+        picked.push(stage);
+        const chip = document.createElement('span');
+        chip.className = 'inline-flex items-center px-2 py-1 bg-green-100 rounded-lg text-sm font-medium border border-green-300';
+        chip.innerHTML = '<span class="order-num">' + nextOrder + '</span>' + stage.text;
+        pickedRow.appendChild(chip);
+        if (picked.length === STAGES.length) {
+          score++;
+          streak++;
+          FunEffects.showStreak(streak);
+          FunEffects.confetti({ count: 14 });
+          feedback.className = 'text-center p-4 rounded-xl text-lg font-medium mb-4 bg-green-50 text-green-800 border-2 border-green-200';
+          feedback.textContent = 'Perfect order! That is how germination works! ✨';
+          feedback.classList.remove('hidden');
+          updateHud();
+          nextBtn.classList.remove('hidden');
+        }
+      }
+
+      nextBtn.addEventListener('click', () => {
+        roundIndex++;
+        if (roundIndex >= TOTAL) {
+          playScreen.classList.add('hidden');
+          resultScreen.classList.remove('hidden');
+          document.getElementById('score-display').textContent = String(score);
+          const msg = document.getElementById('result-message');
+          if (score === TOTAL) {
+            msg.textContent = 'Every seed story sorted perfectly! 🌟';
+            FunEffects.celebratePerfect();
+          } else if (score >= TOTAL * 0.7) {
+            msg.textContent = 'You understand how seeds become plants! 👍';
+          } else {
+            msg.textContent = 'Try again: water → root down → shoot up → leaves! 💪';
+          }
+          return;
+        }
+        renderStages();
+      });
+
+      document.getElementById('restart-btn').addEventListener('click', () => {
+        roundIndex = 0;
+        score = 0;
+        streak = 0;
+        updateHud();
+        resultScreen.classList.add('hidden');
+        playScreen.classList.remove('hidden');
+        renderStages();
+      });
+
+      updateHud();
+      renderStages();
+    })();
+  </script>
+</body>
+</html>

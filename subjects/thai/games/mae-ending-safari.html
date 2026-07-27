@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mae Ending Safari — Thai</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Sarabun:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body>
+  <div id="app"></div>
+  <script src="../../../js/quiz-engine.js"></script>
+  <script>
+    QuizEngine.mount({
+      subject: 'thai',
+      title: '🐘 Mae Ending Safari',
+      subtitle: 'Find the final-sound family!',
+      backHref: '../index.html',
+      homeHref: '../../../index.html',
+      perfectMessage: 'Mae master! Every ending sound found! 🌟',
+      goodMessage: 'Great safari! 👍',
+      tryAgainMessage: 'Listen to the ending again! 💪',
+      quizData: [
+        {
+          question: 'ช้าง (chang) — Which Mae family?',
+          options: ['แม่กง (NG)', 'แม่กน (N)', 'แม่กม (M)', 'แม่กก (K)'],
+          correctAnswer: 0,
+          explanation: 'ช้าง ends with ง — Mae Kong (NG)!'
+        },
+        {
+          question: 'บ้าน (baan) — Which Mae family?',
+          options: ['แม่กง (NG)', 'แม่กน (N)', 'แม่กบ (P/B)', 'แม่ก กา (none)'],
+          correctAnswer: 1,
+          explanation: 'บ้าน ends with น — Mae Kon (N)!'
+        },
+        {
+          question: 'ส้ม (som) — Which Mae family?',
+          options: ['แม่กน (N)', 'แม่กม (M)', 'แม่เกย (Y)', 'แม่กด (T/D)'],
+          correctAnswer: 1,
+          explanation: 'ส้ม ends with ม — Mae Kom (M)!'
+        },
+        {
+          question: 'นก (nok) — Which Mae family?',
+          options: ['แม่กก (K)', 'แม่กด (T/D)', 'แม่กบ (P/B)', 'แม่กง (NG)'],
+          correctAnswer: 0,
+          explanation: 'นก ends with ก — Mae Gok (K)!'
+        },
+        {
+          question: 'เป็ด (ped) — Which Mae family?',
+          options: ['แม่กก (K)', 'แม่กด (T/D)', 'แม่กม (M)', 'แม่เกอว (W)'],
+          correctAnswer: 1,
+          explanation: 'เป็ด ends with a T/D stop — Mae God!'
+        },
+        {
+          question: 'กบ (gop) — Which Mae family?',
+          options: ['แม่กบ (P/B)', 'แม่กก (K)', 'แม่กน (N)', 'แม่ก กา (none)'],
+          correctAnswer: 0,
+          explanation: 'กบ ends with บ — Mae Gob (P/B)!'
+        },
+        {
+          question: 'แมว (maew) — Which Mae family?',
+          options: ['แม่เกย (Y)', 'แม่เกอว (W)', 'แม่กม (M)', 'แม่กง (NG)'],
+          correctAnswer: 1,
+          explanation: 'แมว ends with ว — Mae Geow (W)!'
+        },
+        {
+          question: 'ยาย (yaay) — Which Mae family?',
+          options: ['แม่เกย (Y)', 'แม่เกอว (W)', 'แม่กน (N)', 'แม่กด (T/D)'],
+          correctAnswer: 0,
+          explanation: 'ยาย ends with ย — Mae Gey (Y)!'
+        },
+        {
+          question: 'หมา (maa) — Which Mae family?',
+          options: ['แม่กง (NG)', 'แม่ ก กา (no final)', 'แม่กม (M)', 'แม่กก (K)'],
+          correctAnswer: 1,
+          explanation: 'หมา has no final consonant — Mae K. Ka!'
+        },
+        {
+          question: 'Mae Kong (แม่กง) words end with which sound?',
+          options: ['N', 'M', 'NG', 'K'],
+          correctAnswer: 2,
+          explanation: 'Kong = NG (ง).'
+        }
+      ]
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Living or Not? — Science</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body class="game theme-science">
+  <main class="w-full max-w-3xl mx-auto px-4 py-6">
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← Science</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+
+    <header class="text-center mb-4 animate-pop" id="header-section">
+      <h1 class="text-3xl md:text-4xl font-bold mb-2 drop-shadow-sm" style="color: var(--accent-dark)">🧺 Living or Not?</h1>
+      <p class="text-lg text-slate-500 font-medium">Drag each item into the right bin!</p>
+      <p id="progress-text" class="mt-2 text-sm font-semibold" style="color: var(--accent)">0 of 12 sorted</p>
+    </header>
+
+    <div id="game-area" class="animate-pop">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+        <div class="question-card p-4 min-h-[11rem] flex flex-col">
+          <h2 class="text-lg font-bold text-center text-green-700 mb-2">🌱 Living</h2>
+          <div id="bin-living" class="drop-zone flex-1 border-4 border-dashed border-green-300 rounded-xl bg-green-50/50 p-2 flex flex-wrap gap-2 content-start" data-category="living"></div>
+        </div>
+        <div class="question-card p-4 min-h-[11rem] flex flex-col">
+          <h2 class="text-lg font-bold text-center text-amber-700 mb-2">🏔️ Natural non-living</h2>
+          <div id="bin-natural" class="drop-zone flex-1 border-4 border-dashed border-amber-300 rounded-xl bg-amber-50/50 p-2 flex flex-wrap gap-2 content-start" data-category="natural"></div>
+        </div>
+        <div class="question-card p-4 min-h-[11rem] flex flex-col">
+          <h2 class="text-lg font-bold text-center text-slate-600 mb-2">🔧 Man-made</h2>
+          <div id="bin-made" class="drop-zone flex-1 border-4 border-dashed border-slate-300 rounded-xl bg-slate-50/50 p-2 flex flex-wrap gap-2 content-start" data-category="made"></div>
+        </div>
+      </div>
+
+      <div class="question-card p-4 md:p-5">
+        <p class="text-center text-slate-600 font-medium mb-3">Items to sort</p>
+        <div id="item-bank" class="flex flex-wrap justify-center gap-3"></div>
+      </div>
+    </div>
+
+    <div id="win-screen" class="hidden question-card p-8 text-center animate-pop mt-4">
+      <div class="text-6xl mb-4 animate-tada">🏆</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Super Sorter!</h2>
+      <p class="text-2xl text-slate-600 mb-8 font-medium">You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">12</span> out of 12!</p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+
+  <div id="feedback-toast" class="feedback-toast">Correct bin! ✨</div>
+  <div id="wrong-toast" class="feedback-toast" style="background:#ef4444">Try another bin!</div>
+
+  <script src="../../../js/fun-effects.js"></script>
+  <script>
+    const ITEMS = [
+      { id: 'dog', label: '🐕 Dog', category: 'living' },
+      { id: 'tree', label: '🌳 Tree', category: 'living' },
+      { id: 'rock', label: '🪨 Rock', category: 'natural' },
+      { id: 'cloud', label: '☁️ Cloud', category: 'natural' },
+      { id: 'car', label: '🚗 Car', category: 'made' },
+      { id: 'fire', label: '🔥 Fire', category: 'natural' },
+      { id: 'bicycle', label: '🚲 Bicycle', category: 'made' },
+      { id: 'fish', label: '🐟 Fish', category: 'living' },
+      { id: 'water', label: '💧 Water', category: 'natural' },
+      { id: 'book', label: '📖 Book', category: 'made' },
+      { id: 'robot', label: '🤖 Robot', category: 'made' },
+      { id: 'grass', label: '🌿 Grass', category: 'living' }
+    ];
+
+    let activeEl = null;
+    let startX, startY, initialX = 0, initialY = 0;
+    let placedCount = 0;
+    let wrongAttempts = 0;
+    let activeZones = [];
+    const progressText = document.getElementById('progress-text');
+    const feedbackToast = document.getElementById('feedback-toast');
+    const wrongToast = document.getElementById('wrong-toast');
+    const winScreen = document.getElementById('win-screen');
+    const gameArea = document.getElementById('game-area');
+    const headerSection = document.getElementById('header-section');
+    const itemBank = document.getElementById('item-bank');
+
+    function shuffle(arr) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function buildBank() {
+      itemBank.innerHTML = '';
+      shuffle(ITEMS).forEach((item) => {
+        const div = document.createElement('div');
+        div.className = 'draggable item-chip bg-white px-4 py-3 rounded-xl border-3 border-slate-300 font-bold text-base md:text-lg text-slate-700 shadow-sm';
+        div.dataset.id = item.id;
+        div.dataset.category = item.category;
+        div.textContent = item.label;
+        itemBank.appendChild(div);
+      });
+    }
+
+    function setupDraggables(elements) {
+      elements.forEach((el) => {
+        el.addEventListener('pointerdown', onPointerDown);
+        el.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+      });
+    }
+
+    document.addEventListener('pointermove', onPointerMove);
+    document.addEventListener('pointerup', onPointerUp);
+
+    function onPointerDown(e) {
+      const target = e.target.closest('.draggable');
+      if (!target || target.classList.contains('locked')) return;
+      e.preventDefault();
+      activeEl = target;
+      activeEl.setPointerCapture(e.pointerId);
+      activeEl.style.zIndex = 1000;
+      activeEl.style.transform = 'scale(1.06)';
+      activeEl.classList.add('shadow-xl');
+      startX = e.clientX;
+      startY = e.clientY;
+      const transform = window.getComputedStyle(activeEl).transform;
+      if (transform !== 'none') {
+        const matrix = new DOMMatrixReadOnly(transform);
+        initialX = matrix.m41;
+        initialY = matrix.m42;
+      } else {
+        initialX = 0;
+        initialY = 0;
+      }
+    }
+
+    function onPointerMove(e) {
+      if (!activeEl) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      activeEl.style.transform = `translate(${initialX + dx}px, ${initialY + dy}px) scale(1.06)`;
+      checkHoverHighlight(e.clientX, e.clientY);
+    }
+
+    function onPointerUp(e) {
+      if (!activeEl) return;
+      activeEl.releasePointerCapture(e.pointerId);
+      activeEl.classList.remove('shadow-xl');
+      activeEl.style.zIndex = '';
+      activeZones.forEach((z) => z.classList.remove('highlight'));
+
+      const elRect = activeEl.getBoundingClientRect();
+      let dropped = false;
+      let wrongBin = false;
+
+      for (const zone of activeZones) {
+        const zoneRect = zone.getBoundingClientRect();
+        if (!isOverlapping(elRect, zoneRect)) continue;
+        if (zone.dataset.category === activeEl.dataset.category) {
+          snapToZone(activeEl, zone);
+          dropped = true;
+          break;
+        }
+        wrongBin = true;
+      }
+
+      if (!dropped) {
+        activeEl.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        activeEl.style.transform = 'translate(0px, 0px)';
+        setTimeout(() => { activeEl.style.transition = 'transform 0.1s'; }, 300);
+        if (wrongBin) {
+          wrongAttempts++;
+          showWrongToast();
+        }
+      }
+      activeEl = null;
+    }
+
+    function isOverlapping(rect1, rect2) {
+      return !(rect1.right < rect2.left + 12 ||
+        rect1.left > rect2.right - 12 ||
+        rect1.bottom < rect2.top + 12 ||
+        rect1.top > rect2.bottom - 12);
+    }
+
+    function checkHoverHighlight(mouseX, mouseY) {
+      activeZones.forEach((zone) => {
+        const rect = zone.getBoundingClientRect();
+        const inside = mouseX >= rect.left && mouseX <= rect.right &&
+          mouseY >= rect.top && mouseY <= rect.bottom;
+        if (inside && zone.dataset.category === activeEl.dataset.category) {
+          zone.classList.add('highlight');
+        } else {
+          zone.classList.remove('highlight');
+        }
+      });
+    }
+
+    function snapToZone(element, zone) {
+      zone.appendChild(element);
+      element.style.transition = 'none';
+      element.style.transform = 'none';
+      element.style.fontSize = '0.9rem';
+      element.style.padding = '0.4rem 0.6rem';
+      setTimeout(() => { element.style.transition = 'transform 0.1s'; }, 50);
+      element.classList.add('locked', 'bg-green-100', 'border-green-400');
+      element.classList.remove('draggable');
+      element.style.cursor = 'default';
+      zone.classList.remove('highlight');
+      showToast();
+      placedCount++;
+      progressText.textContent = `${placedCount} of ${ITEMS.length} sorted`;
+      if (placedCount === ITEMS.length) {
+        setTimeout(showWin, 500);
+      }
+    }
+
+    function showToast() {
+      feedbackToast.style.opacity = '1';
+      feedbackToast.classList.add('animate-pop');
+      setTimeout(() => {
+        feedbackToast.style.opacity = '0';
+        feedbackToast.classList.remove('animate-pop');
+      }, 900);
+    }
+
+    function showWrongToast() {
+      wrongToast.style.opacity = '1';
+      wrongToast.classList.add('animate-pop');
+      setTimeout(() => {
+        wrongToast.style.opacity = '0';
+        wrongToast.classList.remove('animate-pop');
+      }, 900);
+    }
+
+    function showWin() {
+      document.getElementById('score-display').textContent = String(placedCount);
+      if (placedCount === ITEMS.length && wrongAttempts === 0 && window.FunEffects) FunEffects.confetti();
+      gameArea.classList.add('hidden');
+      headerSection.classList.add('hidden');
+      winScreen.classList.remove('hidden');
+    }
+
+    function resetGame() {
+      placedCount = 0;
+      wrongAttempts = 0;
+      progressText.textContent = `0 of ${ITEMS.length} sorted`;
+      winScreen.classList.add('hidden');
+      headerSection.classList.remove('hidden');
+      gameArea.classList.remove('hidden');
+      activeZones.forEach((z) => { z.innerHTML = ''; });
+      buildBank();
+      setupDraggables(document.querySelectorAll('#item-bank .draggable'));
+    }
+
+    document.getElementById('restart-btn').addEventListener('click', resetGame);
+
+    activeZones = Array.from(document.querySelectorAll('.drop-zone'));
+    buildBank();
+    setupDraggables(document.querySelectorAll('#item-bank .draggable'));
+  </script>
+</body>
+</html>

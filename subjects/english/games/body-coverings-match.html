@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Body Coverings Match — English</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    .cover-chip {
+      min-height: 3.5rem;
+      font-size: 1.15rem;
+      font-weight: 600;
+      border-radius: 1rem;
+      border: 3px solid var(--card-border);
+      background: #fff;
+      padding: 0.75rem 1rem;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .cover-chip.selected {
+      border-color: var(--accent-dark);
+      background: #ecfdf5;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.35);
+      transform: scale(1.03);
+    }
+    .cover-chip.matched {
+      opacity: 0.45;
+      pointer-events: none;
+      border-color: #22c55e;
+      background: #dcfce7;
+    }
+    .animal-card {
+      min-height: 5.5rem;
+      border-radius: 1.25rem;
+      border: 3px solid #e2e8f0;
+      background: #f8fafc;
+      font-size: 1.35rem;
+      font-weight: 600;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+    .animal-card:active:not(.matched) {
+      transform: scale(0.98);
+    }
+    .animal-card.highlight {
+      border-color: var(--accent);
+      background: #ecfdf5;
+    }
+    .animal-card.matched {
+      border-color: #22c55e;
+      background: #dcfce7;
+      pointer-events: none;
+    }
+    .animal-card.wrong-flash {
+      border-color: #ef4444;
+      background: #fee2e2;
+      animation: shake 0.4s ease;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+  </style>
+</head>
+<body class="game theme-english">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← English</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+
+    <div id="play-screen">
+      <header class="mb-6 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2 drop-shadow-sm" style="color: var(--accent-dark)">🧥 Body Coverings Match</h1>
+        <p class="text-lg text-slate-500 font-medium">Tap a covering, then tap the animal it matches!</p>
+        <div class="progress-track">
+          <div id="progress-bar" class="progress-bar-fill"></div>
+        </div>
+        <p id="round-label" class="mt-2 text-sm font-semibold" style="color: var(--accent)">Round 1 of 8</p>
+        <p id="match-count" class="text-sm text-slate-500 font-medium">0 of 4 matched this round</p>
+      </header>
+
+      <div class="question-card p-6 md:p-8 animate-pop">
+        <p class="text-center text-slate-600 font-semibold mb-4">Coverings</p>
+        <div id="coverings-row" class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8"></div>
+        <p class="text-center text-slate-600 font-semibold mb-4">Animals</p>
+        <div id="animals-grid" class="grid grid-cols-2 gap-4 mb-4"></div>
+        <div id="feedback" class="hidden text-center p-4 rounded-xl text-lg font-medium mb-4"></div>
+        <div class="text-center">
+          <button type="button" id="next-btn" class="hidden btn-primary">Next Round 🚀</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div class="text-6xl mb-4">🎉</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">All Matched!</h2>
+      <p class="text-2xl font-medium text-slate-600 mb-6">
+        You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">0</span> out of 8!
+      </p>
+      <p id="result-message" class="text-lg text-slate-500 mb-8 font-medium"></p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      const COVERINGS = [
+        { id: 'fur', label: '🧶 Fur' },
+        { id: 'feathers', label: '🪶 Feathers' },
+        { id: 'scales', label: '🦎 Scales' },
+        { id: 'gills', label: '🫧 Gills' },
+        { id: 'wings', label: '🪽 Wings' }
+      ];
+
+      const ROUNDS = [
+        [
+          { emoji: '🐕', name: 'Dog', covering: 'fur' },
+          { emoji: '🦁', name: 'Lion', covering: 'fur' },
+          { emoji: '🦜', name: 'Parrot', covering: 'feathers' },
+          { emoji: '🦅', name: 'Eagle', covering: 'feathers' }
+        ],
+        [
+          { emoji: '🐍', name: 'Snake', covering: 'scales' },
+          { emoji: '🐢', name: 'Turtle', covering: 'scales' },
+          { emoji: '🦈', name: 'Shark', covering: 'gills' },
+          { emoji: '🐠', name: 'Goldfish', covering: 'gills' }
+        ],
+        [
+          { emoji: '🐊', name: 'Crocodile', covering: 'scales' },
+          { emoji: '🐕', name: 'Puppy', covering: 'fur' },
+          { emoji: '🦜', name: 'Parrot', covering: 'wings' },
+          { emoji: '🦅', name: 'Eagle', covering: 'wings' }
+        ],
+        [
+          { emoji: '🐱', name: 'Cat', covering: 'fur' },
+          { emoji: '🐊', name: 'Crocodile', covering: 'scales' },
+          { emoji: '🦈', name: 'Shark', covering: 'gills' },
+          { emoji: '🐠', name: 'Fish', covering: 'gills' }
+        ],
+        [
+          { emoji: '🦁', name: 'Lion', covering: 'fur' },
+          { emoji: '🐍', name: 'Snake', covering: 'scales' },
+          { emoji: '🦜', name: 'Parrot', covering: 'feathers' },
+          { emoji: '🦈', name: 'Shark', covering: 'gills' }
+        ],
+        [
+          { emoji: '🐢', name: 'Turtle', covering: 'scales' },
+          { emoji: '🐕', name: 'Dog', covering: 'fur' },
+          { emoji: '🦅', name: 'Eagle', covering: 'wings' },
+          { emoji: '🐠', name: 'Goldfish', covering: 'gills' }
+        ],
+        [
+          { emoji: '🐊', name: 'Crocodile', covering: 'scales' },
+          { emoji: '🦁', name: 'Lion', covering: 'fur' },
+          { emoji: '🦜', name: 'Parrot', covering: 'feathers' },
+          { emoji: '🦈', name: 'Shark', covering: 'gills' }
+        ],
+        [
+          { emoji: '🐕', name: 'Dog', covering: 'fur' },
+          { emoji: '🦅', name: 'Eagle', covering: 'feathers' },
+          { emoji: '🐠', name: 'Goldfish', covering: 'gills' },
+          { emoji: '🐍', name: 'Snake', covering: 'scales' }
+        ]
+      ];
+
+      let roundIndex = 0;
+      let roundScore = 0;
+      let totalScore = 0;
+      let selectedCovering = null;
+      let matchedInRound = 0;
+      let attemptsThisRound = 0;
+
+      const playScreen = document.getElementById('play-screen');
+      const resultScreen = document.getElementById('result-screen');
+      const coveringsRow = document.getElementById('coverings-row');
+      const animalsGrid = document.getElementById('animals-grid');
+      const feedback = document.getElementById('feedback');
+      const nextBtn = document.getElementById('next-btn');
+      const progressBar = document.getElementById('progress-bar');
+      const roundLabel = document.getElementById('round-label');
+      const matchCount = document.getElementById('match-count');
+      const scoreDisplay = document.getElementById('score-display');
+      const resultMessage = document.getElementById('result-message');
+      const restartBtn = document.getElementById('restart-btn');
+
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function coveringLabel(id) {
+        return COVERINGS.find((c) => c.id === id)?.label.replace(/^[^\s]+\s/, '') || id;
+      }
+
+      function loadRound() {
+        selectedCovering = null;
+        matchedInRound = 0;
+        attemptsThisRound = 0;
+        roundScore = 0;
+        feedback.classList.add('hidden');
+        nextBtn.classList.add('hidden');
+
+        roundLabel.textContent = `Round ${roundIndex + 1} of ${ROUNDS.length}`;
+        progressBar.style.width = `${(roundIndex / ROUNDS.length) * 100}%`;
+        updateMatchLabel();
+
+        const animals = shuffle(ROUNDS[roundIndex].slice());
+
+        coveringsRow.innerHTML = '';
+        COVERINGS.forEach((cov) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'cover-chip';
+          btn.textContent = cov.label;
+          btn.dataset.id = cov.id;
+          btn.addEventListener('click', () => selectCovering(btn, cov.id));
+          coveringsRow.appendChild(btn);
+        });
+
+        animalsGrid.innerHTML = '';
+        animals.forEach((animal) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'animal-card flex flex-col items-center justify-center gap-1 p-4';
+          btn.innerHTML = `<span class="text-4xl">${animal.emoji}</span><span>${animal.name}</span>`;
+          btn.dataset.covering = animal.covering;
+          btn.dataset.name = animal.name;
+          btn.addEventListener('click', () => pickAnimal(btn, animal));
+          animalsGrid.appendChild(btn);
+        });
+      }
+
+      function updateMatchLabel() {
+        matchCount.textContent = `${matchedInRound} of 4 matched this round`;
+      }
+
+      function selectCovering(btn, id) {
+        if (btn.classList.contains('matched')) return;
+        coveringsRow.querySelectorAll('.cover-chip').forEach((b) => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedCovering = id;
+        animalsGrid.querySelectorAll('.animal-card').forEach((a) => {
+          if (!a.classList.contains('matched')) a.classList.add('highlight');
+        });
+      }
+
+      function pickAnimal(btn, animal) {
+        if (btn.classList.contains('matched') || !selectedCovering) {
+          if (!selectedCovering) {
+            feedback.classList.remove('hidden', 'bg-red-100', 'text-red-800');
+            feedback.classList.add('bg-amber-100', 'text-amber-900');
+            feedback.innerHTML = '<strong>Pick a covering first!</strong> Then tap the animal.';
+            setTimeout(() => feedback.classList.add('hidden'), 1500);
+          }
+          return;
+        }
+
+        if (selectedCovering === animal.covering) {
+          btn.classList.remove('wrong-flash', 'highlight');
+          btn.classList.add('matched');
+          btn.innerHTML += `<span class="text-sm text-green-700 font-bold">${coveringLabel(animal.covering)} ✓</span>`;
+
+          const chip = coveringsRow.querySelector(`[data-id="${selectedCovering}"]`);
+          if (chip) chip.classList.remove('selected');
+
+          matchedInRound++;
+          updateMatchLabel();
+
+          feedback.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'bg-amber-100', 'text-amber-900');
+          feedback.classList.add('bg-green-100', 'text-green-800');
+          feedback.innerHTML = `<strong>Yes!</strong> ${animal.name} has ${coveringLabel(animal.covering).toLowerCase()}.`;
+
+          selectedCovering = null;
+          animalsGrid.querySelectorAll('.animal-card').forEach((a) => a.classList.remove('highlight'));
+
+          if (matchedInRound === 4) {
+            totalScore++;
+            nextBtn.classList.remove('hidden');
+          }
+        } else {
+          attemptsThisRound++;
+          btn.classList.add('wrong-flash');
+          feedback.classList.remove('hidden', 'bg-green-100', 'text-green-800');
+          feedback.classList.add('bg-red-100', 'text-red-800');
+          feedback.innerHTML = `<strong>Try again!</strong> ${animal.name} does not match that covering.`;
+          setTimeout(() => btn.classList.remove('wrong-flash'), 450);
+        }
+      }
+
+      function finishGame() {
+        playScreen.classList.add('hidden');
+        resultScreen.classList.remove('hidden');
+        scoreDisplay.textContent = totalScore;
+        progressBar.style.width = '100%';
+        if (totalScore === ROUNDS.length) {
+          resultMessage.textContent = 'Perfect! You know every body covering! 🌟';
+        } else if (totalScore >= 6) {
+          resultMessage.textContent = 'Great matching! Keep exploring animals! 👍';
+        } else {
+          resultMessage.textContent = 'Good try! Play again to match faster! 💪';
+        }
+      }
+
+      nextBtn.addEventListener('click', () => {
+        roundIndex++;
+        if (roundIndex < ROUNDS.length) loadRound();
+        else finishGame();
+      });
+
+      restartBtn.addEventListener('click', () => {
+        roundIndex = 0;
+        totalScore = 0;
+        resultScreen.classList.add('hidden');
+        playScreen.classList.remove('hidden');
+        loadRound();
+      });
+
+      loadRound();
+    })();
+  </script>
+</body>
+</html>

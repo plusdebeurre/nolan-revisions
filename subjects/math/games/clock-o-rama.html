@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clock-O-Rama — Math</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    .clock-face {
+      font-size: clamp(2.5rem, 12vw, 4rem);
+      font-weight: 800;
+      padding: 1.5rem;
+      border-radius: 1.5rem;
+      background: linear-gradient(145deg, #fffbeb, #fef3c7);
+      border: 4px solid var(--accent);
+      color: var(--accent-dark);
+    }
+  </style>
+</head>
+<body class="game theme-math">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="score-hud" id="score-hud">Score: 0 / 24</div>
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← Math</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+    <div id="play-screen">
+      <header class="mb-6 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2" style="color: var(--accent-dark)">Clock-O-Rama</h1>
+        <p class="text-lg text-slate-500 font-medium">Match the time on the clock!</p>
+        <div class="progress-track"><div id="progress-bar" class="progress-bar-fill"></div></div>
+        <p id="round-label" class="mt-2 text-sm font-semibold" style="color: var(--accent)">Round 1 of 24</p>
+      </header>
+      <div id="game-card" class="question-card p-6 md:p-8 animate-pop">
+        <p id="prompt-line" class="text-center text-slate-600 font-medium mb-4"></p>
+        <div id="clock-display" class="clock-face text-center mb-8"></div>
+        <div id="choices-grid" class="grid grid-cols-2 gap-4 mb-4"></div>
+        <div id="feedback" class="hidden text-center p-4 rounded-xl text-lg font-medium mb-4"></div>
+        <div class="text-center"><button type="button" id="next-btn" class="hidden btn-primary">Next Round 🚀</button></div>
+      </div>
+    </div>
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div class="text-6xl mb-4">🕐</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Time’s Up!</h2>
+      <p class="text-2xl font-medium text-slate-600 mb-6">You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">0</span> out of 24!</p>
+      <p id="result-message" class="text-lg text-slate-500 mb-8 font-medium"></p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+  <script src="../../../js/fun-effects.js"></script>
+  <script>
+    (function () {
+      const ROUNDS = [
+        { kind: 'digital', show: '3:00', answer: '3:00', wrong: ['3:30', '12:00', '6:00'] },
+        { kind: 'digital', show: '7:30', answer: '7:30', wrong: ['7:00', '6:30', '8:30'] },
+        { kind: 'emoji', show: '🕐 1 o’clock', answer: '1:00', wrong: ['1:30', '12:00', '2:00'] },
+        { kind: 'digital', show: '12:00', answer: '12:00', wrong: ['12:30', '6:00', '11:00'] },
+        { kind: 'emoji', show: '🕧 Half past 6', answer: '6:30', wrong: ['6:00', '7:30', '5:30'] },
+        { kind: 'digital', show: '4:30', answer: '4:30', wrong: ['4:00', '5:30', '3:30'] },
+        { kind: 'emoji', show: '🕒 3 o’clock', answer: '3:00', wrong: ['3:30', '2:00', '9:00'] },
+        { kind: 'digital', show: '9:00', answer: '9:00', wrong: ['9:30', '6:00', '12:00'] },
+        { kind: 'emoji', show: '🕡 Half past 5', answer: '5:30', wrong: ['5:00', '6:00', '4:30'] },
+        { kind: 'digital', show: '2:30', answer: '2:30', wrong: ['2:00', '3:30', '12:30'] },
+        { kind: 'emoji', show: '🕘 9 o’clock', answer: '9:00', wrong: ['9:30', '8:00', '10:00'] },
+        { kind: 'digital', show: '11:30', answer: '11:30', wrong: ['11:00', '12:30', '10:30'] },
+        { kind: 'emoji', show: '🕛 12 o’clock', answer: '12:00', wrong: ['12:30', '6:00', '1:00'] },
+        { kind: 'digital', show: '8:00', answer: '8:00', wrong: ['8:30', '4:00', '10:00'] },
+        { kind: 'emoji', show: '🕤 Half past 9', answer: '9:30', wrong: ['9:00', '10:30', '8:30'] },
+        { kind: 'digital', show: '5:00', answer: '5:00', wrong: ['5:30', '6:00', '4:00'] },
+        { kind: 'emoji', show: '🕔 5 o’clock', answer: '5:00', wrong: ['5:30', '4:00', '6:00'] },
+        { kind: 'digital', show: '10:30', answer: '10:30', wrong: ['10:00', '11:30', '9:30'] },
+        { kind: 'emoji', show: '🕥 Half past 10', answer: '10:30', wrong: ['10:00', '11:00', '9:30'] },
+        { kind: 'digital', show: '1:30', answer: '1:30', wrong: ['1:00', '2:30', '12:30'] },
+        { kind: 'emoji', show: '🕑 2 o’clock', answer: '2:00', wrong: ['2:30', '1:00', '3:00'] },
+        { kind: 'digital', show: '6:00', answer: '6:00', wrong: ['6:30', '12:00', '3:00'] },
+        { kind: 'emoji', show: '🕦 Half past 11', answer: '11:30', wrong: ['11:00', '12:30', '10:30'] },
+        { kind: 'digital', show: '8:30', answer: '8:30', wrong: ['8:00', '9:30', '7:30'] }
+      ];
+      const TOTAL = ROUNDS.length;
+      let order = ROUNDS.map((_, i) => i);
+      let roundIndex = 0, score = 0, streak = 0, canAnswer = true;
+
+      const gameCard = document.getElementById('game-card');
+      const clockDisplay = document.getElementById('clock-display');
+      const promptLine = document.getElementById('prompt-line');
+      const choicesGrid = document.getElementById('choices-grid');
+      const feedback = document.getElementById('feedback');
+      const nextBtn = document.getElementById('next-btn');
+      const scoreHud = document.getElementById('score-hud');
+
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function updateHud() {
+        scoreHud.textContent = 'Score: ' + score + ' / ' + TOTAL;
+        FunEffects.pulseScore(scoreHud);
+      }
+
+      function loadRound() {
+        canAnswer = true;
+        feedback.classList.add('hidden');
+        nextBtn.classList.add('hidden');
+        choicesGrid.innerHTML = '';
+        const r = ROUNDS[order[roundIndex]];
+        document.getElementById('round-label').textContent = 'Round ' + (roundIndex + 1) + ' of ' + TOTAL;
+        document.getElementById('progress-bar').style.width = (roundIndex / TOTAL * 100) + '%';
+        promptLine.textContent = r.kind === 'digital' ? 'What time does this digital clock show?' : 'What time matches this clock?';
+        clockDisplay.textContent = r.show;
+        shuffle([r.answer, ...r.wrong]).forEach((opt) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'option-btn text-center text-xl font-bold py-5';
+          btn.textContent = opt;
+          btn.addEventListener('click', () => pick(opt, r, btn));
+          choicesGrid.appendChild(btn);
+        });
+      }
+
+      function pick(opt, round, btn) {
+        if (!canAnswer) return;
+        canAnswer = false;
+        const ok = opt === round.answer;
+        choicesGrid.querySelectorAll('button').forEach((b) => {
+          b.style.cursor = 'default';
+          if (b.textContent === round.answer) b.classList.add('correct');
+          else if (b === btn && !ok) b.classList.add('wrong');
+        });
+        feedback.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+        if (ok) {
+          score++; streak++;
+          feedback.classList.add('bg-green-100', 'text-green-800');
+          feedback.innerHTML = '<strong>Tick-tock! 🎉</strong><br>The time is ' + round.answer + '.';
+          FunEffects.confetti(); FunEffects.showStreak(streak);
+        } else {
+          streak = 0;
+          FunEffects.shake(gameCard);
+          feedback.classList.add('bg-red-100', 'text-red-800');
+          feedback.innerHTML = '<strong>Look at the hour hand!</strong><br>The correct time is ' + round.answer + '.';
+        }
+        updateHud();
+        nextBtn.classList.remove('hidden');
+      }
+
+      function showResults() {
+        document.getElementById('play-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+        document.getElementById('progress-bar').style.width = '100%';
+        document.getElementById('score-display').textContent = score;
+        scoreHud.textContent = 'Score: ' + score + ' / ' + TOTAL;
+        const msg = document.getElementById('result-message');
+        if (score === TOTAL) { msg.textContent = 'Clock champion! 🌟'; FunEffects.celebratePerfect(); }
+        else if (score >= 17) msg.textContent = 'You read time like a pro! 👍';
+        else msg.textContent = 'Practice hour and half-hour times! 💪';
+      }
+
+      nextBtn.addEventListener('click', () => { roundIndex++; if (roundIndex < TOTAL) loadRound(); else showResults(); });
+      document.getElementById('restart-btn').addEventListener('click', () => {
+        roundIndex = 0; score = 0; streak = 0;
+        order = shuffle(order.map((_, i) => i));
+        document.getElementById('result-screen').classList.add('hidden');
+        document.getElementById('play-screen').classList.remove('hidden');
+        updateHud(); loadRound();
+      });
+      order = shuffle(order);
+      updateHud();
+      loadRound();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pattern Detective — Math</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    .pat-chip {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 3rem; padding: 0.65rem 1rem; border-radius: 1rem;
+      border: 3px solid #e2e8f0; background: #f8fafc;
+      font-size: 1.5rem; font-weight: 600;
+    }
+    .pat-chip.blank { border-style: dashed; border-color: var(--accent); background: #fffbeb; min-width: 4rem; }
+    .pat-chip.filled { border-color: #22c55e; background: #dcfce7; }
+  </style>
+</head>
+<body class="game theme-math">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="score-hud" id="score-hud">Score: 0 / 26</div>
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← Math</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+    <div id="play-screen">
+      <header class="mb-6 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2" style="color: var(--accent-dark)">Pattern Detective</h1>
+        <p class="text-lg text-slate-500 font-medium">What comes next in the pattern?</p>
+        <div class="progress-track"><div id="progress-bar" class="progress-bar-fill"></div></div>
+        <p id="round-label" class="mt-2 text-sm font-semibold" style="color: var(--accent)">Round 1 of 26</p>
+      </header>
+      <div id="game-card" class="question-card p-6 md:p-8 animate-pop">
+        <div id="sequence-row" class="flex flex-wrap justify-center gap-2 mb-8"></div>
+        <div id="choices-grid" class="grid grid-cols-2 gap-4 mb-4"></div>
+        <div id="feedback" class="hidden text-center p-4 rounded-xl text-lg font-medium mb-4"></div>
+        <div class="text-center"><button type="button" id="next-btn" class="hidden btn-primary">Next Round 🚀</button></div>
+      </div>
+    </div>
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div class="text-6xl mb-4">🔍</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Case Closed!</h2>
+      <p class="text-2xl font-medium text-slate-600 mb-6">You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">0</span> out of 26!</p>
+      <p id="result-message" class="text-lg text-slate-500 mb-8 font-medium"></p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+  <script src="../../../js/fun-effects.js"></script>
+  <script>
+    (function () {
+      const ROUNDS = [
+        { seq: [2, 4, 6, null, 10], answer: '8', wrong: ['7', '9', '12'], hint: 'Add 2 each time.' },
+        { seq: [5, 10, 15, null, 25], answer: '20', wrong: ['18', '22', '30'], hint: 'Skip count by 5s.' },
+        { seq: [10, 20, 30, null, 50], answer: '40', wrong: ['35', '45', '60'], hint: 'Tens pattern.' },
+        { seq: ['🔴', '🔵', '🔴', '🔵', null], answer: '🔴', wrong: ['🔵', '🟢', '🟡'], hint: 'Colors alternate.' },
+        { seq: [100, 90, 80, null, 60], answer: '70', wrong: ['75', '65', '50'], hint: 'Count down by 10.' },
+        { seq: [3, 6, 9, null, 15], answer: '12', wrong: ['10', '11', '14'], hint: 'Add 3 each time.' },
+        { seq: ['⭐', '⭐', '🌙', '⭐', '⭐', null], answer: '🌙', wrong: ['⭐', '☀️', '🌈'], hint: 'Two stars, then moon.' },
+        { seq: [12, 14, 16, null, 20], answer: '18', wrong: ['17', '19', '22'], hint: 'Even numbers +2.' },
+        { seq: [25, 30, 35, null, 45], answer: '40', wrong: ['38', '42', '50'], hint: 'Fives going up.' },
+        { seq: ['🟩', '🟩', '🟦', '🟩', '🟩', null], answer: '🟦', wrong: ['🟩', '🟥', '🟨'], hint: 'Green, green, blue.' },
+        { seq: [1, 4, 7, null, 13], answer: '10', wrong: ['9', '11', '8'], hint: 'Add 3.' },
+        { seq: [50, 45, 40, null, 30], answer: '35', wrong: ['32', '38', '25'], hint: 'Subtract 5.' },
+        { seq: ['🔺', '🔺', '🔻', '🔺', '🔺', null], answer: '🔻', wrong: ['🔺', '⬜', '🔶'], hint: 'Two up, one down.' },
+        { seq: [11, 21, 31, null, 51], answer: '41', wrong: ['40', '42', '45'], hint: 'Ones stay 1, tens grow.' },
+        { seq: [4, 8, 12, null, 20], answer: '16', wrong: ['14', '18', '22'], hint: 'Count by 4s.' },
+        { seq: ['🐶', '🐱', '🐶', '🐱', null], answer: '🐶', wrong: ['🐱', '🐰', '🐻'], hint: 'Dog and cat swap.' },
+        { seq: [200, 190, 180, null, 160], answer: '170', wrong: ['175', '165', '150'], hint: 'Back by 10.' },
+        { seq: [7, 14, 21, null, 35], answer: '28', wrong: ['26', '27', '30'], hint: 'Sevens table.' },
+        { seq: ['⬛', '⬜', '⬛', '⬜', null], answer: '⬛', wrong: ['⬜', '🔲', '⬛⬜'], hint: 'Black and white.' },
+        { seq: [6, 12, 18, null, 30], answer: '24', wrong: ['22', '26', '28'], hint: 'Sixes pattern.' },
+        { seq: [33, 43, 53, null, 73], answer: '63', wrong: ['60', '65', '62'], hint: 'Add 10.' },
+        { seq: ['🍎', '🍌', '🍎', '🍌', null], answer: '🍎', wrong: ['🍌', '🍇', '🍊'], hint: 'Fruit alternates.' },
+        { seq: [9, 18, 27, null, 45], answer: '36', wrong: ['35', '38', '34'], hint: 'Nines pattern.' },
+        { seq: [2, 5, 8, null, 14], answer: '11', wrong: ['10', '12', '9'], hint: 'Add 3.' },
+        { seq: ['🔵', '🔵', '🔵', '🟡', '🔵', '🔵', '🔵', null], answer: '🟡', wrong: ['🔵', '🟢', '🔴'], hint: 'Three blue, one yellow.' }
+      ];
+      const TOTAL = ROUNDS.length;
+      let order = ROUNDS.map((_, i) => i);
+      let roundIndex = 0, score = 0, streak = 0, canAnswer = true;
+
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      const gameCard = document.getElementById('game-card');
+      const sequenceRow = document.getElementById('sequence-row');
+      const scoreHud = document.getElementById('score-hud');
+
+      function updateHud() {
+        scoreHud.textContent = 'Score: ' + score + ' / ' + TOTAL;
+        FunEffects.pulseScore(scoreHud);
+      }
+
+      function loadRound() {
+        canAnswer = true;
+        document.getElementById('feedback').classList.add('hidden');
+        document.getElementById('next-btn').classList.add('hidden');
+        document.getElementById('choices-grid').innerHTML = '';
+        sequenceRow.innerHTML = '';
+        const r = ROUNDS[order[roundIndex]];
+        document.getElementById('round-label').textContent = 'Round ' + (roundIndex + 1) + ' of ' + TOTAL;
+        document.getElementById('progress-bar').style.width = (roundIndex / TOTAL * 100) + '%';
+        r.seq.forEach((n) => {
+          const chip = document.createElement('span');
+          chip.className = 'pat-chip' + (n === null ? ' blank' : '');
+          chip.textContent = n === null ? '?' : String(n);
+          sequenceRow.appendChild(chip);
+        });
+        shuffle([r.answer, ...r.wrong]).forEach((opt) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'option-btn text-center text-2xl font-bold py-6';
+          btn.textContent = opt;
+          btn.addEventListener('click', () => pick(opt, r, btn));
+          document.getElementById('choices-grid').appendChild(btn);
+        });
+      }
+
+      function pick(opt, round, btn) {
+        if (!canAnswer) return;
+        canAnswer = false;
+        const ok = opt === round.answer;
+        document.getElementById('choices-grid').querySelectorAll('button').forEach((b) => {
+          b.style.cursor = 'default';
+          if (b.textContent === round.answer) b.classList.add('correct');
+          else if (b === btn && !ok) b.classList.add('wrong');
+        });
+        const feedback = document.getElementById('feedback');
+        feedback.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+        if (ok) {
+          score++; streak++;
+          const blank = sequenceRow.querySelector('.blank');
+          if (blank) { blank.textContent = round.answer; blank.classList.remove('blank'); blank.classList.add('filled'); }
+          feedback.classList.add('bg-green-100', 'text-green-800');
+          feedback.innerHTML = '<strong>Pattern cracked! 🎉</strong><br>' + round.hint;
+          FunEffects.confetti(); FunEffects.showStreak(streak);
+        } else {
+          streak = 0;
+          FunEffects.shake(gameCard);
+          feedback.classList.add('bg-red-100', 'text-red-800');
+          feedback.innerHTML = '<strong>Look again!</strong><br>The missing piece is ' + round.answer + '. ' + round.hint;
+        }
+        updateHud();
+        document.getElementById('next-btn').classList.remove('hidden');
+      }
+
+      function showResults() {
+        document.getElementById('play-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+        document.getElementById('score-display').textContent = score;
+        scoreHud.textContent = 'Score: ' + score + ' / ' + TOTAL;
+        const msg = document.getElementById('result-message');
+        if (score === TOTAL) { msg.textContent = 'Top detective! 🌟'; FunEffects.celebratePerfect(); }
+        else if (score >= 19) msg.textContent = 'Sharp pattern eyes! 👍';
+        else msg.textContent = 'Find the rule and the blank gets easy! 💪';
+      }
+
+      document.getElementById('next-btn').addEventListener('click', () => {
+        roundIndex++;
+        if (roundIndex < TOTAL) loadRound();
+        else showResults();
+      });
+      document.getElementById('restart-btn').addEventListener('click', () => {
+        roundIndex = 0; score = 0; streak = 0;
+        order = shuffle(order.map((_, i) => i));
+        document.getElementById('result-screen').classList.add('hidden');
+        document.getElementById('play-screen').classList.remove('hidden');
+        updateHud(); loadRound();
+      });
+      order = shuffle(order);
+      updateHud();
+      loadRound();
+    })();
+  </script>
+</body>
+</html>

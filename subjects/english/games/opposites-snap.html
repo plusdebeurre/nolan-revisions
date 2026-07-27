@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Opposites Snap — English</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    .snap-card {
+      aspect-ratio: 1;
+      min-height: 4.5rem;
+      border-radius: 1rem;
+      border: 3px solid #e2e8f0;
+      background: linear-gradient(145deg, #fff, #f1f5f9);
+      font-size: 0.95rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 0.5rem;
+      transition: transform 0.2s, opacity 0.2s;
+      cursor: pointer;
+    }
+    .snap-card.face-down {
+      background: linear-gradient(145deg, var(--accent), var(--accent-dark));
+      color: #fff;
+      font-size: 1.75rem;
+    }
+    .snap-card.face-down span.label {
+      display: none;
+    }
+    .snap-card.matched {
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .snap-card.wrong {
+      animation: shake 0.35s ease;
+      border-color: #ef4444;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+  </style>
+</head>
+<body class="game theme-english">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="score-hud" id="live-score-hud">Score: 0 / 10</div>
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← English</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+
+    <div id="play-screen">
+      <header class="mb-6 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2 drop-shadow-sm" style="color: var(--accent-dark)">⚡ Opposites Snap</h1>
+        <p class="text-lg text-slate-500 font-medium">Flip two cards — match opposite words!</p>
+        <p id="pairs-left" class="text-sm font-semibold mt-2" style="color: var(--accent)">Pairs left: 10</p>
+        <p id="live-score-line" class="live-score-line">Score: 0</p>
+      </header>
+
+      <div class="question-card p-4 md:p-6 animate-pop">
+        <div id="grid" class="grid grid-cols-3 md:grid-cols-4 gap-3 mb-4"></div>
+        <div id="feedback" class="hidden text-center p-3 rounded-xl text-base font-medium mb-2"></div>
+      </div>
+    </div>
+
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div class="text-6xl mb-4">🃏</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Snap!</h2>
+      <p class="text-2xl font-medium text-slate-600 mb-6">
+        You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">0</span> out of 10!
+      </p>
+      <p id="result-message" class="text-lg text-slate-500 mb-8 font-medium"></p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+  <script src="../../../js/fun-effects.js"></script>
+  <script>
+    (function () {
+      const PAIRS = [
+        ['hot', 'cold'],
+        ['solid', 'liquid'],
+        ['melt', 'freeze'],
+        ['always', 'never'],
+        ['hunt', 'escape'],
+        ['day', 'night'],
+        ['big', 'small'],
+        ['fast', 'slow'],
+        ['wet', 'dry'],
+        ['boil', 'freeze']
+      ];
+
+      let score = 0;
+      let flipped = [];
+      let lock = false;
+
+      const playScreen = document.getElementById('play-screen');
+      const resultScreen = document.getElementById('result-screen');
+      const grid = document.getElementById('grid');
+      const feedback = document.getElementById('feedback');
+      const pairsLeft = document.getElementById('pairs-left');
+      const scoreDisplay = document.getElementById('score-display');
+      const resultMessage = document.getElementById('result-message');
+      const restartBtn = document.getElementById('restart-btn');
+      const liveScoreHud = document.getElementById('live-score-hud');
+      const liveScoreLine = document.getElementById('live-score-line');
+
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function pairId(word) {
+        const idx = PAIRS.findIndex(([a, b]) => a === word || b === word);
+        return idx >= 0 ? String(idx) : word;
+      }
+
+      function updateHud() {
+        const left = PAIRS.length - score;
+        liveScoreHud.textContent = `Score: ${score} / ${PAIRS.length}`;
+        liveScoreLine.textContent = `Score: ${score}`;
+        pairsLeft.textContent = `Pairs left: ${left}`;
+      }
+
+      function buildDeck() {
+        const cards = [];
+        PAIRS.forEach(([a, b], i) => {
+          cards.push({ word: a, pair: String(i) });
+          cards.push({ word: b, pair: String(i) });
+        });
+        return shuffle(cards);
+      }
+
+      function renderCard(cardData) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'snap-card face-down';
+        btn.innerHTML = '❓<span class="label">' + cardData.word + '</span>';
+        btn.dataset.word = cardData.word;
+        btn.dataset.pair = cardData.pair;
+        btn.addEventListener('click', () => flip(btn));
+        return btn;
+      }
+
+      function startGame() {
+        score = 0;
+        flipped = [];
+        lock = false;
+        feedback.classList.add('hidden');
+        resultScreen.classList.add('hidden');
+        playScreen.classList.remove('hidden');
+        grid.innerHTML = '';
+        buildDeck().forEach((c) => grid.appendChild(renderCard(c)));
+        updateHud();
+      }
+
+      function flip(btn) {
+        if (lock || btn.classList.contains('matched') || !btn.classList.contains('face-down')) return;
+        btn.classList.remove('face-down');
+        btn.textContent = btn.dataset.word;
+        flipped.push(btn);
+        if (flipped.length === 2) {
+          lock = true;
+          const [a, b] = flipped;
+          if (a.dataset.pair === b.dataset.pair && a.dataset.word !== b.dataset.word) {
+            a.classList.add('matched');
+            b.classList.add('matched');
+            score++;
+            updateHud();
+            if (window.FunEffects) {
+              FunEffects.confetti({ count: 10 });
+              FunEffects.pulseScore(liveScoreLine);
+            }
+            feedback.classList.remove('hidden', 'bg-red-100', 'text-red-800');
+            feedback.classList.add('bg-green-100', 'text-green-800');
+            feedback.textContent = 'Opposite snap! ✓';
+            flipped = [];
+            lock = false;
+            if (score === PAIRS.length) {
+              setTimeout(finish, 600);
+            }
+          } else {
+            a.classList.add('wrong');
+            b.classList.add('wrong');
+            if (window.FunEffects) FunEffects.shake(a);
+            feedback.classList.remove('hidden', 'bg-green-100', 'text-green-800');
+            feedback.classList.add('bg-red-100', 'text-red-800');
+            feedback.textContent = 'Not opposites — try again!';
+            setTimeout(() => {
+              [a, b].forEach((el) => {
+                el.classList.add('face-down');
+                el.classList.remove('wrong');
+                el.innerHTML = '❓<span class="label">' + el.dataset.word + '</span>';
+              });
+              flipped = [];
+              lock = false;
+              feedback.classList.add('hidden');
+            }, 900);
+          }
+        }
+      }
+
+      function finish() {
+        playScreen.classList.add('hidden');
+        resultScreen.classList.remove('hidden');
+        scoreDisplay.textContent = score;
+        if (score === PAIRS.length) {
+          resultMessage.textContent = 'Memory master — all opposites matched! 🌟';
+          if (window.FunEffects) FunEffects.celebratePerfect();
+        } else {
+          resultMessage.textContent = 'Good matching! Play again for a perfect snap! 👍';
+        }
+      }
+
+      restartBtn.addEventListener('click', startGame);
+      startGame();
+    })();
+  </script>
+</body>
+</html>

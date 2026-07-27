@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Healthy Day Planner — HPE</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    .choice-card {
+      border: 3px solid #e2e8f0;
+      border-radius: 1.25rem;
+      padding: 1rem 1.1rem;
+      background: white;
+      font-weight: 600;
+      font-size: 1.05rem;
+      text-align: left;
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s, background 0.15s;
+      font-family: inherit;
+      width: 100%;
+    }
+    .choice-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+    .choice-card.selected {
+      border-color: var(--accent);
+      background: #faf5ff;
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+    }
+    .choice-card.selected.bad-pick {
+      border-color: #ef4444;
+      background: #fef2f2;
+    }
+    .slot-pill {
+      display: inline-block;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: #f1f5f9;
+      color: #64748b;
+      margin-bottom: 0.35rem;
+    }
+  </style>
+</head>
+<body class="game theme-hpe min-h-screen">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← HPE</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+
+    <div id="play-screen">
+      <header class="mb-6 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2 drop-shadow-sm" style="color: var(--accent-dark)">☀️ Healthy Day Planner</h1>
+        <p class="text-lg text-slate-500 font-medium">Pick <strong>4 choices</strong> for a super healthy day!</p>
+        <p class="mt-2 text-sm font-semibold" style="color: var(--accent)">You need at least 4 healthy picks to win 🏆</p>
+        <p id="pick-count" class="mt-1 text-xl font-bold" style="color: var(--accent-dark)">Selected: 0 / 4</p>
+      </header>
+
+      <div id="choices-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 animate-pop"></div>
+
+      <div class="text-center">
+        <button type="button" id="check-btn" class="btn-primary opacity-50 pointer-events-none" disabled>Check My Day ✨</button>
+      </div>
+    </div>
+
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div id="result-emoji" class="text-7xl mb-4"></div>
+      <h2 id="result-title" class="text-4xl font-bold mb-4"></h2>
+      <p id="result-score" class="text-2xl text-slate-600 mb-4 font-medium">Day score: <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">0</span> / 4 healthy choices</p>
+      <p id="result-detail" class="text-xl text-slate-600 mb-8 leading-relaxed"></p>
+      <button type="button" id="play-again" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+
+  <script src="../../../js/fun-effects.js"></script>
+  <script>
+    (function () {
+      const CHOICES = [
+        { id: 'c1', text: '🪥 Brush teeth after breakfast', slot: 'Morning', healthy: true },
+        { id: 'c2', text: '⚽ Play outside after school', slot: 'Afternoon', healthy: true },
+        { id: 'c3', text: '💧 Drink water instead of sugary drinks', slot: 'All day', healthy: true },
+        { id: 'c4', text: '😴 Get a good night’s sleep', slot: 'Evening', healthy: true },
+        { id: 'c5', text: '🧼 Wash hands before eating', slot: 'Morning', healthy: true },
+        { id: 'c6', text: '🍭 Candy binge all afternoon', slot: 'Afternoon', healthy: false },
+        { id: 'c7', text: '📱 Screen time all day — no breaks', slot: 'All day', healthy: false },
+        { id: 'c8', text: '🙈 Skip brushing at bedtime', slot: 'Evening', healthy: false }
+      ];
+
+      const NEED_HEALTHY = 4;
+      const MAX_PICKS = 4;
+      const selected = new Set();
+
+      const choicesGrid = document.getElementById('choices-grid');
+      const pickCount = document.getElementById('pick-count');
+      const checkBtn = document.getElementById('check-btn');
+      const playScreen = document.getElementById('play-screen');
+      const resultScreen = document.getElementById('result-screen');
+
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function renderChoices() {
+        selected.clear();
+        choicesGrid.innerHTML = '';
+        updatePickUI();
+        shuffle(CHOICES).forEach(c => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'choice-card';
+          btn.dataset.id = c.id;
+          btn.innerHTML = `<span class="slot-pill">${c.slot}</span><br>${c.text}`;
+          btn.addEventListener('click', () => toggleChoice(c.id, btn));
+          choicesGrid.appendChild(btn);
+        });
+      }
+
+      function getChoice(id) {
+        return CHOICES.find(c => c.id === id);
+      }
+
+      function toggleChoice(id, btn) {
+        if (selected.has(id)) {
+          selected.delete(id);
+          btn.classList.remove('selected', 'bad-pick');
+        } else if (selected.size < MAX_PICKS) {
+          selected.add(id);
+          btn.classList.add('selected');
+        }
+        updatePickUI();
+      }
+
+      function updatePickUI() {
+        pickCount.textContent = `Selected: ${selected.size} / ${MAX_PICKS}`;
+        const ready = selected.size === MAX_PICKS;
+        checkBtn.disabled = !ready;
+        checkBtn.classList.toggle('opacity-50', !ready);
+        checkBtn.classList.toggle('pointer-events-none', !ready);
+      }
+
+      function checkDay() {
+        let healthyCount = 0;
+        selected.forEach(id => {
+          if (getChoice(id).healthy) healthyCount++;
+        });
+        playScreen.classList.add('hidden');
+        resultScreen.classList.remove('hidden');
+        const emojiEl = document.getElementById('result-emoji');
+        const titleEl = document.getElementById('result-title');
+        const detailEl = document.getElementById('result-detail');
+        const scoreEl = document.getElementById('score-display');
+        scoreEl.textContent = String(healthyCount);
+
+        if (healthyCount >= NEED_HEALTHY) {
+          emojiEl.textContent = '🌈';
+          emojiEl.classList.add('animate-tada');
+          titleEl.textContent = 'Super Healthy Day!';
+          titleEl.className = 'text-4xl font-bold mb-4 text-green-500';
+          detailEl.textContent = 'Brushing, moving, drinking water, and resting help your body grow strong. Keep it up, champ!';
+          if (healthyCount === NEED_HEALTHY && window.FunEffects) FunEffects.confetti();
+        } else {
+          emojiEl.textContent = '🤔';
+          titleEl.textContent = 'Let’s Try Again!';
+          titleEl.className = 'text-4xl font-bold mb-4';
+          titleEl.style.color = 'var(--accent-dark)';
+          detailEl.textContent = `You had ${healthyCount} healthy choice${healthyCount === 1 ? '' : 's'}. Swap the sugary snacks or skipped habits for brushing, water, play, and sleep — then you will hit 4!`;
+        }
+      }
+
+      checkBtn.addEventListener('click', checkDay);
+      document.getElementById('play-again').addEventListener('click', () => {
+        resultScreen.classList.add('hidden');
+        playScreen.classList.remove('hidden');
+        document.getElementById('result-emoji').classList.remove('animate-tada');
+        renderChoices();
+      });
+
+      renderChoices();
+    })();
+  </script>
+</body>
+</html>

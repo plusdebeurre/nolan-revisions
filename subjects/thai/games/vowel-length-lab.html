@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vowel Length Lab — Thai</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Sarabun:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body>
+  <div id="app"></div>
+  <script src="../../../js/quiz-engine.js"></script>
+  <script>
+    QuizEngine.mount({
+      subject: 'thai',
+      title: '🔬 Vowel Length Lab',
+      subtitle: 'Short or long? Grade 2 Thai',
+      backHref: '../index.html',
+      homeHref: '../../../index.html',
+      perfectMessage: 'Vowel scientist! Short and long — perfect! 🌟',
+      goodMessage: 'Great ear for vowels! 👍',
+      tryAgainMessage: 'Listen again — short is quick, long stretches! 💪',
+      quizData: [
+        { question: 'Is this vowel SHORT or LONG?  -ะ (A)', options: ['Short', 'Long'], correctAnswer: 0, explanation: '-ะ is short — say it quickly!' },
+        { question: 'Is this vowel SHORT or LONG?  -า (Aa)', options: ['Short', 'Long'], correctAnswer: 1, explanation: '-า is long — stretch the “aa” sound.' },
+        { question: 'Is this vowel SHORT or LONG?  -ิ (I)', options: ['Short', 'Long'], correctAnswer: 0, explanation: '-ิ is a short “i” sound.' },
+        { question: 'Is this vowel SHORT or LONG?  -ี (Ii)', options: ['Short', 'Long'], correctAnswer: 1, explanation: '-ี is long — like a stretched “ee”.' },
+        { question: 'Is this vowel SHORT or LONG?  -ุ (U)', options: ['Short', 'Long'], correctAnswer: 0, explanation: '-ุ is short.' },
+        { question: 'Is this vowel SHORT or LONG?  -ู (Uu)', options: ['Short', 'Long'], correctAnswer: 1, explanation: '-ู is long.' },
+        { question: 'Is this vowel SHORT or LONG?  เ-ะ (E short)', options: ['Short', 'Long'], correctAnswer: 0, explanation: 'เ-ะ ends with ะ — that makes it short!' },
+        { question: 'Which vowel is LONG?', options: ['-ะ', '-ิ', '-า', '-ุ'], correctAnswer: 2, explanation: '-า (Aa) is the long one in this list.' },
+        { question: 'Which vowel is SHORT?', options: ['-า', '-ี', '-ู', '-ะ'], correctAnswer: 3, explanation: '-ะ is short.' },
+        { question: 'How many SHORT vowel sounds are there in Thai?', options: ['14', '18', '24', '32'], correctAnswer: 1, explanation: 'There are 18 short vowels (and 14 long → 32 total).' }
+      ]
+    });
+  </script>
+</body>
+</html>

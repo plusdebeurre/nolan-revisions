@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skip Counting Race — Math</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    .seq-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 3.25rem;
+      padding: 0.65rem 1rem;
+      border-radius: 1rem;
+      border: 3px solid #e2e8f0;
+      background: #f8fafc;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+    .seq-chip.blank {
+      border-style: dashed;
+      border-color: var(--accent);
+      background: #fffbeb;
+      color: var(--accent-dark);
+      min-width: 4rem;
+    }
+    .seq-chip.filled {
+      border-color: #22c55e;
+      background: #dcfce7;
+    }
+  </style>
+</head>
+<body class="game theme-math">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← Math</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+
+    <div id="play-screen">
+      <header class="mb-6 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2 drop-shadow-sm" style="color: var(--accent-dark)">Skip Counting Race</h1>
+        <p class="text-lg text-slate-500 font-medium">Tap the number that comes next!</p>
+        <div class="progress-track">
+          <div id="progress-bar" class="progress-bar-fill"></div>
+        </div>
+        <p id="round-label" class="mt-2 text-sm font-semibold" style="color: var(--accent)">Round 1</p>
+        <p id="step-badge" class="mt-2 inline-block px-4 py-1 rounded-full text-white font-bold text-sm" style="background: var(--accent)">Count by 2s</p>
+      </header>
+
+      <div class="question-card p-6 md:p-8 animate-pop">
+        <p class="text-center text-slate-600 font-medium mb-4">What number goes in the blank?</p>
+        <div id="sequence-row" class="flex flex-wrap justify-center gap-2 mb-8"></div>
+        <div id="choices-grid" class="grid grid-cols-2 gap-4 mb-4"></div>
+        <div id="feedback" class="hidden text-center p-4 rounded-xl text-lg font-medium mb-4"></div>
+        <div class="text-center">
+          <button type="button" id="next-btn" class="hidden btn-primary">Next Round 🚀</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div class="text-6xl mb-4">🏁</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Race Complete!</h2>
+      <p class="text-2xl font-medium text-slate-600 mb-6">
+        You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">0</span> out of <span id="total-rounds">24</span>!
+      </p>
+      <p id="result-message" class="text-lg text-slate-500 mb-8 font-medium"></p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      const ROUNDS = [
+        { step: 2, label: 'Count by 2s', seq: [2, 4, 6, null, 10], answer: 8, wrong: [7, 9, 12] },
+        { step: 2, label: 'Count by 2s', seq: [14, 16, 18, null, 22], answer: 20, wrong: [19, 21, 24] },
+        { step: 2, label: 'Count by 2s', seq: [24, 26, null, 30, 32], answer: 28, wrong: [27, 29, 34] },
+        { step: 2, label: 'Count by 2s', seq: [36, 38, 40, null, 44], answer: 42, wrong: [41, 43, 46] },
+        { step: 2, label: 'Count by 2s', seq: [50, 52, null, 56, 58], answer: 54, wrong: [53, 55, 60] },
+        { step: 2, label: 'Count by 2s', seq: [64, 66, 68, null, 72], answer: 70, wrong: [69, 71, 74] },
+        { step: 5, label: 'Count by 5s', seq: [5, 10, 15, null, 25], answer: 20, wrong: [18, 22, 30] },
+        { step: 5, label: 'Count by 5s', seq: [35, 40, null, 50, 55], answer: 45, wrong: [42, 48, 60] },
+        { step: 5, label: 'Count by 5s', seq: [45, 50, 55, null, 65], answer: 60, wrong: [58, 62, 70] },
+        { step: 5, label: 'Count by 5s', seq: [25, 30, 35, null, 45], answer: 40, wrong: [38, 42, 50] },
+        { step: 5, label: 'Count by 5s', seq: [60, 65, null, 75, 80], answer: 70, wrong: [68, 72, 85] },
+        { step: 5, label: 'Count by 5s', seq: [85, 90, 95, null, 105], answer: 100, wrong: [98, 102, 110] },
+        { step: 10, label: 'Count by 10s', seq: [10, 20, null, 40, 50], answer: 30, wrong: [25, 35, 60] },
+        { step: 10, label: 'Count by 10s', seq: [60, 70, 80, null, 100], answer: 90, wrong: [85, 95, 110] },
+        { step: 10, label: 'Count by 10s', seq: [30, 40, 50, null, 70], answer: 60, wrong: [55, 65, 80] },
+        { step: 10, label: 'Count by 10s', seq: [120, 130, null, 150, 160], answer: 140, wrong: [135, 145, 170] },
+        { step: 10, label: 'Count by 10s', seq: [200, 210, 220, null, 240], answer: 230, wrong: [225, 235, 250] },
+        { step: 10, label: 'Count by 10s', seq: [45, 55, 65, null, 85], answer: 75, wrong: [70, 80, 90] },
+        { step: 3, label: 'Count by 3s', seq: [3, 6, 9, null, 15], answer: 12, wrong: [11, 13, 18] },
+        { step: 3, label: 'Count by 3s', seq: [12, 15, 18, null, 24], answer: 21, wrong: [20, 22, 27] },
+        { step: 3, label: 'Count by 3s', seq: [21, 24, null, 30, 33], answer: 27, wrong: [26, 28, 36] },
+        { step: 3, label: 'Count by 3s', seq: [30, 33, 36, null, 42], answer: 39, wrong: [38, 40, 45] },
+        { step: 3, label: 'Count by 3s', seq: [45, 48, null, 54, 57], answer: 51, wrong: [50, 52, 60] },
+        { step: 3, label: 'Count by 3s', seq: [54, 57, 60, null, 66], answer: 63, wrong: [61, 64, 69] }
+      ];
+
+      const totalRoundsEl = document.getElementById('total-rounds');
+      if (totalRoundsEl) totalRoundsEl.textContent = String(ROUNDS.length);
+
+      let roundIndex = 0;
+      let score = 0;
+      let canAnswer = true;
+
+      const playScreen = document.getElementById('play-screen');
+      const resultScreen = document.getElementById('result-screen');
+      const sequenceRow = document.getElementById('sequence-row');
+      const choicesGrid = document.getElementById('choices-grid');
+      const feedback = document.getElementById('feedback');
+      const nextBtn = document.getElementById('next-btn');
+      const progressBar = document.getElementById('progress-bar');
+      const roundLabel = document.getElementById('round-label');
+      const stepBadge = document.getElementById('step-badge');
+      const scoreDisplay = document.getElementById('score-display');
+      const resultMessage = document.getElementById('result-message');
+      const restartBtn = document.getElementById('restart-btn');
+
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function loadRound() {
+        canAnswer = true;
+        feedback.classList.add('hidden');
+        nextBtn.classList.add('hidden');
+        choicesGrid.innerHTML = '';
+
+        const round = ROUNDS[roundIndex];
+        roundLabel.textContent = `Round ${roundIndex + 1} of ${ROUNDS.length}`;
+        progressBar.style.width = `${(roundIndex / ROUNDS.length) * 100}%`;
+        stepBadge.textContent = round.label;
+
+        sequenceRow.innerHTML = '';
+        round.seq.forEach((n) => {
+          const chip = document.createElement('span');
+          chip.className = 'seq-chip' + (n === null ? ' blank' : '');
+          chip.textContent = n === null ? '?' : String(n);
+          sequenceRow.appendChild(chip);
+        });
+
+        const options = shuffle([round.answer, ...round.wrong]);
+        options.forEach((opt) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'option-btn text-center text-2xl font-bold py-6';
+          btn.textContent = opt;
+          btn.addEventListener('click', () => pick(opt, round, btn));
+          choicesGrid.appendChild(btn);
+        });
+      }
+
+      function pick(value, round, btn) {
+        if (!canAnswer) return;
+        canAnswer = false;
+        const correct = value === round.answer;
+        const buttons = choicesGrid.querySelectorAll('button');
+        buttons.forEach((b) => {
+          b.style.cursor = 'default';
+          if (Number(b.textContent) === round.answer) b.classList.add('correct');
+          else if (b === btn && !correct) b.classList.add('wrong');
+        });
+
+        feedback.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+        if (correct) {
+          score++;
+          feedback.classList.add('bg-green-100', 'text-green-800');
+          feedback.innerHTML = `<strong>Zoom! 🎉</strong><br>You skip counted by ${round.step}s. ${round.answer} is next!`;
+          const blank = sequenceRow.querySelector('.blank');
+          if (blank) {
+            blank.textContent = round.answer;
+            blank.classList.remove('blank');
+            blank.classList.add('filled');
+          }
+        } else {
+          feedback.classList.add('bg-red-100', 'text-red-800');
+          feedback.innerHTML = `<strong>Try to remember the pattern!</strong><br>Count by ${round.step}s: the answer is ${round.answer}.`;
+        }
+        nextBtn.classList.remove('hidden');
+      }
+
+      function showResults() {
+        playScreen.classList.add('hidden');
+        resultScreen.classList.remove('hidden');
+        progressBar.style.width = '100%';
+        scoreDisplay.textContent = score;
+        if (score === ROUNDS.length) resultMessage.textContent = 'Perfect race! You are a skip counting champ! 🌟';
+        else if (score >= Math.ceil(ROUNDS.length * 0.75)) resultMessage.textContent = 'Great counting! Keep racing! 👍';
+        else resultMessage.textContent = 'Good try! Practice 2s, 3s, 5s, and 10s again! 💪';
+      }
+
+      nextBtn.addEventListener('click', () => {
+        roundIndex++;
+        if (roundIndex < ROUNDS.length) loadRound();
+        else showResults();
+      });
+
+      restartBtn.addEventListener('click', () => {
+        roundIndex = 0;
+        score = 0;
+        resultScreen.classList.add('hidden');
+        playScreen.classList.remove('hidden');
+        loadRound();
+      });
+
+      loadRound();
+    })();
+  </script>
+</body>
+</html>

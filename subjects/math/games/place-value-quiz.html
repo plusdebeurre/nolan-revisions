@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Place Value Quiz — Math</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body>
+  <div id="app"></div>
+  <script src="../../../js/quiz-engine.js"></script>
+  <script>
+    QuizEngine.mount({
+      subject: 'math',
+      title: '🔢 Place Value Quiz',
+      subtitle: 'Grade 2 Math',
+      perfectMessage: 'Perfect score! You are a Math champion! 🌟',
+      goodMessage: 'Great job! You are ready for your exam! 👍',
+      tryAgainMessage: 'Good try! Keep practicing and you will get there! 💪',
+      quizData: [
+        {
+          question: 'In the number 452, what is the value of the digit 5?',
+          options: ['5 ones', '5 tens', '5 hundreds', '500'],
+          correctAnswer: 1,
+          explanation: 'The 5 is in the tens place, so its value is 50!',
+          hint: 'Look at the middle digit — ones, tens, hundreds from the right.'
+        },
+        {
+          question: 'Which of these is an ODD number?',
+          options: ['240', '739', '124', '888'],
+          correctAnswer: 1,
+          explanation: 'Odd numbers always end in 1, 3, 5, 7, or 9.',
+          hint: 'Check only the last digit!'
+        },
+        {
+          question: 'Complete the pattern: 245, 250, 255, ... ?',
+          options: ['256', '265', '260', '300'],
+          correctAnswer: 2,
+          explanation: 'We are skip counting by 5s!',
+          hint: 'Each number grows by the same little jump.'
+        },
+        {
+          question: 'Solve: 156 + 28 = ?',
+          options: ['184', '174', '182', '178'],
+          correctAnswer: 0,
+          explanation: 'Remember to regroup! 6 + 8 = 14, so we carry the 1.',
+          hint: 'Add the ones first. If you get 10 or more, carry!'
+        },
+        {
+          question: 'Solve: 62 - 17 = ?',
+          options: ['55', '45', '47', '52'],
+          correctAnswer: 1,
+          explanation: 'You need to regroup (borrow) because 2 is smaller than 7.',
+          hint: 'Can the ones column do 2 minus 7 without borrowing?'
+        },
+        {
+          question: 'Which operation is the same as 5 + 5 + 5 + 5?',
+          options: ['5 x 5', '4 x 4', '4 x 5', '20 + 5'],
+          correctAnswer: 2,
+          explanation: 'Adding 5 four times is the same as 4 times 5!',
+          hint: 'Count how many times you add 5.'
+        },
+        {
+          question: 'Leo has 15 marbles. He shares them equally between 3 friends. How many does each friend get?',
+          options: ['3 marbles', '10 marbles', '5 marbles', '2 marbles'],
+          correctAnswer: 2,
+          explanation: 'This is division: 15 ÷ 3 = 5.',
+          hint: 'Fair sharing means equal groups.'
+        },
+        {
+          question: 'If 2 x 10 = 20, then 20 ÷ 2 = ?',
+          options: ['2', '10', '5', '20'],
+          correctAnswer: 1,
+          explanation: 'This is the inverse relationship between multiplication and division!',
+          hint: 'Division undoes multiplication.'
+        },
+        {
+          question: 'Which symbol completes the comparison: 408 .... 480',
+          options: ['>', '=', '<', '+'],
+          correctAnswer: 2,
+          explanation: '408 is less than 480, so we use the < symbol.',
+          hint: 'Compare the tens place — they both have 4 hundreds.'
+        },
+        {
+          question: 'One box has 5 cookies. How many cookies are in 6 boxes?',
+          options: ['11', '25', '30', '35'],
+          correctAnswer: 2,
+          explanation: 'Use your 5 times table: 6 x 5 = 30!',
+          hint: 'Think: 5, 10, 15, 20...'
+        },
+        {
+          question: 'In the number 318, what is the value of the digit 1?',
+          options: ['1 one', '1 ten', '1 hundred', '100'],
+          correctAnswer: 1,
+          explanation: 'The 1 is in the tens place, so it means 10.',
+          hint: 'Ones, tens, hundreds — read from the right.'
+        },
+        {
+          question: 'Which number is EVEN?',
+          options: ['246', '351', '503', '777'],
+          correctAnswer: 0,
+          explanation: 'Even numbers end in 0, 2, 4, 6, or 8.',
+          hint: 'Look at the last digit only.'
+        },
+        {
+          question: 'Complete the pattern: 100, 110, 120, ... ?',
+          options: ['125', '130', '140', '121'],
+          correctAnswer: 1,
+          explanation: 'The pattern adds 10 each time — skip counting by 10s!',
+          hint: 'What do you add to go from 100 to 110?'
+        },
+        {
+          question: 'Which symbol fits: 529 .... 592',
+          options: ['>', '=', '<', '×'],
+          correctAnswer: 2,
+          explanation: 'Both have 5 hundreds, but 2 tens is less than 9 tens, so 529 < 592.',
+          hint: 'When hundreds match, compare the tens digit.'
+        },
+        {
+          question: 'In 705, which digit is in the hundreds place?',
+          options: ['7', '0', '5', '70'],
+          correctAnswer: 0,
+          explanation: 'The hundreds place is the first digit from the left in a 3-digit number.',
+          hint: 'Hundreds, tens, ones — left to right.'
+        },
+        {
+          question: 'Solve: 7 x 3 = ?',
+          options: ['18', '21', '24', '27'],
+          correctAnswer: 1,
+          explanation: '7 groups of 3 make 21.',
+          hint: 'Count by 3s seven times, or use facts you know.'
+        },
+        {
+          question: 'Solve: 24 ÷ 4 = ?',
+          options: ['4', '5', '6', '8'],
+          correctAnswer: 2,
+          explanation: '24 split into 4 equal groups gives 6 in each group.',
+          hint: 'How many fours make 24?'
+        },
+        {
+          question: 'Complete the pattern: 12, 15, 18, 21, ... ?',
+          options: ['22', '23', '24', '25'],
+          correctAnswer: 2,
+          explanation: 'Each step adds 3 — skip counting by 3s!',
+          hint: '15 minus 12 tells you the jump size.'
+        },
+        {
+          question: 'Which of these is ODD?',
+          options: ['422', '556', '601', '880'],
+          correctAnswer: 2,
+          explanation: '601 ends in 1, so it is odd.',
+          hint: 'Odd numbers end in 1, 3, 5, 7, or 9.'
+        },
+        {
+          question: 'In the number 891, what is the value of the digit 9?',
+          options: ['9 ones', '9 tens', '9 hundreds', '90 ones'],
+          correctAnswer: 1,
+          explanation: 'The 9 is in the tens place, so its value is 90.',
+          hint: 'Which place is the middle digit?'
+        },
+        {
+          question: 'Which symbol completes: 612 .... 621',
+          options: ['>', '=', '<', '÷'],
+          correctAnswer: 2,
+          explanation: '612 has 1 ten; 621 has 2 tens, so 612 is less.',
+          hint: 'Compare tens when hundreds are both 6.'
+        },
+        {
+          question: 'Which operation equals 3 + 3 + 3?',
+          options: ['3 x 2', '3 x 3', '2 x 3', '3 + 2'],
+          correctAnswer: 1,
+          explanation: 'Three threes added is 3 x 3 = 9.',
+          hint: 'Count how many times you add 3.'
+        },
+        {
+          question: 'Mia packs 4 stickers in each bag. She fills 6 bags. How many stickers?',
+          options: ['10', '20', '24', '30'],
+          correctAnswer: 2,
+          explanation: '6 x 4 = 24 stickers.',
+          hint: 'Equal groups — use multiplication.'
+        },
+        {
+          question: 'Solve: 35 ÷ 5 = ?',
+          options: ['5', '6', '7', '8'],
+          correctAnswer: 2,
+          explanation: '35 shared into 5 equal groups is 7 each.',
+          hint: 'Think of your 5 times table.'
+        },
+        {
+          question: 'Complete the pattern: 88, 90, 92, 94, ... ?',
+          options: ['95', '96', '97', '98'],
+          correctAnswer: 1,
+          explanation: 'Skip counting by 2s: add 2 each time.',
+          hint: '90 minus 88 shows the pattern.'
+        },
+        {
+          question: 'Which number is EVEN?',
+          options: ['135', '248', '357', '429'],
+          correctAnswer: 1,
+          explanation: '248 ends in 8, so it is even.',
+          hint: 'Even numbers end in 0, 2, 4, 6, or 8.'
+        },
+        {
+          question: 'Which symbol fits: 350 .... 305',
+          options: ['>', '=', '<', '+'],
+          correctAnswer: 0,
+          explanation: '350 has 5 tens; 305 has 0 tens, so 350 is greater.',
+          hint: 'Both start with 3 hundreds — compare tens next.'
+        },
+        {
+          question: 'Solve: 4 x 6 = ?',
+          options: ['20', '22', '24', '26'],
+          correctAnswer: 2,
+          explanation: '4 groups of 6 make 24.',
+          hint: 'Double 6 is 12; double again for 4 groups.'
+        },
+        {
+          question: 'Solve: 30 ÷ 3 = ?',
+          options: ['6', '8', '10', '12'],
+          correctAnswer: 2,
+          explanation: '30 split into 3 equal groups is 10 each.',
+          hint: '3 x what equals 30?'
+        },
+        {
+          question: 'In 640, what is the value of the digit 4?',
+          options: ['4', '40', '400', '4 tens'],
+          correctAnswer: 1,
+          explanation: 'The 4 is in the tens place, so its value is 40.',
+          hint: 'Tens place is the middle digit.'
+        },
+        {
+          question: 'Complete the pattern: 55, 65, 75, ... ?',
+          options: ['80', '85', '90', '95'],
+          correctAnswer: 1,
+          explanation: 'Adding 10 each time — skip counting by 10s.',
+          hint: '65 minus 55 tells you the step.'
+        },
+        {
+          question: 'Sam has 18 crayons and shares them equally with 2 friends (3 kids total). How many each?',
+          options: ['6', '8', '9', '12'],
+          correctAnswer: 0,
+          explanation: '18 ÷ 3 = 6 crayons for each person.',
+          hint: 'Sam plus 2 friends means 3 equal shares.'
+        },
+        {
+          question: 'Which symbol completes: 799 .... 709',
+          options: ['>', '=', '<', '−'],
+          correctAnswer: 0,
+          explanation: '799 has 9 tens; 709 has 0 tens, so 799 is greater.',
+          hint: 'Compare the tens digits after matching hundreds.'
+        }
+      ]
+    });
+  </script>
+</body>
+</html>

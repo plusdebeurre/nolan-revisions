@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add &amp; Subtract Adventure — Math</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body>
+  <div id="app"></div>
+  <script src="../../../js/quiz-engine.js"></script>
+  <script>
+    QuizEngine.mount({
+      subject: 'math',
+      title: 'Add & Subtract Adventure',
+      subtitle: '2-digit addition and subtraction with regrouping',
+      backHref: '../index.html',
+      homeHref: '../../../index.html',
+      perfectMessage: 'Amazing! You are an add and subtract superstar! 🌟',
+      goodMessage: 'Great work! Your regrouping skills are growing! 👍',
+      tryAgainMessage: 'Keep practicing — borrow and carry get easier every time! 💪',
+      quizData: [
+        {
+          question: 'What is 47 + 38?',
+          options: ['75', '85', '95', '78'],
+          correctAnswer: 1,
+          explanation: '7 + 8 = 15, so write 5 and carry 1. Then 4 + 3 + 1 = 8. The answer is 85!',
+          hint: 'Add the ones first. If the sum is 10 or more, carry 1 to the tens column.'
+        },
+        {
+          question: 'What is 63 + 29?',
+          options: ['82', '92', '91', '72'],
+          correctAnswer: 1,
+          explanation: '3 + 9 = 12, carry 1. 6 + 2 + 1 = 9. The answer is 92!',
+          hint: 'When ones add up to 12, the 2 stays in ones and 1 goes to tens.'
+        },
+        {
+          question: 'What is 56 + 47?',
+          options: ['93', '103', '113', '101'],
+          correctAnswer: 1,
+          explanation: '6 + 7 = 13, carry 1. 5 + 4 + 1 = 10. That makes 103!',
+          hint: 'Sometimes you carry and the tens column becomes a new hundred!'
+        },
+        {
+          question: 'What is 81 − 35?',
+          options: ['56', '46', '66', '54'],
+          correctAnswer: 1,
+          explanation: 'You cannot take 5 from 1, so borrow from 8. 11 − 5 = 6 and 7 − 3 = 4. Answer: 46!',
+          hint: 'If the top ones digit is smaller, borrow 1 ten from the tens place.'
+        },
+        {
+          question: 'What is 72 − 28?',
+          options: ['54', '44', '64', '52'],
+          correctAnswer: 1,
+          explanation: 'Borrow so 12 − 8 = 4. Then 6 − 2 = 4. The answer is 44!',
+          hint: 'After borrowing, the tens digit goes down by 1.'
+        },
+        {
+          question: 'What is 90 − 47?',
+          options: ['53', '43', '63', '33'],
+          correctAnswer: 1,
+          explanation: 'Borrow from 9: 10 − 7 = 3 in ones. 8 − 4 = 4 in tens. Answer: 43!',
+          hint: 'When you have 0 in the ones place, borrow from the tens to make 10.'
+        },
+        {
+          question: 'What is 58 + 26?',
+          options: ['74', '84', '94', '76'],
+          correctAnswer: 1,
+          explanation: '8 + 6 = 14, carry 1. 5 + 2 + 1 = 8. The answer is 84!',
+          hint: 'Regrouping is the same as carrying — share tens when ones overflow.'
+        },
+        {
+          question: 'What is 100 − 37?',
+          options: ['73', '63', '67', '53'],
+          correctAnswer: 1,
+          explanation: 'Borrow across: 100 becomes 9 tens and 10 ones. 10 − 7 = 3, 9 − 3 = 6. Answer: 63!',
+          hint: 'From 100, borrow so the ones become 10 before subtracting 7.'
+        },
+        {
+          question: 'What is 34 + 68?',
+          options: ['92', '102', '112', '98'],
+          correctAnswer: 1,
+          explanation: '4 + 8 = 12, carry 1. 3 + 6 + 1 = 10. You get 102!',
+          hint: 'Watch for a new hundred when tens add to 10 or more.'
+        },
+        {
+          question: 'What is 65 − 19?',
+          options: ['56', '46', '54', '44'],
+          correctAnswer: 1,
+          explanation: 'Borrow: 15 − 9 = 6. 5 − 1 = 4. The answer is 46!',
+          hint: 'Subtracting 9 from a ones digit often means borrowing.'
+        },
+        {
+          question: 'What is 39 + 44?',
+          options: ['73', '83', '93', '77'],
+          correctAnswer: 1,
+          explanation: '9 + 4 = 13, carry 1. 3 + 4 + 1 = 8. Answer: 83!',
+          hint: 'Regroup when ones add to 13.'
+        },
+        {
+          question: 'What is 52 − 27?',
+          options: ['35', '25', '27', '33'],
+          correctAnswer: 1,
+          explanation: 'Borrow: 12 − 7 = 5. 4 − 2 = 2. Answer: 25!',
+          hint: '2 is too small to subtract 7 — borrow from tens.'
+        },
+        {
+          question: 'What is 48 + 37?',
+          options: ['75', '85', '95', '87'],
+          correctAnswer: 1,
+          explanation: '8 + 7 = 15, carry 1. 4 + 3 + 1 = 8. Answer: 85!',
+          hint: 'Add ones first, then tens with any carry.'
+        },
+        {
+          question: 'What is 91 − 56?',
+          options: ['45', '35', '55', '44'],
+          correctAnswer: 1,
+          explanation: 'Borrow: 11 − 6 = 5. 8 − 5 = 3. Answer: 35!',
+          hint: 'After borrowing, the tens digit drops by 1.'
+        },
+        {
+          question: 'What is 76 + 18?',
+          options: ['84', '94', '86', '92'],
+          correctAnswer: 1,
+          explanation: '6 + 8 = 14, carry 1. 7 + 1 + 1 = 9. Answer: 94!',
+          hint: 'When ones make 14, write 4 and carry 1.'
+        },
+        {
+          question: 'What is 83 − 49?',
+          options: ['44', '34', '54', '36'],
+          correctAnswer: 1,
+          explanation: 'Borrow: 13 − 9 = 4. 7 − 4 = 3. Answer: 34!',
+          hint: '3 ones cannot subtract 9 — borrow from 8 tens.'
+        },
+        {
+          question: 'What is 29 + 57?',
+          options: ['76', '86', '96', '78'],
+          correctAnswer: 1,
+          explanation: '9 + 7 = 16, carry 1. 2 + 5 + 1 = 8. Answer: 86!',
+          hint: 'Carry when ones reach 16.'
+        },
+        {
+          question: 'What is 70 − 38?',
+          options: ['42', '32', '52', '34'],
+          correctAnswer: 1,
+          explanation: 'Borrow: 10 − 8 = 2. 6 − 3 = 3. Answer: 32!',
+          hint: 'Borrow from 7 tens when ones are 0.'
+        },
+        {
+          question: 'What is 45 + 48?',
+          options: ['83', '93', '103', '89'],
+          correctAnswer: 1,
+          explanation: '5 + 8 = 13, carry 1. 4 + 4 + 1 = 9. Answer: 93!',
+          hint: 'Two digits in ones means regroup.'
+        },
+        {
+          question: 'What is 64 − 26?',
+          options: ['48', '38', '58', '36'],
+          correctAnswer: 1,
+          explanation: 'Borrow: 14 − 6 = 8. 5 − 2 = 3. Answer: 38!',
+          hint: '4 − 6 needs a borrow from tens.'
+        },
+        {
+          question: 'Jade had 52 beads. She bought 39 more. How many beads now?',
+          options: ['81', '91', '89', '93'],
+          correctAnswer: 1,
+          explanation: '52 + 39 = 91 beads. 2 + 9 = 11, carry 1; 5 + 3 + 1 = 9.',
+          hint: 'Story problems use the same regrouping steps.'
+        },
+        {
+          question: 'There were 85 apples. The class ate 47. How many are left?',
+          options: ['48', '38', '58', '42'],
+          correctAnswer: 1,
+          explanation: '85 − 47 = 38 apples left.',
+          hint: 'Subtract ones first; borrow if you need to.'
+        },
+        {
+          question: 'What is 37 + 56?',
+          options: ['83', '93', '103', '91'],
+          correctAnswer: 1,
+          explanation: '7 + 6 = 13, carry 1. 3 + 5 + 1 = 9. Answer: 93!',
+          hint: '13 in the ones column means carry 1.'
+        },
+        {
+          question: 'What is 92 − 58?',
+          options: ['44', '34', '54', '36'],
+          correctAnswer: 1,
+          explanation: 'Borrow: 12 − 8 = 4. 8 − 5 = 3. Answer: 34!',
+          hint: 'Check tens after you borrow.'
+        },
+        {
+          question: 'What is 68 + 25?',
+          options: ['83', '93', '103', '87'],
+          correctAnswer: 1,
+          explanation: '8 + 5 = 13, carry 1. 6 + 2 + 1 = 9. Answer: 93!',
+          hint: 'Add the carry to the tens column.'
+        },
+        {
+          question: 'What is 51 − 24?',
+          options: ['37', '27', '33', '29'],
+          correctAnswer: 1,
+          explanation: 'Borrow: 11 − 4 = 7. 4 − 2 = 2. Answer: 27!',
+          hint: '1 one is less than 4 — borrow 1 ten.'
+        },
+        {
+          question: 'What is 46 + 39?',
+          options: ['75', '85', '95', '79'],
+          correctAnswer: 1,
+          explanation: '6 + 9 = 15, carry 1. 4 + 3 + 1 = 8. Answer: 85!',
+          hint: '9 + 6 in ones always needs a carry.'
+        },
+        {
+          question: 'What is 73 − 45?',
+          options: ['38', '28', '48', '32'],
+          correctAnswer: 1,
+          explanation: 'Borrow: 13 − 5 = 8. 6 − 4 = 2. Answer: 28!',
+          hint: '3 − 5 cannot work without borrowing.'
+        },
+        {
+          question: 'What is 59 + 33?',
+          options: ['82', '92', '102', '86'],
+          correctAnswer: 1,
+          explanation: '9 + 3 = 12, carry 1. 5 + 3 + 1 = 9. Answer: 92!',
+          hint: '12 ones → write 2, carry 1.'
+        },
+        {
+          question: 'What is 88 − 39?',
+          options: ['59', '49', '69', '51'],
+          correctAnswer: 1,
+          explanation: 'Borrow: 18 − 9 = 9. 7 − 3 = 4. Answer: 49!',
+          hint: '8 − 9 in ones means borrow from tens.'
+        },
+        {
+          question: 'Noah read 34 pages on Monday and 49 on Tuesday. How many pages total?',
+          options: ['73', '83', '93', '77'],
+          correctAnswer: 1,
+          explanation: '34 + 49 = 83 pages. Regroup 4 + 9 = 13 in ones.',
+          hint: 'Add the two days together with carrying.'
+        },
+        {
+          question: 'A rope is 96 cm long. Mom cuts off 58 cm. How long is the piece left?',
+          options: ['48', '38', '28', '42'],
+          correctAnswer: 1,
+          explanation: '96 − 58 = 38 cm remain.',
+          hint: 'Borrow when subtracting 8 from 6 ones.'
+        },
+        {
+          question: 'What is 44 + 57?',
+          options: ['91', '101', '111', '99'],
+          correctAnswer: 1,
+          explanation: '4 + 7 = 11, carry 1. 4 + 5 + 1 = 10 tens → 101!',
+          hint: 'When tens sum to 10, you get a new hundred.'
+        },
+        {
+          question: 'What is 75 − 48?',
+          options: ['37', '27', '33', '29'],
+          correctAnswer: 1,
+          explanation: 'Borrow: 15 − 8 = 7. 6 − 4 = 2. Answer: 27!',
+          hint: '5 ones cannot subtract 8.'
+        },
+        {
+          question: 'What is 53 + 49?',
+          options: ['92', '102', '112', '96'],
+          correctAnswer: 1,
+          explanation: '3 + 9 = 12, carry 1. 5 + 4 + 1 = 10 → 102!',
+          hint: 'Watch for a hundred when tens add to 10.'
+        },
+        {
+          question: 'What is 61 − 27?',
+          options: ['44', '34', '54', '38'],
+          correctAnswer: 1,
+          explanation: 'Borrow: 11 − 7 = 4. 5 − 2 = 3. Answer: 34!',
+          hint: 'Borrow once, then subtract tens.'
+        },
+        {
+          question: 'The library has 67 books on a cart. They add 28 more. How many on the cart?',
+          options: ['85', '95', '105', '89'],
+          correctAnswer: 1,
+          explanation: '67 + 28 = 95 books.',
+          hint: '7 + 8 = 15 — remember the carry.'
+        },
+        {
+          question: 'What is 84 − 57?',
+          options: ['37', '27', '33', '29'],
+          correctAnswer: 1,
+          explanation: 'Borrow: 14 − 7 = 7. 7 − 5 = 2. Answer: 27!',
+          hint: '4 − 7 needs borrowing from 8 tens.'
+        },
+        {
+          question: 'What is 38 + 65?',
+          options: ['93', '103', '113', '97'],
+          correctAnswer: 1,
+          explanation: '8 + 5 = 13, carry 1. 3 + 6 + 1 = 10 → 103!',
+          hint: 'Carry can make a new hundred.'
+        },
+        {
+          question: 'What is 95 − 67?',
+          options: ['38', '28', '48', '32'],
+          correctAnswer: 1,
+          explanation: 'Borrow: 15 − 7 = 8. 8 − 6 = 2. Answer: 28!',
+          hint: '5 − 7 in ones → borrow from 9 tens.'
+        },
+        {
+          question: 'Ella collected 41 shells. Her brother gave her 38. How many shells now?',
+          options: ['69', '79', '89', '73'],
+          correctAnswer: 1,
+          explanation: '41 + 38 = 79 shells.',
+          hint: 'Add ones, then tens — carry if needed.'
+        }
+      ]
+    });
+  </script>
+</body>
+</html>

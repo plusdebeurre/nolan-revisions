@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Share Fair Division — Math</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    .emoji-pool {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.35rem;
+      font-size: 1.75rem;
+      line-height: 1;
+      padding: 1rem;
+      background: #fffbeb;
+      border-radius: 1rem;
+      border: 2px dashed var(--math-border);
+      margin-bottom: 1rem;
+    }
+    .friend-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .friend-box {
+      text-align: center;
+      padding: 0.75rem;
+      border-radius: 1rem;
+      border: 3px solid #e2e8f0;
+      background: #f8fafc;
+      min-width: 5rem;
+    }
+    .friend-box .avatar {
+      font-size: 2rem;
+      display: block;
+    }
+    .friend-box .label {
+      font-size: 0.85rem;
+      color: #64748b;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body class="game theme-math">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← Math</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+
+    <div id="play-screen">
+      <header class="mb-6 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2 drop-shadow-sm" style="color: var(--accent-dark)">Share Fair Division</h1>
+        <p class="text-lg text-slate-500 font-medium">Share equally — how many does each friend get?</p>
+        <div class="progress-track">
+          <div id="progress-bar" class="progress-bar-fill"></div>
+        </div>
+        <p id="round-label" class="mt-2 text-sm font-semibold" style="color: var(--accent)">Round 1</p>
+      </header>
+
+      <div class="question-card p-6 md:p-8 animate-pop">
+        <p id="story-text" class="text-xl md:text-2xl font-semibold text-center text-slate-700 mb-4 leading-snug"></p>
+        <div id="emoji-pool" class="emoji-pool"></div>
+        <div id="friend-row" class="friend-row"></div>
+        <p class="text-center text-slate-600 font-medium mb-4">Tap your answer:</p>
+        <div id="choices-grid" class="grid grid-cols-2 gap-4 mb-4"></div>
+        <div id="feedback" class="hidden text-center p-4 rounded-xl text-lg font-medium mb-4"></div>
+        <div class="text-center">
+          <button type="button" id="next-btn" class="hidden btn-primary">Next Round 🚀</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div class="text-6xl mb-4">🍪</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Sharing Complete!</h2>
+      <p class="text-2xl font-medium text-slate-600 mb-6">
+        You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">0</span> out of <span id="total-rounds">20</span>!
+      </p>
+      <p id="result-message" class="text-lg text-slate-500 mb-8 font-medium"></p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      const ROUNDS = [
+        { emoji: '🍪', item: 'cookies', total: 12, friends: 4, answer: 3, wrong: [2, 4, 6] },
+        { emoji: '🍎', item: 'apples', total: 15, friends: 3, answer: 5, wrong: [3, 4, 6] },
+        { emoji: '🍬', item: 'candies', total: 20, friends: 5, answer: 4, wrong: [3, 5, 10] },
+        { emoji: '🧁', item: 'cupcakes', total: 8, friends: 2, answer: 4, wrong: [2, 3, 6] },
+        { emoji: '🍕', item: 'pizza slices', total: 10, friends: 2, answer: 5, wrong: [4, 6, 8] },
+        { emoji: '🥕', item: 'carrots', total: 18, friends: 6, answer: 3, wrong: [2, 4, 9] },
+        { emoji: '🍓', item: 'strawberries', total: 16, friends: 4, answer: 4, wrong: [3, 5, 8] },
+        { emoji: '🍌', item: 'bananas', total: 9, friends: 3, answer: 3, wrong: [2, 4, 6] },
+        { emoji: '🥨', item: 'pretzels', total: 14, friends: 2, answer: 7, wrong: [5, 6, 8] },
+        { emoji: '🍇', item: 'grapes', total: 24, friends: 4, answer: 6, wrong: [4, 5, 8] },
+        { emoji: '🧃', item: 'juice boxes', total: 21, friends: 3, answer: 7, wrong: [6, 8, 9] },
+        { emoji: '🍩', item: 'donuts', total: 30, friends: 5, answer: 6, wrong: [5, 7, 10] },
+        { emoji: '🥪', item: 'sandwich halves', total: 12, friends: 3, answer: 4, wrong: [3, 5, 6] },
+        { emoji: '🍿', item: 'popcorn bags', total: 25, friends: 5, answer: 5, wrong: [4, 6, 10] },
+        { emoji: '🍊', item: 'oranges', total: 18, friends: 3, answer: 6, wrong: [5, 7, 9] },
+        { emoji: '🧀', item: 'cheese cubes', total: 16, friends: 8, answer: 2, wrong: [3, 4, 6] },
+        { emoji: '🥖', item: 'bread sticks', total: 27, friends: 3, answer: 9, wrong: [7, 8, 10] },
+        { emoji: '🍉', item: 'watermelon wedges', total: 20, friends: 4, answer: 5, wrong: [4, 6, 8] },
+        { emoji: '🍪', item: 'cookies', total: 24, friends: 6, answer: 4, wrong: [3, 5, 8] },
+        { emoji: '🍎', item: 'apples', total: 28, friends: 7, answer: 4, wrong: [3, 5, 6] }
+      ];
+
+      const totalRoundsEl = document.getElementById('total-rounds');
+      if (totalRoundsEl) totalRoundsEl.textContent = String(ROUNDS.length);
+
+      let roundIndex = 0;
+      let score = 0;
+      let canAnswer = true;
+
+      const storyText = document.getElementById('story-text');
+      const emojiPool = document.getElementById('emoji-pool');
+      const friendRow = document.getElementById('friend-row');
+      const choicesGrid = document.getElementById('choices-grid');
+      const feedback = document.getElementById('feedback');
+      const nextBtn = document.getElementById('next-btn');
+      const progressBar = document.getElementById('progress-bar');
+      const roundLabel = document.getElementById('round-label');
+      const playScreen = document.getElementById('play-screen');
+      const resultScreen = document.getElementById('result-screen');
+      const scoreDisplay = document.getElementById('score-display');
+      const resultMessage = document.getElementById('result-message');
+      const restartBtn = document.getElementById('restart-btn');
+
+      const AVATARS = ['🧒', '👧', '🧑', '👦', '👩', '🧒'];
+
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function loadRound() {
+        canAnswer = true;
+        feedback.classList.add('hidden');
+        nextBtn.classList.add('hidden');
+        choicesGrid.innerHTML = '';
+
+        const r = ROUNDS[roundIndex];
+        roundLabel.textContent = `Round ${roundIndex + 1} of ${ROUNDS.length}`;
+        progressBar.style.width = `${(roundIndex / ROUNDS.length) * 100}%`;
+
+        storyText.textContent = `${r.total} ${r.item} shared equally among ${r.friends} friends. How many does each friend get?`;
+
+        emojiPool.innerHTML = '';
+        const showCount = Math.min(r.total, 24);
+        for (let i = 0; i < showCount; i++) {
+          const span = document.createElement('span');
+          span.textContent = r.emoji;
+          span.setAttribute('aria-hidden', 'true');
+          emojiPool.appendChild(span);
+        }
+        if (r.total > showCount) {
+          const more = document.createElement('span');
+          more.className = 'text-base font-bold text-slate-500 self-center';
+          more.textContent = `+${r.total - showCount} more`;
+          emojiPool.appendChild(more);
+        }
+
+        friendRow.innerHTML = '';
+        for (let f = 0; f < r.friends; f++) {
+          const box = document.createElement('div');
+          box.className = 'friend-box';
+          box.innerHTML = `<span class="avatar">${AVATARS[f % AVATARS.length]}</span><span class="label">Friend ${f + 1}</span><span class="block mt-1 text-2xl font-bold text-slate-400">?</span>`;
+          friendRow.appendChild(box);
+        }
+
+        shuffle([r.answer, ...r.wrong]).forEach((opt) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'option-btn text-center text-2xl font-bold py-5';
+          btn.textContent = opt;
+          btn.addEventListener('click', () => pick(opt, r, btn));
+          choicesGrid.appendChild(btn);
+        });
+      }
+
+      function pick(value, r, btn) {
+        if (!canAnswer) return;
+        canAnswer = false;
+        const correct = value === r.answer;
+        choicesGrid.querySelectorAll('button').forEach((b) => {
+          b.style.cursor = 'default';
+          if (Number(b.textContent) === r.answer) b.classList.add('correct');
+          else if (b === btn && !correct) b.classList.add('wrong');
+        });
+
+        friendRow.querySelectorAll('.friend-box').forEach((box) => {
+          const q = box.querySelector('.text-2xl');
+          if (q) {
+            q.textContent = String(r.answer);
+            q.classList.remove('text-slate-400');
+            q.style.color = 'var(--accent-dark)';
+          }
+        });
+
+        feedback.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+        if (correct) {
+          score++;
+          feedback.classList.add('bg-green-100', 'text-green-800');
+          feedback.innerHTML = `<strong>Fair share! 🎉</strong><br>${r.total} ÷ ${r.friends} = ${r.answer}. Each friend gets ${r.answer} ${r.item}!`;
+        } else {
+          feedback.classList.add('bg-red-100', 'text-red-800');
+          feedback.innerHTML = `<strong>Count the equal groups!</strong><br>${r.total} ÷ ${r.friends} = ${r.answer} each.`;
+        }
+        nextBtn.classList.remove('hidden');
+      }
+
+      function showResults() {
+        playScreen.classList.add('hidden');
+        resultScreen.classList.remove('hidden');
+        progressBar.style.width = '100%';
+        scoreDisplay.textContent = score;
+        if (score === ROUNDS.length) resultMessage.textContent = 'Perfect sharing! You know fair division! 🌟';
+        else if (score >= Math.ceil(ROUNDS.length * 0.75)) resultMessage.textContent = 'Great job dividing equally! 👍';
+        else resultMessage.textContent = 'Keep practicing — equal groups make fair shares! 💪';
+      }
+
+      nextBtn.addEventListener('click', () => {
+        roundIndex++;
+        if (roundIndex < ROUNDS.length) loadRound();
+        else showResults();
+      });
+
+      restartBtn.addEventListener('click', () => {
+        roundIndex = 0;
+        score = 0;
+        resultScreen.classList.add('hidden');
+        playScreen.classList.remove('hidden');
+        loadRound();
+      });
+
+      loadRound();
+    })();
+  </script>
+</body>
+</html>

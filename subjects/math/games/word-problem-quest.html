@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word Problem Quest — Math</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body class="game theme-math">
+  <div id="app"></div>
+  <script src="../../../js/fun-effects.js"></script>
+  <script src="../../../js/quiz-engine.js"></script>
+  <script>
+    QuizEngine.mount({
+      subject: 'math',
+      title: 'Word Problem Quest',
+      subtitle: 'Story problems with +, −, ×, and ÷',
+      backHref: '../index.html',
+      homeHref: '../../../index.html',
+      perfectMessage: 'Quest complete! You are a story math hero! 🌟',
+      goodMessage: 'Brave solving! Your word problem skills shine! 👍',
+      tryAgainMessage: 'Read the story twice and pick the operation! 💪',
+      quizData: [
+        { question: 'Mia has 24 stickers. She gets 15 more from her friend. How many stickers does Mia have now?', options: ['39', '9', '29', '41'], correctAnswer: 0, explanation: '24 + 15 = 39 stickers.', hint: '“Gets more” means addition.' },
+        { question: 'There are 52 birds on a tree. 18 fly away. How many birds are left?', options: ['34', '70', '44', '36'], correctAnswer: 0, explanation: '52 − 18 = 34 birds.', hint: '“Fly away” means subtract.' },
+        { question: 'Each box has 5 crayons. How many crayons are in 6 boxes?', options: ['11', '25', '30', '35'], correctAnswer: 2, explanation: '6 × 5 = 30 crayons.', hint: 'Equal groups → multiply.' },
+        { question: 'Sam shares 20 cookies equally among 4 friends. How many cookies does each friend get?', options: ['4', '5', '6', '16'], correctAnswer: 1, explanation: '20 ÷ 4 = 5 cookies each.', hint: 'Fair sharing → divide.' },
+        { question: 'A library has 87 books. They buy 13 more. How many books now?', options: ['90', '100', '74', '97'], correctAnswer: 1, explanation: '87 + 13 = 100 books.', hint: 'Adding to a total.' },
+        { question: 'Jake had 65 marbles. He lost 28. How many marbles remain?', options: ['37', '47', '43', '93'], correctAnswer: 0, explanation: '65 − 28 = 37 marbles.', hint: 'Lost means take away.' },
+        { question: 'There are 4 rows of chairs with 8 chairs in each row. How many chairs?', options: ['12', '24', '32', '36'], correctAnswer: 2, explanation: '4 × 8 = 32 chairs.', hint: 'Rows × chairs per row.' },
+        { question: '36 apples are packed into bags of 6. How many bags?', options: ['5', '6', '7', '42'], correctAnswer: 1, explanation: '36 ÷ 6 = 6 bags.', hint: 'Split into equal groups.' },
+        { question: 'Emma reads 19 pages on Monday and 26 on Tuesday. How many pages total?', options: ['35', '45', '55', '7'], correctAnswer: 1, explanation: '19 + 26 = 45 pages.', hint: '“Total” often means add both days.' },
+        { question: 'A tank holds 100 liters. 42 liters are used. How much is left?', options: ['58', '68', '142', '48'], correctAnswer: 0, explanation: '100 − 42 = 58 liters.', hint: 'Used water is subtracted.' },
+        { question: 'Each puppy has 4 legs. How many legs do 7 puppies have?', options: ['11', '21', '28', '32'], correctAnswer: 2, explanation: '7 × 4 = 28 legs.', hint: 'Multiply legs × puppies.' },
+        { question: '45 students split into 5 equal teams. How many on each team?', options: ['8', '9', '10', '40'], correctAnswer: 1, explanation: '45 ÷ 5 = 9 students.', hint: 'Equal teams → divide.' },
+        { question: 'Noah collects 38 rocks and finds 27 more on a hike. How many rocks now?', options: ['55', '65', '11', '75'], correctAnswer: 1, explanation: '38 + 27 = 65 rocks.', hint: 'Finds more → add.' },
+        { question: 'A baker made 90 muffins. She sold 56. How many muffins are left?', options: ['34', '44', '146', '26'], correctAnswer: 0, explanation: '90 − 56 = 34 muffins.', hint: 'Sold means subtract.' },
+        { question: 'There are 9 bags with 10 toy cars each. How many toy cars?', options: ['19', '90', '80', '99'], correctAnswer: 1, explanation: '9 × 10 = 90 cars.', hint: 'Groups of ten.' },
+        { question: '72 seeds are planted in 8 equal rows. How many seeds per row?', options: ['8', '9', '10', '64'], correctAnswer: 1, explanation: '72 ÷ 8 = 9 seeds.', hint: 'Equal rows → divide.' },
+        { question: 'Lily has $3. Her grandma gives her $4. How much money does she have?', options: ['$1', '$7', '$12', '$34'], correctAnswer: 1, explanation: '$3 + $4 = $7.', hint: 'Money gifts are added.' },
+        { question: 'A rope is 48 cm long. 19 cm is cut off. How long is the rope now?', options: ['29 cm', '39 cm', '67 cm', '19 cm'], correctAnswer: 0, explanation: '48 − 19 = 29 cm.', hint: 'Cut off → subtract length.' },
+        { question: 'Each shelf holds 6 books. How many books on 7 shelves?', options: ['13', '36', '42', '48'], correctAnswer: 2, explanation: '7 × 6 = 42 books.', hint: 'Shelves × books each.' },
+        { question: '28 oranges are shared equally by 4 children. How many each?', options: ['6', '7', '8', '24'], correctAnswer: 1, explanation: '28 ÷ 4 = 7 oranges.', hint: 'Share equally → divide.' },
+        { question: 'The zoo has 56 penguins and gets 24 more. How many penguins?', options: ['32', '70', '80', '60'], correctAnswer: 2, explanation: '56 + 24 = 80 penguins.', hint: 'Gets more penguins → add.' },
+        { question: 'There were 73 balloons. 29 popped. How many good balloons?', options: ['44', '54', '102', '46'], correctAnswer: 0, explanation: '73 − 29 = 44 balloons.', hint: 'Popped ones are gone.' },
+        { question: 'A farmer picks 8 baskets with 5 apples each. How many apples?', options: ['13', '35', '40', '45'], correctAnswer: 2, explanation: '8 × 5 = 40 apples.', hint: 'Baskets × apples.' },
+        { question: '63 stickers are put on 7 pages equally. Stickers per page?', options: ['8', '9', '10', '56'], correctAnswer: 1, explanation: '63 ÷ 7 = 9 stickers.', hint: 'Equal pages → divide.' },
+        { question: 'Ben walks 14 blocks to school and 14 blocks home. How many blocks in all?', options: ['0', '14', '28', '224'], correctAnswer: 2, explanation: '14 + 14 = 28 blocks.', hint: 'There and back → add both trips.' },
+        { question: 'A class has 40 students. 16 are absent. How many at school?', options: ['24', '26', '56', '34'], correctAnswer: 0, explanation: '40 − 16 = 24 students.', hint: 'Absent students are subtracted.' },
+        { question: 'Each pack has 3 pencils. How many pencils in 11 packs?', options: ['14', '30', '33', '36'], correctAnswer: 2, explanation: '11 × 3 = 33 pencils.', hint: 'Multiply packs × pencils.' }
+      ]
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Move It! Loco — HPE</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    .move-display {
+      font-size: 3.5rem;
+      line-height: 1.2;
+      min-height: 5rem;
+    }
+    .loco-btn {
+      min-height: 4.5rem;
+      font-size: 1.35rem;
+      font-weight: 700;
+      border-radius: 1.25rem;
+      border: 4px solid #e2e8f0;
+      transition: transform 0.15s, border-color 0.15s;
+      cursor: pointer;
+      font-family: inherit;
+      padding: 1rem;
+    }
+    .loco-btn:active { transform: scale(0.98); }
+    .loco-btn.loco { background: #ede9fe; border-color: #8b5cf6; color: #5b21b6; }
+    .loco-btn.non { background: #e0f2fe; border-color: #0ea5e9; color: #0369a1; }
+    .loco-btn.flash-correct { background: #dcfce7 !important; border-color: #22c55e !important; }
+    .loco-btn.flash-wrong { background: #fee2e2 !important; border-color: #ef4444 !important; }
+  </style>
+</head>
+<body class="game theme-hpe min-h-screen">
+  <main class="w-full max-w-xl mx-auto px-4 py-6">
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← HPE</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+
+    <div id="play-screen">
+      <header class="mb-6 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2 drop-shadow-sm" style="color: var(--accent-dark)">🏃 Move It! Loco</h1>
+        <p class="text-lg text-slate-500 font-medium">Locomotor = you move around. Non-locomotor = you stay in one spot!</p>
+        <div class="progress-track">
+          <div id="progress-bar" class="progress-bar-fill"></div>
+        </div>
+        <p id="round-label" class="mt-2 text-sm font-semibold" style="color: var(--accent)">Round 1 of 10</p>
+        <p class="mt-1 text-2xl font-bold" style="color: var(--accent-dark)">Score: <span id="live-score">0</span></p>
+      </header>
+
+      <div class="question-card p-6 md:p-8 text-center animate-pop">
+        <p class="text-slate-500 font-medium mb-2">This movement is…</p>
+        <div id="move-display" class="move-display font-bold text-slate-800 mb-8"></div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <button type="button" id="btn-loco" class="loco-btn loco">🚶 Locomotor<br><span class="text-base font-medium opacity-80">Move your body through space</span></button>
+          <button type="button" id="btn-non" class="loco-btn non">🧘 Non-locomotor<br><span class="text-base font-medium opacity-80">Move without traveling</span></button>
+        </div>
+        <div id="round-feedback" class="hidden mt-6 p-4 rounded-xl text-lg font-medium"></div>
+        <div class="text-center mt-4">
+          <button type="button" id="next-round" class="hidden btn-primary">Next Round ⚡</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div class="text-6xl mb-4">🎽</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Great Moving!</h2>
+      <p class="text-2xl font-medium text-slate-600 mb-6">
+        You scored <span id="final-score" class="font-bold text-3xl" style="color: var(--accent)">0</span> out of 10!
+      </p>
+      <p id="result-msg" class="text-lg text-slate-500 mb-8 font-medium"></p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      const MOVES = [
+        { word: 'Walk', emoji: '🚶', type: 'loco' },
+        { word: 'Run', emoji: '🏃', type: 'loco' },
+        { word: 'Jump', emoji: '⬆️', type: 'loco' },
+        { word: 'Hop', emoji: '🐰', type: 'loco' },
+        { word: 'Crawl', emoji: '🤸', type: 'loco' },
+        { word: 'Gallop', emoji: '🐴', type: 'loco' },
+        { word: 'Stretch', emoji: '🙆', type: 'non' },
+        { word: 'Bend', emoji: '🙇', type: 'non' },
+        { word: 'Turn', emoji: '🔄', type: 'non' },
+        { word: 'Sway', emoji: '💃', type: 'non' },
+        { word: 'Push', emoji: '🤲', type: 'non' },
+        { word: 'Pull', emoji: '🧲', type: 'non' }
+      ];
+
+      const TOTAL = 10;
+      let round = 0;
+      let score = 0;
+      let canAnswer = true;
+      let deck = [];
+      let current = null;
+
+      const moveDisplay = document.getElementById('move-display');
+      const roundLabel = document.getElementById('round-label');
+      const progressBar = document.getElementById('progress-bar');
+      const liveScore = document.getElementById('live-score');
+      const roundFeedback = document.getElementById('round-feedback');
+      const nextRound = document.getElementById('next-round');
+      const btnLoco = document.getElementById('btn-loco');
+      const btnNon = document.getElementById('btn-non');
+      const playScreen = document.getElementById('play-screen');
+      const resultScreen = document.getElementById('result-screen');
+      const finalScore = document.getElementById('final-score');
+      const resultMsg = document.getElementById('result-msg');
+
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function startGame() {
+        round = 0;
+        score = 0;
+        deck = shuffle(MOVES).slice(0, TOTAL);
+        playScreen.classList.remove('hidden');
+        resultScreen.classList.add('hidden');
+        liveScore.textContent = '0';
+        loadRound();
+      }
+
+      function loadRound() {
+        canAnswer = true;
+        current = deck[round];
+        moveDisplay.innerHTML = `<span class="block">${current.emoji}</span><span class="text-4xl">${current.word}</span>`;
+        roundLabel.textContent = `Round ${round + 1} of ${TOTAL}`;
+        progressBar.style.width = `${(round / TOTAL) * 100}%`;
+        roundFeedback.classList.add('hidden');
+        nextRound.classList.add('hidden');
+        btnLoco.classList.remove('flash-correct', 'flash-wrong');
+        btnNon.classList.remove('flash-correct', 'flash-wrong');
+        btnLoco.disabled = false;
+        btnNon.disabled = false;
+      }
+
+      function answer(picked) {
+        if (!canAnswer) return;
+        canAnswer = false;
+        const correct = picked === current.type;
+        if (correct) {
+          score++;
+          liveScore.textContent = String(score);
+        }
+        const correctBtn = current.type === 'loco' ? btnLoco : btnNon;
+        const wrongBtn = current.type === 'loco' ? btnNon : btnLoco;
+        correctBtn.classList.add('flash-correct');
+        if (!correct) wrongBtn.classList.add('flash-wrong');
+
+        roundFeedback.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+        const label = current.type === 'loco' ? 'Locomotor' : 'Non-locomotor';
+        if (correct) {
+          roundFeedback.classList.add('bg-green-100', 'text-green-800');
+          roundFeedback.innerHTML = `<strong>Correct! 🎉</strong> ${current.word} is ${label}.`;
+        } else {
+          roundFeedback.classList.add('bg-red-100', 'text-red-800');
+          roundFeedback.innerHTML = `<strong>Not quite!</strong> ${current.word} is ${label}.`;
+        }
+        nextRound.classList.remove('hidden');
+      }
+
+      btnLoco.addEventListener('click', () => answer('loco'));
+      btnNon.addEventListener('click', () => answer('non'));
+
+      nextRound.addEventListener('click', () => {
+        round++;
+        if (round < TOTAL) loadRound();
+        else showResults();
+      });
+
+      function showResults() {
+        progressBar.style.width = '100%';
+        playScreen.classList.add('hidden');
+        resultScreen.classList.remove('hidden');
+        finalScore.textContent = String(score);
+        if (score === TOTAL) resultMsg.textContent = 'Perfect! You are a movement master! 🌟';
+        else if (score >= 7) resultMsg.textContent = 'Awesome job! Keep practicing those moves! 👍';
+        else resultMsg.textContent = 'Good try! Play again to beat your score! 💪';
+      }
+
+      document.getElementById('restart-btn').addEventListener('click', startGame);
+      startGame();
+    })();
+  </script>
+</body>
+</html>

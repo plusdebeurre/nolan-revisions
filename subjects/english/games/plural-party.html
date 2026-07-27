@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plural Party — English</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body>
+  <div id="app"></div>
+  <script src="../../../js/quiz-engine.js"></script>
+  <script>
+    QuizEngine.mount({
+      subject: 'english',
+      title: '🎉 Plural Party',
+      subtitle: 'Singular & plural — they / them',
+      backHref: '../index.html',
+      homeHref: '../../../index.html',
+      perfectMessage: 'Plural perfect! They love your grammar! 🌟',
+      goodMessage: 'Great party guest — nice plurals! 👍',
+      tryAgainMessage: 'Join the party again and practice! 💪',
+      quizData: [
+        { question: 'One dog → many ___', options: ['dog', 'dogs', 'doges', 'dogss'], correctAnswer: 1, explanation: 'Add -s to make dog plural: dogs.' },
+        { question: 'One cat → many ___', options: ['cats', 'cat', 'cates', 'caties'], correctAnswer: 0, explanation: 'Cats is the plural of cat.' },
+        { question: 'One fish → many ___ (same word!)', options: ['fishs', 'fishes', 'fish', 'fishies'], correctAnswer: 2, explanation: 'Often we say one fish, two fish (fish stays the same).' },
+        { question: 'One child → many ___', options: ['childs', 'children', 'childes', 'childen'], correctAnswer: 1, explanation: 'Child → children is a special plural.' },
+        { question: '🐕 The dogs are happy. ___ run in the park.', options: ['He', 'She', 'They', 'It'], correctAnswer: 2, explanation: 'Many dogs → subject pronoun They.' },
+        { question: '🐱 I see three cats. I pet ___.', options: ['him', 'her', 'them', 'it'], correctAnswer: 2, explanation: 'More than one → object pronoun them.' },
+        { question: 'One bird → many ___', options: ['bird', 'birds', 'birdes', 'birde'], correctAnswer: 1, explanation: 'Birds is the plural of bird.' },
+        { question: '🦜 The parrots are loud. ___ sing every day.', options: ['It', 'He', 'They', 'She'], correctAnswer: 2, explanation: 'Parrots (plural) → They.' },
+        { question: '🐢 We found two turtles. We help ___.', options: ['it', 'them', 'us', 'him'], correctAnswer: 1, explanation: 'Two turtles → them after help.' },
+        { question: 'One lion → many ___', options: ['lions', 'lion', 'liones', 'lionss'], correctAnswer: 0, explanation: 'Lions is the regular plural.' },
+        { question: '🦁 Lions are strong. ___ live in groups.', options: ['She', 'It', 'They', 'He'], correctAnswer: 2, explanation: 'Lions = they at the start of a sentence.' },
+        { question: 'One frog → many ___', options: ['frog', 'frogs', 'froges', 'froggies'], correctAnswer: 1, explanation: 'Frogs is the plural of frog.' },
+        { question: '🐸 The frogs jump. I watch ___.', options: ['them', 'it', 'him', 'her'], correctAnswer: 0, explanation: 'Many frogs → watch them.' },
+        { question: 'One elephant → many ___', options: ['elephant', 'elephants', 'elephanties', 'elephantes'], correctAnswer: 1, explanation: 'Elephants is the plural form.' },
+        { question: '🐘 Elephants are big. ___ drink lots of water.', options: ['It', 'They', 'He', 'She'], correctAnswer: 1, explanation: 'Elephants (plural) → They.' },
+        { question: 'Pick the plural: one monkey, two ___', options: ['monkey', 'monkeys', 'monkies', 'monkeyes'], correctAnswer: 1, explanation: 'Monkeys is the correct plural.' },
+        { question: '🐒 Monkeys are funny. We laugh at ___.', options: ['it', 'them', 'us', 'me'], correctAnswer: 1, explanation: 'Many monkeys → them.' },
+        { question: 'One sheep → many ___ (same word!)', options: ['sheeps', 'sheep', 'sheepes', 'sheepies'], correctAnswer: 1, explanation: 'One sheep, two sheep — sheep stays the same.' },
+        { question: 'One mouse → many ___', options: ['mouses', 'mice', 'mouse', 'mices'], correctAnswer: 1, explanation: 'Mouse → mice is a special plural.' },
+        { question: '🐁 The mice are tiny. ___ hide in the wall.', options: ['It', 'They', 'He', 'She'], correctAnswer: 1, explanation: 'Mice (plural) → They.' },
+        { question: 'Which sentence is correct?', options: ['The dog are happy.', 'The dogs is happy.', 'The dogs are happy.', 'The dogs am happy.'], correctAnswer: 2, explanation: 'Dogs (plural) takes are: The dogs are happy.' },
+        { question: 'Complete: "Those fish are shiny. I like ___."', options: ['it', 'them', 'him', 'her'], correctAnswer: 1, explanation: 'Those fish = more than one → them.' }
+      ]
+    });
+  </script>
+</body>
+</html>

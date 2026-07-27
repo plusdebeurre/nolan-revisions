@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Brush Timer Hero — HPE</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    .mouth-wrap {
+      position: relative;
+      max-width: 320px;
+      margin: 0 auto;
+      aspect-ratio: 1;
+    }
+    .mouth-svg { width: 100%; height: auto; }
+    .brush-zone {
+      position: absolute;
+      border: 3px solid transparent;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.12s, background 0.12s, border-color 0.12s;
+      touch-action: manipulation;
+    }
+    .brush-zone:active { transform: scale(0.95); }
+    .brush-zone.active-hint {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 20%, transparent);
+      animation: pulse-hint 0.8s ease infinite;
+    }
+    .brush-zone.done { background: #dcfce7; border-color: #22c55e; }
+    .brush-zone.wrong-flash { background: #fee2e2; border-color: #ef4444; }
+    @keyframes pulse-hint {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.06); }
+    }
+    .zone-top { top: 8%; left: 22%; width: 56%; height: 22%; border-radius: 40% 40% 30% 30%; }
+    .zone-bottom { bottom: 12%; left: 22%; width: 56%; height: 22%; border-radius: 30% 30% 40% 40%; }
+    .zone-left { top: 32%; left: 4%; width: 22%; height: 36%; border-radius: 35%; }
+    .zone-right { top: 32%; right: 4%; width: 22%; height: 36%; border-radius: 35%; }
+    .zone-tongue { bottom: 28%; left: 38%; width: 24%; height: 18%; border-radius: 50%; }
+    .seq-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      background: #f1f5f9;
+      color: #64748b;
+    }
+    .seq-pill.done-pill { background: #dcfce7; color: #166534; }
+  </style>
+</head>
+<body class="game theme-hpe min-h-screen">
+  <main class="w-full max-w-xl mx-auto px-4 py-6">
+    <div class="score-hud" id="score-hud">Score: 0 / 15</div>
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← HPE</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+
+    <div id="play-screen">
+      <header class="mb-4 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2 drop-shadow-sm" style="color: var(--accent-dark)">🪥 Brush Timer Hero</h1>
+        <p class="text-lg text-slate-500 font-medium">Tap each zone in order — top, bottom, left, right, then tongue!</p>
+        <p class="mt-2 text-sm font-semibold" style="color: var(--accent)">Round <span id="round-num">1</span> of <span id="round-total">3</span></p>
+      </header>
+
+      <div class="question-card p-4 md:p-6 animate-pop">
+        <p class="text-center font-semibold text-slate-600 mb-3">Next: <span id="next-label" class="text-lg" style="color: var(--accent-dark)">Top teeth</span></p>
+        <div id="seq-row" class="flex flex-wrap justify-center gap-2 mb-4"></div>
+        <div class="mouth-wrap">
+          <svg class="mouth-svg" viewBox="0 0 200 200" aria-hidden="true">
+            <ellipse cx="100" cy="100" rx="85" ry="75" fill="#fecdd3" stroke="#f472b6" stroke-width="3"/>
+            <ellipse cx="100" cy="95" rx="70" ry="55" fill="#881337" opacity="0.85"/>
+            <rect x="35" y="52" width="130" height="18" rx="4" fill="#f8fafc" stroke="#cbd5e1"/>
+            <rect x="35" y="130" width="130" height="18" rx="4" fill="#f8fafc" stroke="#cbd5e1"/>
+          </svg>
+          <button type="button" class="brush-zone zone-top" data-step="top" aria-label="Brush top teeth"></button>
+          <button type="button" class="brush-zone zone-bottom" data-step="bottom" aria-label="Brush bottom teeth"></button>
+          <button type="button" class="brush-zone zone-left" data-step="left" aria-label="Brush left side"></button>
+          <button type="button" class="brush-zone zone-right" data-step="right" aria-label="Brush right side"></button>
+          <button type="button" class="brush-zone zone-tongue" data-step="tongue" aria-label="Brush tongue"></button>
+        </div>
+        <p id="round-feedback" class="hidden mt-4 text-center p-3 rounded-xl font-medium"></p>
+        <div class="text-center mt-4">
+          <button type="button" id="next-round-btn" class="hidden btn-primary">Next Round ⚡</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div class="text-6xl mb-4">✨</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Hygiene Hero!</h2>
+      <p class="text-2xl font-medium text-slate-600 mb-6">
+        Hygiene score: <span id="final-score" class="font-bold text-3xl" style="color: var(--accent)">0</span> / <span id="max-score">15</span>
+      </p>
+      <p id="result-msg" class="text-lg text-slate-500 mb-8 font-medium"></p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+
+  <script src="../../../js/fun-effects.js"></script>
+  <script>
+    (function () {
+      const SEQUENCE = [
+        { id: 'top', label: 'Top teeth', emoji: '⬆️' },
+        { id: 'bottom', label: 'Bottom teeth', emoji: '⬇️' },
+        { id: 'left', label: 'Left side', emoji: '⬅️' },
+        { id: 'right', label: 'Right side', emoji: '➡️' },
+        { id: 'tongue', label: 'Tongue', emoji: '👅' }
+      ];
+      const ROUNDS = 3;
+      const POINTS_PER_STEP = 1;
+
+      let round = 0;
+      let stepIndex = 0;
+      let hygieneScore = 0;
+      let streak = 0;
+
+      const scoreHud = document.getElementById('score-hud');
+      const nextLabel = document.getElementById('next-label');
+      const seqRow = document.getElementById('seq-row');
+      const zones = document.querySelectorAll('.brush-zone');
+      const roundFeedback = document.getElementById('round-feedback');
+      const nextRoundBtn = document.getElementById('next-round-btn');
+      const playScreen = document.getElementById('play-screen');
+      const resultScreen = document.getElementById('result-screen');
+      const maxScoreEl = document.getElementById('max-score');
+
+      const maxTotal = ROUNDS * SEQUENCE.length * POINTS_PER_STEP;
+      maxScoreEl.textContent = String(maxTotal);
+      document.getElementById('round-total').textContent = String(ROUNDS);
+
+      function updateHud() {
+        scoreHud.textContent = 'Score: ' + hygieneScore + ' / ' + maxTotal;
+        if (window.FunEffects) FunEffects.pulseScore(scoreHud);
+      }
+
+      function buildSeqRow(completed) {
+        seqRow.innerHTML = '';
+        SEQUENCE.forEach((s, i) => {
+          const pill = document.createElement('span');
+          pill.className = 'seq-pill' + (i < completed ? ' done-pill' : '');
+          pill.textContent = s.emoji + ' ' + s.label;
+          seqRow.appendChild(pill);
+        });
+      }
+
+      function highlightActive() {
+        zones.forEach(z => {
+          z.classList.remove('active-hint', 'wrong-flash');
+          if (z.dataset.step === SEQUENCE[stepIndex].id) z.classList.add('active-hint');
+        });
+        nextLabel.textContent = SEQUENCE[stepIndex].label;
+      }
+
+      function resetRoundVisuals() {
+        stepIndex = 0;
+        zones.forEach(z => z.classList.remove('done', 'active-hint', 'wrong-flash'));
+        roundFeedback.classList.add('hidden');
+        nextRoundBtn.classList.add('hidden');
+        buildSeqRow(0);
+        highlightActive();
+        document.getElementById('round-num').textContent = String(round + 1);
+      }
+
+      function onZoneTap(step) {
+        if (roundFeedback.classList.contains('showing-win')) return;
+        const expected = SEQUENCE[stepIndex].id;
+        const zone = document.querySelector('.brush-zone[data-step="' + step + '"]');
+        if (step === expected) {
+          zone.classList.add('done');
+          zone.classList.remove('active-hint');
+          hygieneScore += POINTS_PER_STEP;
+          streak++;
+          updateHud();
+          stepIndex++;
+          buildSeqRow(stepIndex);
+          if (window.FunEffects) {
+            FunEffects.showStreak(streak);
+            if (streak >= 3) FunEffects.confetti({ count: 10 });
+          }
+          if (stepIndex >= SEQUENCE.length) {
+            roundFeedback.classList.remove('hidden', 'bg-red-100', 'text-red-800');
+            roundFeedback.classList.add('bg-green-100', 'text-green-800', 'showing-win');
+            roundFeedback.innerHTML = '<strong>Sparkling round! 🦷</strong> You brushed every zone in order.';
+            if (round + 1 < ROUNDS) {
+              nextRoundBtn.classList.remove('hidden');
+            } else {
+              setTimeout(showResults, 600);
+            }
+          } else {
+            highlightActive();
+          }
+        } else {
+          streak = 0;
+          zone.classList.add('wrong-flash');
+          if (window.FunEffects) FunEffects.shake(zone.closest('.mouth-wrap'));
+          setTimeout(() => zone.classList.remove('wrong-flash'), 400);
+          roundFeedback.classList.remove('hidden', 'bg-green-100', 'text-green-800');
+          roundFeedback.classList.add('bg-amber-100', 'text-amber-900');
+          roundFeedback.innerHTML = 'Try <strong>' + SEQUENCE[stepIndex].label + '</strong> next!';
+        }
+      }
+
+      zones.forEach(z => {
+        z.addEventListener('click', () => onZoneTap(z.dataset.step));
+      });
+
+      nextRoundBtn.addEventListener('click', () => {
+        roundFeedback.classList.remove('showing-win');
+        round++;
+        resetRoundVisuals();
+      });
+
+      function showResults() {
+        playScreen.classList.add('hidden');
+        resultScreen.classList.remove('hidden');
+        document.getElementById('final-score').textContent = String(hygieneScore);
+        const msg = document.getElementById('result-msg');
+        if (hygieneScore === maxTotal) {
+          msg.textContent = 'Perfect brushing route every time! Smile superstar! 🌟';
+          if (window.FunEffects) FunEffects.celebratePerfect();
+        } else if (hygieneScore >= maxTotal * 0.7) {
+          msg.textContent = 'Great hygiene habits! Keep brushing all five zones! 👍';
+        } else {
+          msg.textContent = 'Practice the order: top → bottom → left → right → tongue! 💪';
+        }
+      }
+
+      function startGame() {
+        round = 0;
+        hygieneScore = 0;
+        streak = 0;
+        playScreen.classList.remove('hidden');
+        resultScreen.classList.add('hidden');
+        updateHud();
+        resetRoundVisuals();
+      }
+
+      document.getElementById('restart-btn').addEventListener('click', startGame);
+      startGame();
+    })();
+  </script>
+</body>
+</html>

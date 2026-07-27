@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Listening Lookalike — English</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body>
+  <div id="app"></div>
+  <script src="../../../js/quiz-engine.js"></script>
+  <script>
+    QuizEngine.mount({
+      subject: 'english',
+      title: '👂 Listening Lookalike',
+      subtitle: 'Pick the right word — not the tricky twin!',
+      backHref: '../index.html',
+      homeHref: '../../../index.html',
+      perfectMessage: 'Sharp ears! You beat every lookalike! 🌟',
+      goodMessage: 'Nice listening — almost perfect! 👍',
+      tryAgainMessage: 'Listen again and watch those twins! 💪',
+      quizData: [
+        { question: 'Fish breathe underwater with ___. (not fins)', options: ['gills', 'fins', 'wings', 'fur'], correctAnswer: 0, explanation: 'Gills take oxygen from water. Fins help them swim.' },
+        { question: 'Fish swim using ___. (not gills)', options: ['gills', 'fins', 'feathers', 'scales'], correctAnswer: 1, explanation: 'Fins push water so fish can move.' },
+        { question: 'Ice ___ when the sun is hot.', options: ['freezes', 'melts', 'boils', 'creeps'], correctAnswer: 1, explanation: 'Heat melts ice into water.' },
+        { question: 'Water ___ when it is very cold.', options: ['melts', 'freezes', 'pecks', 'hunts'], correctAnswer: 1, explanation: 'Cold makes liquid water turn to solid ice.' },
+        { question: 'A ___ has fur and feeds its babies milk.', options: ['reptile', 'mammal', 'fish', 'bird'], correctAnswer: 1, explanation: 'Mammals like dogs and lions have fur and milk.' },
+        { question: 'A ___ has scales and lays eggs on land.', options: ['mammal', 'reptile', 'amphibian', 'bird'], correctAnswer: 1, explanation: 'Snakes and turtles are reptiles with scales.' },
+        { question: 'Steam is a ___. Ice is a ___.', options: ['gas … solid', 'liquid … gas', 'solid … liquid', 'gas … liquid'], correctAnswer: 0, explanation: 'Steam is gas; ice is solid.' },
+        { question: 'Juice is a ___.', options: ['solid', 'liquid', 'gas', 'rock'], correctAnswer: 1, explanation: 'Juice flows — it is a liquid.' },
+        { question: 'Which word means "every time"?', options: ['never', 'always', 'hardly ever', 'sometimes'], correctAnswer: 1, explanation: 'Always = 100% of the time.' },
+        { question: 'Which word means "almost never"?', options: ['usually', 'sometimes', 'hardly ever', 'always'], correctAnswer: 2, explanation: 'Hardly ever is close to never.' },
+        { question: 'Birds have ___ to fly. (not gills)', options: ['wings', 'gills', 'fur', 'scales'], correctAnswer: 0, explanation: 'Wings lift birds in the air.' },
+        { question: 'Sharks have ___ to breathe. (not wings)', options: ['wings', 'gills', 'feathers', 'fur'], correctAnswer: 1, explanation: 'Sharks are fish — they use gills.' },
+        { question: 'Cause: We boil water. Effect: ___ rises.', options: ['ice', 'steam', 'rock', 'fur'], correctAnswer: 1, explanation: 'Boiling makes steam (a gas).' },
+        { question: 'Cause: Night is freezing. Effect: puddle ___.', options: ['melts', 'freezes', 'pecks', 'escapes'], correctAnswer: 1, explanation: 'Freezing cold turns water to ice.' },
+        { question: 'Subject pronoun for many lions: ___', options: ['He', 'She', 'They', 'It'], correctAnswer: 2, explanation: 'They = more than one.' },
+        { question: 'Object pronoun for many lions: ___', options: ['him', 'her', 'them', 'it'], correctAnswer: 2, explanation: 'Them follows verbs like help or see.' },
+        { question: 'Amphibians like frogs live on land and in ___.', options: ['air only', 'water', 'space', 'sand only'], correctAnswer: 1, explanation: 'Frogs need water and land.' },
+        { question: 'Which group has feathers?', options: ['Mammals', 'Birds', 'Fish', 'Reptiles'], correctAnswer: 1, explanation: 'Only birds have feathers.' },
+        { question: 'Which group has gills?', options: ['Birds', 'Mammals', 'Fish', 'Reptiles'], correctAnswer: 2, explanation: 'Fish breathe with gills.' },
+        { question: 'Solid → liquid when we ___ ice.', options: ['freeze', 'melt', 'peck', 'hunt'], correctAnswer: 1, explanation: 'Melting turns solid ice into liquid water.' },
+        { question: 'Liquid → solid when we ___ water.', options: ['melt', 'freeze', 'boil', 'peck'], correctAnswer: 1, explanation: 'Freezing makes ice from water.' },
+        { question: 'Tricky pair: "usually" is closer to ___ than "never."', options: ['always', 'hardly ever', 'sometimes', 'never'], correctAnswer: 0, explanation: 'Usually means most of the time — closer to always.' }
+      ]
+    });
+  </script>
+</body>
+</html>

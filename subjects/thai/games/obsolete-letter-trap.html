@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Obsolete Letter Trap — Thai</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Sarabun:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    .trap-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+    }
+    .trap-letter {
+      font-family: 'Sarabun', sans-serif;
+      font-size: clamp(2.5rem, 10vw, 3.5rem);
+      font-weight: 700;
+      min-height: 5rem;
+      border-radius: 1rem;
+      border: 3px solid var(--card-border);
+      background: white;
+      transition: transform 0.12s, background 0.12s;
+    }
+    .trap-letter:active { transform: scale(0.96); }
+    .trap-letter.correct-pick { background: #dcfce7; border-color: #22c55e; }
+    .trap-letter.wrong-pick { background: #fee2e2; border-color: #ef4444; }
+    .timer-bar {
+      height: 0.65rem;
+      border-radius: 999px;
+      background: #e2e8f0;
+      overflow: hidden;
+    }
+    .timer-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #22c55e, #eab308, #ef4444);
+      width: 100%;
+      transition: width 0.05s linear;
+    }
+  </style>
+</head>
+<body class="game theme-thai">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← Thai</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+    <div id="play-screen">
+      <header class="mb-6 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2" style="color: var(--accent-dark)">🪤 Obsolete Letter Trap</h1>
+        <p class="text-lg text-slate-500">Tap <span class="font-bold" style="font-family: Sarabun">ฃ</span> or <span class="font-bold" style="font-family: Sarabun">ฅ</span> — not the lookalikes!</p>
+        <p id="score-hud" class="mt-3 text-sm font-semibold" style="color: var(--accent)">Score: 0 · Round 1 of 16</p>
+        <div class="timer-bar mt-3 max-w-md mx-auto"><div id="timer-fill" class="timer-fill"></div></div>
+      </header>
+      <div class="question-card p-6 md:p-8 animate-pop text-center">
+        <p id="round-prompt" class="text-slate-600 font-bold mb-4">Find ฃ (khor khuat)!</p>
+        <div id="trap-grid" class="trap-grid mb-4"></div>
+        <p id="status-msg" class="text-slate-500 font-medium min-h-[1.5rem]">Quick eyes!</p>
+      </div>
+    </div>
+    <div id="result-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div class="text-6xl mb-4">⚡</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Trap cleared!</h2>
+      <p class="text-2xl text-slate-600 mb-2">You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">0</span> out of <span id="total-display">16</span>!</p>
+      <p id="speed-msg" class="text-lg text-slate-500 mb-8"></p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+  <script src="../../../js/fun-effects.js"></script>
+  <script>
+    const ROUNDS = [
+      { target: 'ฃ', letters: ['ข', 'ฃ', 'ค', 'ง'], tip: 'ฃ (khor khuat) — obsolete; ข is common.' },
+      { target: 'ฅ', letters: ['ค', 'ฅ', 'ข', 'ช'], tip: 'ฅ (khor khon) — obsolete; ค is common.' },
+      { target: 'ฃ', letters: ['ฃ', 'ข', 'ฉ', 'จ'], tip: 'Only ฃ is the rare khuat letter.' },
+      { target: 'ฅ', letters: ['ฅ', 'ค', 'บ', 'ป'], tip: 'ฅ is khon — almost twins with ค!' },
+      { target: 'ฃ', letters: ['ซ', 'ข', 'ฃ', 'ส'], tip: 'Spot ฃ in the crowd.' },
+      { target: 'ฅ', letters: ['ฟ', 'ฅ', 'ค', 'ภ'], tip: 'ฅ has a tiny difference from ค.' },
+      { target: 'ฃ', letters: ['ข', 'ถ', 'ฃ', 'ท'], tip: 'ฃ looks like ข — look closely!' },
+      { target: 'ฅ', letters: ['ค', 'ฅ', 'ก', 'ง'], tip: 'Tap ฅ, not ค.' },
+      { target: 'ฃ', letters: ['ผ', 'ฃ', 'ฝ', 'พ'], tip: 'ฃ hides among high letters.' },
+      { target: 'ฅ', letters: ['ช', 'ฅ', 'ค', 'ญ'], tip: 'Quick! ฅ is the obsolete one.' },
+      { target: 'ฃ', letters: ['ฃ', 'ค', 'ฅ', 'ข'], tip: 'Two rare letters — pick ฃ only!' },
+      { target: 'ฅ', letters: ['ฃ', 'ค', 'ฅ', 'ข'], tip: 'This round wants ฅ.' },
+      { target: 'ฃ', letters: ['น', 'ฃ', 'ม', 'ย'], tip: 'ฃ is almost never used in modern Thai.' },
+      { target: 'ฅ', letters: ['ล', 'ฅ', 'ว', 'ร'], tip: 'ฅ = khor khon (old spelling).' },
+      { target: 'ฃ', letters: ['ห', 'ฃ', 'อ', 'ฮ'], tip: 'Last stretch — find ฃ!' },
+      { target: 'ฅ', letters: ['ด', 'ต', 'ฅ', 'ค'], tip: 'Final trap: tap ฅ fast!' }
+    ];
+    const ROUND_MS = 4500;
+    let i = 0, score = 0, streak = 0, locked = false, timerId = null, roundStart = 0, totalReaction = 0;
+
+    const trapGrid = document.getElementById('trap-grid');
+    const roundPrompt = document.getElementById('round-prompt');
+    const statusMsg = document.getElementById('status-msg');
+    const timerFill = document.getElementById('timer-fill');
+    const scoreHud = document.getElementById('score-hud');
+
+    function shuffle(a) {
+      const x = a.slice();
+      for (let n = x.length - 1; n > 0; n--) {
+        const j = Math.floor(Math.random() * (n + 1));
+        [x[n], x[j]] = [x[j], x[n]];
+      }
+      return x;
+    }
+    function clearTimer() {
+      if (timerId) cancelAnimationFrame(timerId);
+      timerId = null;
+    }
+    function tickTimer() {
+      const left = Math.max(0, ROUND_MS - (Date.now() - roundStart));
+      timerFill.style.width = `${(left / ROUND_MS) * 100}%`;
+      if (left <= 0) {
+        clearTimer();
+        if (!locked) onMiss();
+        return;
+      }
+      timerId = requestAnimationFrame(tickTimer);
+    }
+    function load() {
+      locked = false;
+      clearTimer();
+      const r = ROUNDS[i];
+      roundPrompt.textContent = r.target === 'ฃ' ? 'Find ฃ (khor khuat)!' : 'Find ฅ (khor khon)!';
+      scoreHud.textContent = `Score: ${score} · Round ${i + 1} of ${ROUNDS.length}`;
+      statusMsg.textContent = 'Quick eyes!';
+      trapGrid.innerHTML = '';
+      shuffle(r.letters).forEach((ch) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'trap-letter';
+        btn.textContent = ch;
+        btn.addEventListener('click', () => pick(ch, r, btn));
+        trapGrid.appendChild(btn);
+      });
+      roundStart = Date.now();
+      tickTimer();
+    }
+    function onMiss() {
+      locked = true;
+      streak = 0;
+      statusMsg.textContent = 'Too slow! ' + ROUNDS[i].tip;
+      [...trapGrid.children].forEach((b) => {
+        if (b.textContent === ROUNDS[i].target) b.classList.add('correct-pick');
+      });
+      if (window.FunEffects) FunEffects.shake(trapGrid);
+      setTimeout(nextRound, 900);
+    }
+    function pick(ch, r, btn) {
+      if (locked) return;
+      locked = true;
+      clearTimer();
+      const elapsed = Date.now() - roundStart;
+      if (ch === r.target) {
+        score++;
+        streak++;
+        totalReaction += elapsed;
+        btn.classList.add('correct-pick');
+        statusMsg.textContent = 'Got it! ' + r.tip;
+        if (window.FunEffects) {
+          FunEffects.showStreak(streak);
+          FunEffects.pulseScore(scoreHud);
+        }
+      } else {
+        streak = 0;
+        btn.classList.add('wrong-pick');
+        [...trapGrid.children].forEach((b) => {
+          if (b.textContent === r.target) b.classList.add('correct-pick');
+        });
+        statusMsg.textContent = 'That was a lookalike! ' + r.tip;
+        if (window.FunEffects) FunEffects.shake(btn);
+      }
+      scoreHud.textContent = `Score: ${score} · Round ${i + 1} of ${ROUNDS.length}`;
+      setTimeout(nextRound, 750);
+    }
+    function nextRound() {
+      i++;
+      if (i < ROUNDS.length) load();
+      else showResult();
+    }
+    function showResult() {
+      document.getElementById('play-screen').classList.add('hidden');
+      document.getElementById('result-screen').classList.remove('hidden');
+      document.getElementById('score-display').textContent = score;
+      document.getElementById('total-display').textContent = ROUNDS.length;
+      const avg = score ? Math.round(totalReaction / score / 100) / 10 : '—';
+      document.getElementById('speed-msg').textContent =
+        score === ROUNDS.length
+          ? `Perfect trap dodge! Avg ${avg}s per hit. 🌟`
+          : score >= 12
+            ? `Nice reflexes! Avg ${avg}s when correct. 👍`
+            : 'Practice telling ฃ/ฅ from ข/ค! 💪';
+      if (score === ROUNDS.length && window.FunEffects) FunEffects.confetti();
+    }
+    document.getElementById('restart-btn').addEventListener('click', () => {
+      i = 0; score = 0; streak = 0; totalReaction = 0;
+      document.getElementById('result-screen').classList.add('hidden');
+      document.getElementById('play-screen').classList.remove('hidden');
+      load();
+    });
+    load();
+  </script>
+</body>
+</html>

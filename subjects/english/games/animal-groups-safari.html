@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animal Groups Safari — English</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body>
+  <div id="app"></div>
+  <script src="../../../js/quiz-engine.js"></script>
+  <script>
+    const GROUPS = ['Mammals', 'Birds', 'Reptiles', 'Amphibians', 'Fish'];
+
+    QuizEngine.mount({
+      subject: 'english',
+      title: '🦁 Animal Groups Safari',
+      subtitle: 'Oxford Discover 2 — Unit 1',
+      backHref: '../index.html',
+      homeHref: '../../../index.html',
+      perfectMessage: 'Safari superstar! You know every animal group! 🌟',
+      goodMessage: 'Great exploring! Almost a ranger! 👍',
+      tryAgainMessage: 'Keep tracking animals — try again! 💪',
+      quizData: [
+        {
+          question: '🦁 Lion — Which group does this animal belong to?',
+          options: GROUPS.slice(),
+          correctAnswer: 0,
+          explanation: 'Lions have fur and feed milk to their babies. They are mammals.'
+        },
+        {
+          question: '🦜 Parrot — Which group does this animal belong to?',
+          options: GROUPS.slice(),
+          correctAnswer: 1,
+          explanation: 'Parrots have feathers and wings. They are birds.'
+        },
+        {
+          question: '🐍 Snake — Which group does this animal belong to?',
+          options: GROUPS.slice(),
+          correctAnswer: 2,
+          explanation: 'Snakes have dry scales and lay eggs. They are reptiles.'
+        },
+        {
+          question: '🐸 Frog — Which group does this animal belong to?',
+          options: GROUPS.slice(),
+          correctAnswer: 3,
+          explanation: 'Frogs live in water and on land. They are amphibians.'
+        },
+        {
+          question: '🦈 Shark — Which group does this animal belong to?',
+          options: GROUPS.slice(),
+          correctAnswer: 4,
+          explanation: 'Sharks live in water and breathe with gills. They are fish.'
+        },
+        {
+          question: '🐋 Whale — Which group does this animal belong to?',
+          options: GROUPS.slice(),
+          correctAnswer: 0,
+          explanation: 'Whales are huge, but they breathe air and feed milk to babies. They are mammals!'
+        },
+        {
+          question: '🐢 Turtle — Which group does this animal belong to?',
+          options: GROUPS.slice(),
+          correctAnswer: 2,
+          explanation: 'Turtles have a shell and scaly skin. They are reptiles.'
+        },
+        {
+          question: '🐕 Dog — Which group does this animal belong to?',
+          options: GROUPS.slice(),
+          correctAnswer: 0,
+          explanation: 'Dogs have fur and are warm-blooded. They are mammals.'
+        },
+        {
+          question: '🦅 Eagle — Which group does this animal belong to?',
+          options: GROUPS.slice(),
+          correctAnswer: 1,
+          explanation: 'Eagles have feathers and lay eggs. They are birds.'
+        },
+        {
+          question: '🐠 Goldfish — Which group does this animal belong to?',
+          options: GROUPS.slice(),
+          correctAnswer: 4,
+          explanation: 'Goldfish live in water and breathe with gills. They are fish.'
+        }
+      ]
+    });
+  </script>
+</body>
+</html>

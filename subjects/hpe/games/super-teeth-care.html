@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Super Teeth Care — HPE</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    body.game.theme-hpe { touch-action: none; }
+    .sort-bin {
+      min-height: 140px;
+      border: 3px dashed #cbd5e1;
+      border-radius: 1.25rem;
+      padding: 0.75rem;
+      transition: transform 0.2s, border-color 0.2s, background 0.2s;
+    }
+    .sort-bin.good-bin { border-color: #86efac; background: #f0fdf4; }
+    .sort-bin.bad-bin { border-color: #fca5a5; background: #fef2f2; }
+    .sort-bin.highlight { transform: scale(1.03); border-style: solid; }
+    .habit-chip {
+      font-size: 1.05rem;
+      padding: 0.85rem 1rem;
+      border-radius: 1rem;
+      border: 3px solid #e2e8f0;
+      background: white;
+      font-weight: 600;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+    }
+    .habit-chip.locked { opacity: 0.95; cursor: default; }
+    .bin-title { font-size: 1.35rem; font-weight: 700; text-align: center; margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body class="game theme-hpe min-h-screen">
+  <main class="w-full max-w-2xl mx-auto px-4 py-6">
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← HPE</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+
+    <div id="phase-sort">
+      <header class="mb-6 text-center animate-pop">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2 drop-shadow-sm" style="color: var(--accent-dark)">🦷 Super Teeth Care</h1>
+        <p class="text-lg text-slate-500 font-medium">Drag each habit into Good or Bad for your teeth!</p>
+        <p id="sort-progress" class="mt-2 text-sm font-semibold" style="color: var(--accent)">0 of 6 sorted</p>
+      </header>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div id="bin-good" class="sort-bin good-bin" data-accept="good">
+          <p class="bin-title text-green-600">✅ Good for Teeth</p>
+          <div class="bin-items flex flex-col gap-2 min-h-[60px]"></div>
+        </div>
+        <div id="bin-bad" class="sort-bin bad-bin" data-accept="bad">
+          <p class="bin-title text-red-600">❌ Bad for Teeth</p>
+          <div class="bin-items flex flex-col gap-2 min-h-[60px]"></div>
+        </div>
+      </div>
+
+      <div id="habits-pool" class="question-card p-4 flex flex-col gap-3 animate-pop"></div>
+
+      <div class="text-center mt-6">
+        <button type="button" id="btn-to-quiz" class="hidden btn-primary">Teeth Quiz Time! ➡️</button>
+      </div>
+    </div>
+
+    <div id="phase-quiz" class="hidden">
+      <header class="mb-6 text-center animate-pop">
+        <h1 class="text-3xl font-bold mb-2" style="color: var(--accent-dark)">What Do Teeth Do?</h1>
+        <p class="text-lg text-slate-500">Question <span id="q-num">1</span> of 3</p>
+      </header>
+      <div class="question-card p-6 md:p-8 animate-pop">
+        <h2 id="quiz-q" class="text-2xl font-semibold text-center mb-8 text-slate-700"></h2>
+        <div id="quiz-options" class="grid grid-cols-1 gap-4 mb-4"></div>
+        <div id="quiz-feedback" class="hidden text-center p-4 rounded-xl text-lg font-medium mb-4"></div>
+        <div class="text-center">
+          <button type="button" id="quiz-next" class="hidden btn-primary">Next 🚀</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="win-screen" class="hidden question-card p-8 text-center animate-pop">
+      <div class="text-7xl mb-4 animate-tada">😁</div>
+      <h2 class="text-4xl font-bold text-green-500 mb-4">Sparkling Smile!</h2>
+      <p class="text-2xl text-slate-600 mb-2">You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">9</span> out of 9!</p>
+      <p id="score-breakdown" class="text-lg text-slate-500 mb-8 font-medium">6 habits sorted · 3 quiz correct</p>
+      <button type="button" id="play-again" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+
+  <div id="feedback-toast" class="feedback-toast">Nice! ✨</div>
+
+  <script src="../../../js/fun-effects.js"></script>
+  <script>
+    (function () {
+      const HABITS = [
+        { id: 'h1', text: '🪥 Brush twice a day', kind: 'good' },
+        { id: 'h2', text: '🍬 Eat lots of candy', kind: 'bad' },
+        { id: 'h3', text: '🩺 See the dentist', kind: 'good' },
+        { id: 'h4', text: '🥤 Drink soda all day', kind: 'bad' },
+        { id: 'h5', text: '🌙 Brush morning & night', kind: 'good' },
+        { id: 'h6', text: '🙈 Skip brushing', kind: 'bad' }
+      ];
+
+      const QUIZ = [
+        {
+          q: 'Teeth help you ___ food before you swallow.',
+          options: ['Cut and chew', 'Hear', 'Breathe', 'Jump'],
+          correct: 0,
+          explain: 'Teeth bite and chew food into smaller pieces.'
+        },
+        {
+          q: 'Strong teeth also help you…',
+          options: ['Fly', 'Talk clearly', 'Pump blood', 'Grow leaves'],
+          correct: 1,
+          explain: 'Your teeth and tongue work together to make speech sounds.'
+        },
+        {
+          q: 'Which habit keeps teeth strongest?',
+          options: ['Skip brushing', 'Brush twice a day', 'Sip soda all day', 'Never visit the dentist'],
+          correct: 1,
+          explain: 'Brushing twice a day removes plaque and protects enamel.'
+        }
+      ];
+
+      let sortedCount = 0;
+      let activeEl = null;
+      let startX, startY, initialX = 0, initialY = 0;
+      let activeBins = [];
+      let quizIndex = 0;
+      let quizCorrect = 0;
+      const SORT_TOTAL = HABITS.length;
+      const QUIZ_TOTAL = QUIZ.length;
+
+      const habitsPool = document.getElementById('habits-pool');
+      const sortProgress = document.getElementById('sort-progress');
+      const btnToQuiz = document.getElementById('btn-to-quiz');
+      const phaseSort = document.getElementById('phase-sort');
+      const phaseQuiz = document.getElementById('phase-quiz');
+      const winScreen = document.getElementById('win-screen');
+      const toast = document.getElementById('feedback-toast');
+
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function buildSortPhase() {
+        sortedCount = 0;
+        habitsPool.innerHTML = '';
+        document.querySelectorAll('.bin-items').forEach(b => { b.innerHTML = ''; });
+        btnToQuiz.classList.add('hidden');
+        sortProgress.textContent = '0 of 6 sorted';
+        activeBins = [document.getElementById('bin-good'), document.getElementById('bin-bad')];
+
+        shuffle(HABITS).forEach(h => {
+          const el = document.createElement('div');
+          el.className = 'draggable habit-chip';
+          el.dataset.id = h.id;
+          el.dataset.kind = h.kind;
+          el.textContent = h.text;
+          habitsPool.appendChild(el);
+        });
+        setupDraggables(habitsPool.querySelectorAll('.draggable'));
+      }
+
+      function setupDraggables(elements) {
+        elements.forEach(el => {
+          el.addEventListener('pointerdown', onPointerDown);
+          el.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+        });
+      }
+
+      function onPointerDown(e) {
+        const target = e.target.closest('.draggable');
+        if (!target || target.classList.contains('locked')) return;
+        e.preventDefault();
+        activeEl = target;
+        activeEl.setPointerCapture(e.pointerId);
+        activeEl.style.zIndex = 1000;
+        activeEl.style.transform = 'scale(1.05)';
+        startX = e.clientX;
+        startY = e.clientY;
+        const transform = window.getComputedStyle(activeEl).transform;
+        if (transform !== 'none') {
+          const matrix = new DOMMatrixReadOnly(transform);
+          initialX = matrix.m41;
+          initialY = matrix.m42;
+        } else {
+          initialX = 0;
+          initialY = 0;
+        }
+      }
+
+      function onPointerMove(e) {
+        if (!activeEl) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        activeEl.style.transform = `translate(${initialX + dx}px, ${initialY + dy}px) scale(1.05)`;
+        highlightBin(e.clientX, e.clientY);
+      }
+
+      function onPointerUp(e) {
+        if (!activeEl) return;
+        activeEl.releasePointerCapture(e.pointerId);
+        activeEl.style.zIndex = '';
+        activeBins.forEach(b => b.classList.remove('highlight'));
+        const elRect = activeEl.getBoundingClientRect();
+        let dropped = false;
+        for (const bin of activeBins) {
+          const rect = bin.getBoundingClientRect();
+          if (isOverlap(elRect, rect) && bin.dataset.accept === activeEl.dataset.kind) {
+            const items = bin.querySelector('.bin-items');
+            items.appendChild(activeEl);
+            activeEl.style.transform = 'none';
+            activeEl.classList.add('locked');
+            activeEl.classList.remove('draggable');
+            dropped = true;
+            sortedCount++;
+            sortProgress.textContent = `${sortedCount} of 6 sorted`;
+            showToast();
+            if (sortedCount === 6) {
+              btnToQuiz.classList.remove('hidden');
+              btnToQuiz.classList.add('animate-tada');
+            }
+            break;
+          }
+        }
+        if (!dropped) {
+          activeEl.style.transition = 'transform 0.25s ease';
+          activeEl.style.transform = 'translate(0, 0)';
+          setTimeout(() => { activeEl.style.transition = ''; }, 250);
+        }
+        activeEl = null;
+      }
+
+      function isOverlap(r1, r2) {
+        return !(r1.right < r2.left + 16 || r1.left > r2.right - 16 ||
+                 r1.bottom < r2.top + 16 || r1.top > r2.bottom - 16);
+      }
+
+      function highlightBin(x, y) {
+        activeBins.forEach(bin => {
+          const rect = bin.getBoundingClientRect();
+          if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom &&
+              bin.dataset.accept === activeEl.dataset.kind) {
+            bin.classList.add('highlight');
+          } else {
+            bin.classList.remove('highlight');
+          }
+        });
+      }
+
+      function showToast() {
+        toast.style.opacity = '1';
+        setTimeout(() => { toast.style.opacity = '0'; }, 900);
+      }
+
+      document.addEventListener('pointermove', onPointerMove);
+      document.addEventListener('pointerup', onPointerUp);
+
+      btnToQuiz.addEventListener('click', () => {
+        phaseSort.classList.add('hidden');
+        phaseQuiz.classList.remove('hidden');
+        quizIndex = 0;
+        loadQuizQuestion();
+      });
+
+      const quizQ = document.getElementById('quiz-q');
+      const quizOptions = document.getElementById('quiz-options');
+      const quizFeedback = document.getElementById('quiz-feedback');
+      const quizNext = document.getElementById('quiz-next');
+      const qNum = document.getElementById('q-num');
+      let canAnswer = true;
+
+      function loadQuizQuestion() {
+        canAnswer = true;
+        quizFeedback.classList.add('hidden');
+        quizNext.classList.add('hidden');
+        quizOptions.innerHTML = '';
+        const item = QUIZ[quizIndex];
+        qNum.textContent = String(quizIndex + 1);
+        quizQ.textContent = item.q;
+        item.options.forEach((opt, i) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'option-btn text-center';
+          btn.textContent = opt;
+          btn.addEventListener('click', () => pickQuiz(i));
+          quizOptions.appendChild(btn);
+        });
+      }
+
+      function pickQuiz(i) {
+        if (!canAnswer) return;
+        canAnswer = false;
+        const item = QUIZ[quizIndex];
+        const buttons = quizOptions.children;
+        for (let j = 0; j < buttons.length; j++) {
+          if (j === item.correct) buttons[j].classList.add('correct');
+          else if (j === i) buttons[j].classList.add('wrong');
+        }
+        quizFeedback.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+        if (i === item.correct) {
+          quizCorrect++;
+          quizFeedback.classList.add('bg-green-100', 'text-green-800');
+          quizFeedback.innerHTML = `<strong>Yes! 🎉</strong><br>${item.explain}`;
+        } else {
+          quizFeedback.classList.add('bg-red-100', 'text-red-800');
+          quizFeedback.innerHTML = `<strong>Almost!</strong><br>${item.explain}`;
+        }
+        quizNext.classList.remove('hidden');
+      }
+
+      quizNext.addEventListener('click', () => {
+        quizIndex++;
+        if (quizIndex < QUIZ.length) loadQuizQuestion();
+        else {
+          const totalScore = SORT_TOTAL + quizCorrect;
+          const maxScore = SORT_TOTAL + QUIZ_TOTAL;
+          document.getElementById('score-display').textContent = String(totalScore);
+          document.getElementById('score-breakdown').textContent =
+            `${SORT_TOTAL} habits sorted · ${quizCorrect} quiz correct`;
+          if (totalScore === maxScore && window.FunEffects) FunEffects.confetti();
+          phaseQuiz.classList.add('hidden');
+          winScreen.classList.remove('hidden');
+        }
+      });
+
+      document.getElementById('play-again').addEventListener('click', () => {
+        quizCorrect = 0;
+        winScreen.classList.add('hidden');
+        phaseSort.classList.remove('hidden');
+        buildSortPhase();
+      });
+
+      buildSortPhase();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consonant Class Sort — Thai</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Sarabun:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+  <style>
+    .letter-chip {
+      font-family: 'Sarabun', sans-serif;
+      font-size: 1.75rem;
+      min-width: 3.5rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body class="game theme-thai">
+  <main class="w-full max-w-3xl mx-auto px-4 py-6">
+    <div class="nav-bar">
+      <a class="nav-link" href="../index.html">← Thai</a>
+      <a class="nav-link" href="../../../index.html">🏠 Home</a>
+    </div>
+    <header class="text-center mb-4 animate-pop" id="header-section">
+      <h1 class="text-3xl md:text-4xl font-bold mb-2" style="color: var(--accent-dark)">🔤 Consonant Class Sort</h1>
+      <p class="text-lg text-slate-500">Drag each letter into Middle, High, or Low!</p>
+      <p id="progress-text" class="mt-2 text-sm font-semibold" style="color: var(--accent)">0 of 12 sorted</p>
+    </header>
+    <div id="game-area" class="animate-pop">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+        <div class="question-card p-4 min-h-[10rem] flex flex-col">
+          <h2 class="text-lg font-bold text-center text-sky-700 mb-2">อักษรกลาง<br>Middle</h2>
+          <div id="bin-middle" class="drop-zone flex-1 border-4 border-dashed border-sky-300 rounded-xl bg-sky-50/50 p-2 flex flex-wrap gap-2 content-start" data-category="middle"></div>
+        </div>
+        <div class="question-card p-4 min-h-[10rem] flex flex-col">
+          <h2 class="text-lg font-bold text-center text-amber-700 mb-2">อักษรสูง<br>High</h2>
+          <div id="bin-high" class="drop-zone flex-1 border-4 border-dashed border-amber-300 rounded-xl bg-amber-50/50 p-2 flex flex-wrap gap-2 content-start" data-category="high"></div>
+        </div>
+        <div class="question-card p-4 min-h-[10rem] flex flex-col">
+          <h2 class="text-lg font-bold text-center text-rose-700 mb-2">อักษรต่ำ<br>Low</h2>
+          <div id="bin-low" class="drop-zone flex-1 border-4 border-dashed border-rose-300 rounded-xl bg-rose-50/50 p-2 flex flex-wrap gap-2 content-start" data-category="low"></div>
+        </div>
+      </div>
+      <div class="question-card p-4">
+        <p class="text-center text-slate-600 font-medium mb-3">Letters to sort</p>
+        <div id="item-bank" class="flex flex-wrap justify-center gap-3"></div>
+      </div>
+    </div>
+    <div id="win-screen" class="hidden question-card p-8 text-center animate-pop mt-4">
+      <div class="text-6xl mb-4 animate-tada">🏆</div>
+      <h2 class="text-4xl font-bold mb-4" style="color: var(--accent-dark)">Trai Yang Champion!</h2>
+      <p class="text-2xl text-slate-600 mb-8">You scored <span id="score-display" class="font-bold text-3xl" style="color: var(--accent)">12</span> out of 12!</p>
+      <button type="button" id="restart-btn" class="btn-primary">Play Again 🔄</button>
+    </div>
+  </main>
+  <div id="ok-toast" class="feedback-toast">Correct! ✨</div>
+  <div id="bad-toast" class="feedback-toast" style="background:#ef4444">Try another class!</div>
+  <script src="../../../js/fun-effects.js"></script>
+  <script>
+    const ITEMS = [
+      { id: 'gor', label: 'ก', category: 'middle' },
+      { id: 'jor', label: 'จ', category: 'middle' },
+      { id: 'dor', label: 'ด', category: 'middle' },
+      { id: 'bor', label: 'บ', category: 'middle' },
+      { id: 'khor', label: 'ข', category: 'high' },
+      { id: 'chor', label: 'ฉ', category: 'high' },
+      { id: 'thor', label: 'ถ', category: 'high' },
+      { id: 'sor', label: 'ส', category: 'high' },
+      { id: 'khwai', label: 'ค', category: 'low' },
+      { id: 'ngor', label: 'ง', category: 'low' },
+      { id: 'chorchang', label: 'ช', category: 'low' },
+      { id: 'nor', label: 'น', category: 'low' }
+    ];
+    let activeEl = null, startX, startY, initialX = 0, initialY = 0, placedCount = 0, wrongAttempts = 0, activeZones = [];
+    const progressText = document.getElementById('progress-text');
+    const okToast = document.getElementById('ok-toast');
+    const badToast = document.getElementById('bad-toast');
+    const winScreen = document.getElementById('win-screen');
+    const gameArea = document.getElementById('game-area');
+    const headerSection = document.getElementById('header-section');
+    const itemBank = document.getElementById('item-bank');
+
+    function shuffle(arr) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+    function showToast(el) {
+      el.style.opacity = '1';
+      setTimeout(() => { el.style.opacity = '0'; }, 900);
+    }
+    function buildBank() {
+      itemBank.innerHTML = '';
+      shuffle(ITEMS).forEach((item) => {
+        const div = document.createElement('div');
+        div.className = 'draggable letter-chip bg-white px-4 py-2 rounded-xl border-3 border-slate-300 font-bold text-slate-700 shadow-sm';
+        div.style.borderWidth = '3px';
+        div.dataset.category = item.category;
+        div.textContent = item.label;
+        itemBank.appendChild(div);
+      });
+      setupDraggables(itemBank.querySelectorAll('.draggable'));
+      activeZones = Array.from(document.querySelectorAll('.drop-zone'));
+      placedCount = 0;
+      wrongAttempts = 0;
+      progressText.textContent = `0 of ${ITEMS.length} sorted`;
+    }
+    function setupDraggables(els) {
+      els.forEach((el) => {
+        el.addEventListener('pointerdown', onPointerDown);
+        el.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+      });
+    }
+    document.addEventListener('pointermove', onPointerMove);
+    document.addEventListener('pointerup', onPointerUp);
+    function onPointerDown(e) {
+      const target = e.target.closest('.draggable');
+      if (!target || target.classList.contains('locked')) return;
+      e.preventDefault();
+      activeEl = target;
+      activeEl.setPointerCapture?.(e.pointerId);
+      const rect = activeEl.getBoundingClientRect();
+      startX = e.clientX; startY = e.clientY;
+      initialX = 0; initialY = 0;
+      activeEl.style.position = 'relative';
+      activeEl.style.zIndex = '50';
+      activeEl.style.transform = 'scale(1.08)';
+    }
+    function onPointerMove(e) {
+      if (!activeEl) return;
+      e.preventDefault();
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      activeEl.style.transform = `translate(${dx}px, ${dy}px) scale(1.08)`;
+      activeZones.forEach((z) => {
+        const r = z.getBoundingClientRect();
+        const hit = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+        z.classList.toggle('highlight', hit);
+      });
+    }
+    function onPointerUp(e) {
+      if (!activeEl) return;
+      let dropped = null;
+      activeZones.forEach((z) => {
+        z.classList.remove('highlight');
+        const r = z.getBoundingClientRect();
+        if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) dropped = z;
+      });
+      activeEl.style.transform = '';
+      activeEl.style.zIndex = '';
+      if (dropped) {
+        if (dropped.dataset.category === activeEl.dataset.category) {
+          activeEl.classList.add('locked');
+          activeEl.style.cursor = 'default';
+          dropped.appendChild(activeEl);
+          placedCount++;
+          progressText.textContent = `${placedCount} of ${ITEMS.length} sorted`;
+          showToast(okToast);
+          if (placedCount === ITEMS.length) {
+            document.getElementById('score-display').textContent = String(placedCount);
+            if (wrongAttempts === 0 && window.FunEffects) FunEffects.confetti();
+            gameArea.classList.add('hidden');
+            headerSection.classList.add('hidden');
+            winScreen.classList.remove('hidden');
+          }
+        } else {
+          wrongAttempts++;
+          showToast(badToast);
+        }
+      }
+      activeEl = null;
+    }
+    document.getElementById('restart-btn').addEventListener('click', () => {
+      wrongAttempts = 0;
+      winScreen.classList.add('hidden');
+      gameArea.classList.remove('hidden');
+      headerSection.classList.remove('hidden');
+      ['bin-middle', 'bin-high', 'bin-low'].forEach((id) => { document.getElementById(id).innerHTML = ''; });
+      buildBank();
+    });
+    buildBank();
+  </script>
+</body>
+</html>

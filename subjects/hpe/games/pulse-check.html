@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pulse Check — HPE</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body>
+  <div id="app"></div>
+  <script src="../../../js/quiz-engine.js"></script>
+  <script>
+    QuizEngine.mount({
+      subject: 'hpe',
+      title: '💓 Pulse Check',
+      subtitle: 'Organ scenarios — what is happening inside your body?',
+      backHref: '../index.html',
+      homeHref: '../../../index.html',
+      perfectMessage: 'Amazing! You read your body like a pro! 🌟',
+      goodMessage: 'Strong work! Your organ knowledge is growing! 👍',
+      tryAgainMessage: 'Good try! Play again and build your streak! 💪',
+      quizData: [
+        {
+          question: 'Nolan runs laps and his chest feels thump-thump faster. Which organ is working harder?',
+          options: ['Brain', 'Heart', 'Stomach', 'Teeth'],
+          correctAnswer: 1,
+          explanation: 'The heart pumps faster to send blood and oxygen to your muscles when you exercise.',
+          hint: 'It beats in your chest!'
+        },
+        {
+          question: 'After a big lunch, Nolan feels full in his belly. Which organ is breaking down the food?',
+          options: ['Lungs', 'Heart', 'Stomach', 'Skin'],
+          correctAnswer: 2,
+          explanation: 'The stomach mixes and digests food so your body can use the energy.',
+          hint: 'It sits below your lungs.'
+        },
+        {
+          question: 'Nolan takes a deep breath before swimming. Which organs fill with air?',
+          options: ['Lungs', 'Heart', 'Brain', 'Stomach'],
+          correctAnswer: 0,
+          explanation: 'Lungs pull in fresh air so oxygen can travel through your blood.',
+          hint: 'They are in your chest on both sides.'
+        },
+        {
+          question: 'Nolan is learning a new spelling word. Which organ helps him think and remember?',
+          options: ['Heart', 'Brain', 'Lungs', 'Stomach'],
+          correctAnswer: 1,
+          explanation: 'The brain controls thinking, learning, and memory.',
+          hint: 'It is protected inside your skull.'
+        },
+        {
+          question: 'Nolan feels dizzy after spinning. Which organ helps him balance again?',
+          options: ['Stomach only', 'Brain (with your inner ear)', 'Teeth', 'Lungs only'],
+          correctAnswer: 1,
+          explanation: 'Your brain works with your inner ear to help you balance and know where you are.',
+          hint: 'The boss organ in your head!'
+        },
+        {
+          question: 'Nolan’s heart beats about 100 times a minute after jumping rope. Why?',
+          options: ['To cool his skin', 'To pump more blood to working muscles', 'To make him taller', 'To digest candy'],
+          correctAnswer: 1,
+          explanation: 'Exercise needs extra oxygen, so the heart pumps faster.',
+        },
+        {
+          question: 'Which organ would hurt if Nolan held his breath too long?',
+          options: ['Brain and lungs (need oxygen)', 'Hair', 'Fingernails', 'Teeth only'],
+          correctAnswer: 0,
+          explanation: 'Your brain and body need oxygen from your lungs every moment.',
+        },
+        {
+          question: 'Nolan eats an apple. Which organ starts the digestion journey?',
+          options: ['Heart', 'Mouth and stomach', 'Lungs', 'Bones'],
+          correctAnswer: 1,
+          explanation: 'Teeth chew in the mouth, then the stomach continues breaking food down.',
+        },
+        {
+          question: 'When Nolan is scared, his heart might beat faster. Which organ sends the “feel scared” message?',
+          options: ['Stomach', 'Brain', 'Liver only', 'Toes'],
+          correctAnswer: 1,
+          explanation: 'The brain processes feelings and tells other parts of the body how to react.',
+        },
+        {
+          question: 'Nolan coughs after running in cold air. What are his lungs trying to do?',
+          options: ['Pump blood', 'Clear airways and breathe', 'Digest food', 'Grow muscles'],
+          correctAnswer: 1,
+          explanation: 'Coughing helps keep air passages clear so you can breathe well.',
+        },
+        {
+          question: 'Which organ is about the size of your fist and sits left of center in your chest?',
+          options: ['Brain', 'Heart', 'Stomach', 'Lung tip only'],
+          correctAnswer: 1,
+          explanation: 'The heart is a strong muscle that pumps blood all day.',
+        },
+        {
+          question: 'Nolan feels “butterflies” before a race. His stomach feels funny. Why might that happen?',
+          options: ['Brain signals stress; stomach reacts', 'Lungs stop working', 'Heart disappears', 'Teeth grow'],
+          correctAnswer: 0,
+          explanation: 'Your brain and gut are connected — nerves can make your stomach feel odd when excited.',
+        },
+        {
+          question: 'Which pair works together so Nolan can run and still breathe?',
+          options: ['Heart and lungs', 'Teeth and hair', 'Ears and nails', 'Skin and shoes'],
+          correctAnswer: 0,
+          explanation: 'Lungs bring in oxygen; the heart carries it to muscles.',
+        },
+        {
+          question: 'If Nolan’s brain did not work, what would be hardest?',
+          options: ['Thinking and moving on purpose', 'Hair growing', 'Nails getting longer', 'Shoes staying tied'],
+          correctAnswer: 0,
+          explanation: 'The brain controls voluntary movement, speech, and learning.',
+        },
+        {
+          question: 'After exercise, Nolan breathes heavily. What do his lungs bring in extra of?',
+          options: ['Sugar', 'Oxygen', 'Water only', 'Sleep'],
+          correctAnswer: 1,
+          explanation: 'Heavy breathing pulls more oxygen in to recover from hard work.',
+        },
+        {
+          question: 'Which organ stores no food forever — it processes it and passes it on?',
+          options: ['Stomach (then intestines help)', 'Heart', 'Brain', 'Lungs'],
+          correctAnswer: 0,
+          explanation: 'The stomach breaks food down; the rest of the digestive system absorbs nutrients.',
+        },
+        {
+          question: 'Nolan learns that blood carries oxygen. Which organ pumps the blood?',
+          options: ['Heart', 'Lungs', 'Stomach', 'Brain'],
+          correctAnswer: 0,
+          explanation: 'The heart is the pump; lungs add oxygen to the blood.',
+        },
+        {
+          question: 'Which organ helps Nolan smell pizza and remember it is his favorite?',
+          options: ['Brain', 'Heart', 'Knee', 'Elbow'],
+          correctAnswer: 0,
+          explanation: 'Smell signals go to the brain, where memory and taste connect.',
+        },
+        {
+          question: 'Nolan’s teacher says “use your head.” Which organ does she mean?',
+          options: ['Brain', 'Heart', 'Stomach', 'Lungs'],
+          correctAnswer: 0,
+          explanation: 'Thinking and problem-solving happen in the brain.',
+        },
+        {
+          question: 'When Nolan sleeps, his heart still beats. Why?',
+          options: ['Body still needs blood flow all night', 'Lungs stop', 'Brain shuts off forever', 'Stomach stops'],
+          correctAnswer: 0,
+          explanation: 'Your heart works 24/7 to keep every cell supplied.',
+        },
+        {
+          question: 'Nolan has a stomach ache after too much candy. Which organ is complaining?',
+          options: ['Stomach', 'Heart', 'Lungs', 'Brain only'],
+          correctAnswer: 0,
+          explanation: 'Too much sugary food can upset digestion in the stomach.',
+        },
+        {
+          question: 'Which two organs are most important during a sprint race?',
+          options: ['Heart and lungs', 'Teeth and tongue', 'Hair and skin', 'Ears and nose only'],
+          correctAnswer: 0,
+          explanation: 'Muscles need oxygen fast — heart and lungs team up.',
+        }
+      ]
+    });
+  </script>
+</body>
+</html>
