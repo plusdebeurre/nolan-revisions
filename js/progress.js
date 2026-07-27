@@ -7,7 +7,29 @@
   const SESSION_KEY = 'nolan-hub-session';
   const PIN_FRUITS = ['🍎', '🍌', '🍇', '🍓', '🍊', '🍉', '🍒', '🥝'];
   const AVATARS = ['🦊', '🐼', '🦁', '🐸', '🐯', '🐰', '🐻', '🐨', '🦄', '🐶'];
-  const LEVEL_FRUITS = ['🍒', '🍓', '🍊', '🍋', '🍉', '🍇', '🥝', '🍍', '🥭', '🍎'];
+  const AVATAR_CREATURES = {
+    '🦊': 'Fox',
+    '🐼': 'Panda',
+    '🦁': 'Lion',
+    '🐸': 'Frog',
+    '🐯': 'Tiger',
+    '🐰': 'Bunny',
+    '🐻': 'Bear',
+    '🐨': 'Koala',
+    '🦄': 'Unicorn',
+    '🐶': 'Puppy'
+  };
+  const LEVEL_EPITHETS = [
+    'Sleepy',
+    'Rookie',
+    'Speedy',
+    'Clever',
+    'Wizard',
+    'Indy',
+    'Ninja',
+    'Goal King',
+    'Super Saiyan'
+  ];
   const XP_PER_LEVEL = 150;
   const MEDAL_RANK = { gold: 3, silver: 2, bronze: 1, played: 0 };
 
@@ -50,9 +72,24 @@
     return Math.max(1, Math.floor(xp / XP_PER_LEVEL) + 1);
   }
 
-  function levelFruit(level) {
-    const idx = Math.min(LEVEL_FRUITS.length - 1, Math.max(0, level - 1));
-    return LEVEL_FRUITS[idx];
+  function avatarCreature(emoji) {
+    return AVATAR_CREATURES[emoji] || 'Hero';
+  }
+
+  function levelEpithet(level) {
+    const lv = Math.max(1, Number(level) || 1);
+    if (lv <= LEVEL_EPITHETS.length) return LEVEL_EPITHETS[lv - 1];
+    const x = lv - LEVEL_EPITHETS.length;
+    return x === 1 ? 'Super Saiyan X' : 'Super Saiyan X' + x;
+  }
+
+  function levelTitle(level, avatarEmoji) {
+    return levelEpithet(level) + ' ' + avatarCreature(avatarEmoji);
+  }
+
+  /** @deprecated Level fruit emoji removed — kept empty for old callers. */
+  function levelFruit() {
+    return '';
   }
 
   function medalFromMistakes(mistakes) {
@@ -219,7 +256,8 @@
       xpGained: gained,
       xp: p.xp,
       level: p.level,
-      levelFruit: levelFruit(p.level),
+      levelTitle: levelTitle(p.level, p.avatarEmoji),
+      levelFruit: '',
       mistakes
     };
   }
@@ -329,6 +367,8 @@
   global.NolanProgress = {
     PIN_FRUITS,
     AVATARS,
+    AVATAR_CREATURES,
+    LEVEL_EPITHETS,
     XP_PER_LEVEL,
     listProfiles,
     getProfile,
@@ -347,6 +387,9 @@
     showResumeToast,
     medalEmoji,
     levelFruit,
+    avatarCreature,
+    levelEpithet,
+    levelTitle,
     levelFromXp,
     medalFromMistakes,
     inferGameIdFromPath,

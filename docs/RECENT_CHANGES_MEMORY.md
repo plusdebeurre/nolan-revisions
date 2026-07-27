@@ -1,5 +1,18 @@
 # Recent Changes Memory
 
+## 2026-07-28 — Streak celebrations + profile level titles
+
+### What changed
+- Escalating streak FX in `js/fun-effects.js`: sports hype labels (Hat-trick, MVP mode, GOAT alert…) with bigger confetti, flashes, and star bursts as the streak grows.
+- Replaced competing level-fruit emoji with a circular avatar “photo” and English titles like Sleepy Unicorn → Super Saiyan Unicorn X (`levelTitle` in `js/progress.js`).
+- Shell bar / profile picker updated; QuizEngine no longer double-fires confetti on streak.
+
+### User impact
+- Correct-answer chains feel more exciting; profile identity is clearer (one animal photo + fun rank name).
+
+### Key files
+- `js/fun-effects.js`, `js/progress.js`, `js/shell.js`, `js/quiz-engine.js`, `css/shared.css`, docs
+
 ## 2026-07-28 — Persistent fullscreen + in-exercise resume
 
 ### What changed

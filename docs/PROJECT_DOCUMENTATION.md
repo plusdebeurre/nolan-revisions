@@ -93,10 +93,19 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 ## Profiles, medals & XP
 
 - Multi-child **profiles** (first name + avatar + secret fruit emoji PIN), stored in browser `localStorage` (`nolan-hub-v1`).
-- Unlock by tapping the secret fruit; switch profiles from the top bar avatar.
+- Unlock by tapping the secret fruit; switch profiles from the top bar avatar (circular **profile photo**).
 - Completing a game awards XP and a medal by mistakes (`total − score`): **gold** 0, **silver** 1, **bronze** 2.
-- Level fruit emoji beside the profile (every 150 XP). Progress is **per browser/device** (no cloud sync on free Netlify).
+- Levels (every 150 XP) use a fun English title combined with the animal avatar, e.g. Sleepy Unicorn → Rookie Fox → … → Super Saiyan / Super Saiyan X. Epithets: Sleepy, Rookie, Speedy, Clever, Wizard, Indy, Ninja, Goal King, Super Saiyan, then Super Saiyan X / X2…
+- Progress is **per browser/device** (no cloud sync on free Netlify).
 - Shared scripts: `js/progress.js`, `js/shell.js` (loaded on every page).
+
+## Streak celebrations
+
+`FunEffects.showStreak(n)` (from `js/fun-effects.js`) escalates sports-style hype as correct answers chain:
+
+Nice one → On a roll → Hat-trick → On fire → Unstoppable → MVP mode → World-class → Legend → GOAT alert.
+
+Bigger streaks add more confetti, star bursts, screen flash, and shake. QuizEngine and custom games that already call `showStreak` get this automatically.
 
 ## Persistent fullscreen (`app.html`)
 

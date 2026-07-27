@@ -115,12 +115,14 @@
     } else {
       const xpInfo = NP.xpToNext(profile);
       const pct = Math.min(100, Math.round((xpInfo.into / xpInfo.need) * 100));
+      const title = NP.levelTitle(profile.level, profile.avatarEmoji);
       bar.innerHTML = `
         <button type="button" class="shell-profile-btn" id="shell-open-profiles" title="Switch profile">
-          <span class="shell-avatar">${profile.avatarEmoji}</span>
-          <span class="shell-name">${escapeHtml(profile.name)}</span>
-          <span class="shell-level-fruit" title="Level ${profile.level}">${NP.levelFruit(profile.level)}</span>
-          <span class="shell-level-label">Lv ${profile.level}</span>
+          <span class="shell-avatar-photo" aria-hidden="true">${profile.avatarEmoji}</span>
+          <span class="shell-profile-text">
+            <span class="shell-name">${escapeHtml(profile.name)}</span>
+            <span class="shell-level-title" title="Level ${profile.level}">Lv ${profile.level} · ${escapeHtml(title)}</span>
+          </span>
         </button>
         <div class="shell-xp-wrap" title="${profile.xp} XP">
           <div class="shell-xp-track"><div class="shell-xp-fill" style="width:${pct}%"></div></div>
@@ -205,7 +207,7 @@
       profiles.forEach((p) => {
         const btn = el('button', 'profile-pick-btn');
         btn.type = 'button';
-        btn.innerHTML = `<span class="shell-avatar">${p.avatarEmoji}</span><span>${escapeHtml(p.name)}</span><span class="shell-level-fruit">${NP.levelFruit(p.level || 1)}</span>`;
+        btn.innerHTML = `<span class="shell-avatar-photo">${p.avatarEmoji}</span><span class="profile-pick-meta"><span class="profile-pick-name">${escapeHtml(p.name)}</span><span class="shell-level-title">${escapeHtml(NP.levelTitle(p.level || 1, p.avatarEmoji))}</span></span>`;
         btn.addEventListener('click', () => showPinStep(p));
         list.appendChild(btn);
       });

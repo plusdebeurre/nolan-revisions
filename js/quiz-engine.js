@@ -245,10 +245,7 @@
         score++;
         streak++;
         updateScoreUI();
-        if (fun()) {
-          fun().showStreak(streak);
-          if (streak >= 3) fun().confetti({ count: 12 });
-        }
+        if (fun()) fun().showStreak(streak);
         feedbackArea.classList.add('bg-green-100', 'text-green-800');
         feedbackArea.innerHTML = `<strong>Well done! 🎉</strong><br>${current.explanation}`;
       } else {
