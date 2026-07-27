@@ -12,7 +12,7 @@
     .health-fill { height: 100%; background: linear-gradient(90deg, #22c55e, #84cc16); transition: width 0.4s ease; }
   </style>
 </head>
-<body class="game theme-science">
+<body class="game theme-science" data-game-id="science/care-the-plant-sim">
   <main class="w-full max-w-2xl mx-auto px-4 py-6">
     <div class="score-hud" id="score-hud">Score: 0 / 10</div>
     <div class="nav-bar">
@@ -248,5 +248,7 @@
       showRound();
     })();
   </script>
+  <script src="../../../js/progress.js"></script>
+  <script src="../../../js/shell.js"></script>
 </body>
 </html>

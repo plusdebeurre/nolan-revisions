@@ -220,6 +220,21 @@
       } else if (ratio >= goodThreshold) resultMessage.textContent = goodMessage;
       else resultMessage.textContent = tryAgainMessage;
       progressBar.style.width = '100%';
+
+      const gameId =
+        config.gameId ||
+        (document.body && document.body.getAttribute('data-game-id')) ||
+        (global.NolanProgress && global.NolanProgress.inferGameIdFromPath && global.NolanProgress.inferGameIdFromPath());
+      if (gameId && global.NolanProgress && global.NolanProgress.recordResult) {
+        const recorded = global.NolanProgress.recordResult(gameId, {
+          score,
+          total: quizData.length
+        });
+        if (recorded) {
+          document.dispatchEvent(new CustomEvent('nolan:progress', { detail: recorded }));
+          if (recorded.medal === 'gold' && fun()) fun().confetti({ count: 20 });
+        }
+      }
     }
 
     hintBtn.addEventListener('click', () => {

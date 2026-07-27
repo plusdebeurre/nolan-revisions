@@ -8,7 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../../css/shared.css">
 </head>
-<body class="game theme-science">
+<body class="game theme-science" data-game-id="science/plant-parts-label">
   <main class="w-full max-w-2xl mx-auto px-4 py-6">
     <div class="nav-bar">
       <a class="nav-link" href="../index.html">← Science</a>
@@ -241,5 +241,7 @@
     document.getElementById('restart-btn').addEventListener('click', resetGame);
     setupDraggables(document.querySelectorAll('#label-bank .draggable'));
   </script>
+  <script src="../../../js/progress.js"></script>
+  <script src="../../../js/shell.js"></script>
 </body>
 </html>

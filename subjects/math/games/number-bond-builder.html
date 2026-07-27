@@ -29,7 +29,7 @@
     .num-pick:disabled { cursor: default; opacity: 0.85; }
   </style>
 </head>
-<body class="game theme-math">
+<body class="game theme-math" data-game-id="math/number-bond-builder">
   <main class="w-full max-w-2xl mx-auto px-4 py-6">
     <div class="score-hud" id="score-hud">Score: 0 / 28</div>
     <div class="nav-bar">
@@ -198,5 +198,7 @@
       loadRound();
     })();
   </script>
+  <script src="../../../js/progress.js"></script>
+  <script src="../../../js/shell.js"></script>
 </body>
 </html>

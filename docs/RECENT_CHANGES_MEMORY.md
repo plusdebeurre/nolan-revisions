@@ -1,6 +1,22 @@
 # Recent Changes Memory
 
+## 2026-07-28 — Profiles, medals, XP & fullscreen
+
+### What changed
+- Added multi-child profiles with fruit-emoji secret PIN (`js/progress.js`), top shell bar + fullscreen (`js/shell.js`), medal chips on hub cards.
+- QuizEngine + result-screen watcher record scores → gold/silver/bronze by mistake count; XP/levels with fruit icons.
+- Progress saved in `localStorage` (works on free Netlify static hosting).
+- Wired all hubs/games with `data-game-id` and shared scripts.
+
+### User impact
+- Nolan (or another child) creates a profile, unlocks with a fruit, earns medals/XP, and resumes progress on the same device. Fullscreen for tablet play.
+
+### Key files
+- `js/progress.js`, `js/shell.js`, `js/quiz-engine.js`, `css/shared.css`
+- All `index.html` / subject hubs / game HTML pages
+
 ## 2026-07-27 — Variety expansion (6 games/subject + deep Math banks)
+
 
 ### What changed
 - Added `js/fun-effects.js` (confetti, shake, streak) and CSS score HUD / animations in `shared.css`.

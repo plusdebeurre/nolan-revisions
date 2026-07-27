@@ -87,7 +87,17 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 - `digit-bingo.html` — Arabic → Thai digit
 - `nam-sai-comic-choice.html` — story comic choices
 
+## Profiles, medals & XP
+
+- Multi-child **profiles** (first name + avatar + secret fruit emoji PIN), stored in browser `localStorage` (`nolan-hub-v1`).
+- Unlock by tapping the secret fruit; switch profiles from the top bar avatar.
+- Completing a game awards XP and a medal by mistakes (`total − score`): **gold** 0, **silver** 1, **bronze** 2.
+- Level fruit emoji beside the profile (every 150 XP). Progress is **per browser/device** (no cloud sync on free Netlify).
+- **Fullscreen** button in the top shell bar.
+- Shared scripts: `js/progress.js`, `js/shell.js` (loaded on every page).
+
 ## Shared quiz engine
+
 
 ```js
 QuizEngine.mount({
