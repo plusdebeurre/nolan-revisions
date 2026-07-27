@@ -46,6 +46,8 @@
       <p id="sort-progress" class="mt-2 text-sm font-semibold" style="color: var(--accent)">0 of 10 sorted</p>
     </header>
 
+    <div id="feedback-toast" class="feedback-toast">Nice! ✨</div>
+
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
       <div id="bin-healthy" class="sort-bin healthy-bin" data-accept="healthy">
         <p class="bin-title text-green-600">💚 Healthy Habit</p>
@@ -206,6 +208,13 @@
           activeEl.style.transform = 'translate(0, 0)';
           setTimeout(() => { activeEl.style.transition = ''; }, 250);
           if (window.FunEffects) FunEffects.shake(activeEl);
+          const toast = document.getElementById('feedback-toast') || document.getElementById('wrong-toast');
+          if (toast) {
+            toast.textContent = 'Wrong bin — no point! Try again.';
+            toast.style.background = '#ef4444';
+            toast.style.opacity = '1';
+            setTimeout(() => { toast.style.opacity = '0'; }, 900);
+          }
         }
         activeEl = null;
         captureId = null;

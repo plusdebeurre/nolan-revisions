@@ -638,6 +638,87 @@ body.theme-hub {
   color: var(--accent-dark, #475569);
 }
 
+.family-code-chip {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0 0 0.85rem;
+  padding: 0.45rem 0.65rem;
+  background: #f8fafc;
+  border-radius: 0.75rem;
+  border: 2px solid #e2e8f0;
+}
+
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 55vh;
+  overflow: auto;
+}
+
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 1rem;
+  border: 2px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.leaderboard-row.is-you {
+  border-color: #fbbf24;
+  background: #fffbeb;
+}
+
+.lb-rank {
+  font-weight: 800;
+  width: 1.5rem;
+  color: #64748b;
+  text-align: center;
+}
+
+.lb-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.lb-name {
+  font-weight: 700;
+  color: #334155;
+}
+
+.lb-title {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lb-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1rem;
+  flex-shrink: 0;
+}
+
+.lb-xp {
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: #0f172a;
+}
+
+.lb-medals {
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
 /* Profile shell + medals + fullscreen */
 body {
   padding-top: 3.25rem;
@@ -661,7 +742,8 @@ body {
 }
 
 .shell-profile-btn,
-.shell-fs-btn {
+.shell-fs-btn,
+.shell-lb-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -677,8 +759,14 @@ body {
 }
 
 .shell-profile-btn:hover,
-.shell-fs-btn:hover {
+.shell-fs-btn:hover,
+.shell-lb-btn:hover {
   border-color: var(--accent, #94a3b8);
+}
+
+.shell-lb-btn {
+  font-size: 1.15rem;
+  padding: 0.35rem 0.65rem;
 }
 
 .shell-avatar {

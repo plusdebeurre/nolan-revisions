@@ -147,7 +147,7 @@
         },
         {
           mode: 'blank',
-          before: '🦁 Nolan',
+          before: '🦁 {{name}}',
           after: ' sees a lion at the zoo (only on special trips).',
           answer: 'Sometimes',
           pct: 50,
@@ -253,6 +253,8 @@
         feedback.classList.add('hidden');
         nextBtn.classList.add('hidden');
         adverbGrid.innerHTML = '';
+        const fill = (t) =>
+          window.NolanProgress && NolanProgress.fillName ? NolanProgress.fillName(t) : String(t || '');
 
         const round = ROUNDS[roundIndex];
         roundLabel.textContent = `Round ${roundIndex + 1} of ${ROUNDS.length}`;
@@ -260,11 +262,11 @@
 
         if (round.mode === 'blank') {
           promptType.textContent = 'Fill the blank';
-          sentenceArea.innerHTML = `${round.before} <span class="sentence-blank">?</span> ${round.after}`;
+          sentenceArea.innerHTML = `${fill(round.before)} <span class="sentence-blank">?</span> ${fill(round.after)}`;
           setMeter(round.pct);
         } else {
           promptType.textContent = 'Read the meter';
-          sentenceArea.textContent = round.sentence;
+          sentenceArea.textContent = fill(round.sentence);
           setMeter(round.pct);
         }
 

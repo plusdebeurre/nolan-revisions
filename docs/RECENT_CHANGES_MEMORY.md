@@ -1,5 +1,21 @@
 # Recent Changes Memory
 
+## 2026-07-28 — Cloud family sync, leaderboard, score feedback
+
+### What changed
+- Netlify Blobs + `netlify/functions/family-api.js`: create/join family by share code; pull/push profiles (XP, medals, checkpoints). `localStorage` is cache.
+- Family leaderboard modal (🏆): XP + gold/silver/bronze counts across profiles.
+- Brand/copy: **Learning Adventure**; quiz `{{name}}` → active profile name (not fixed “Nolan”).
+- HPE feedback fixes: Super Teeth Care live score + wrong-bin toast; healthy-day bad-pick; organs live score; sugar-sneak / posture wrong-bin messages.
+
+### User impact
+- Same family code works on any browser/device. Kids see who is ahead on XP/medals. Sort games always say if the drop was right or wrong.
+
+### Key files
+- `netlify/functions/family-api.js`, `package.json`, `netlify.toml`
+- `js/progress.js`, `js/shell.js`, `js/quiz-engine.js`, `css/shared.css`
+- HPE game HTML, docs
+
 ## 2026-07-28 — Streak celebrations + profile level titles
 
 ### What changed

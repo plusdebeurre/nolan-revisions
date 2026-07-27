@@ -45,6 +45,7 @@
         <h1 class="text-3xl md:text-4xl font-bold mb-2 drop-shadow-sm" style="color: var(--accent-dark)">🦷 Super Teeth Care</h1>
         <p class="text-lg text-slate-500 font-medium">Drag each habit into Good or Bad for your teeth!</p>
         <p id="sort-progress" class="mt-2 text-sm font-semibold" style="color: var(--accent)">0 of 6 sorted</p>
+        <p id="live-score-hud" class="live-score-line score-hud" style="position:relative;top:auto;right:auto;display:inline-block;margin-top:0.5rem">Score: 0 / 6</p>
       </header>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -90,6 +91,7 @@
   </main>
 
   <div id="feedback-toast" class="feedback-toast">Nice! ✨</div>
+  <div id="wrong-toast" class="feedback-toast" style="background:#ef4444">Not that bin!</div>
 
   <script src="../../../js/fun-effects.js"></script>
   <script src="../../../js/progress.js"></script>
@@ -142,6 +144,21 @@
       const phaseQuiz = document.getElementById('phase-quiz');
       const winScreen = document.getElementById('win-screen');
       const toast = document.getElementById('feedback-toast');
+      const wrongToast = document.getElementById('wrong-toast');
+      const liveScoreHud = document.getElementById('live-score-hud');
+
+      function updateSortScore() {
+        sortProgress.textContent = `${sortedCount} of ${SORT_TOTAL} sorted`;
+        if (liveScoreHud) liveScoreHud.textContent = `Score: ${sortedCount} / ${SORT_TOTAL}`;
+        if (window.FunEffects) FunEffects.pulseScore(liveScoreHud);
+      }
+
+      function showToast(msg, ok) {
+        const el = ok ? toast : wrongToast;
+        el.textContent = msg;
+        el.style.opacity = '1';
+        setTimeout(() => { el.style.opacity = '0'; }, 1100);
+      }
 
       function shuffle(arr) {
         const a = arr.slice();
@@ -158,6 +175,7 @@
         document.querySelectorAll('.bin-items').forEach(b => { b.innerHTML = ''; });
         btnToQuiz.classList.add('hidden');
         sortProgress.textContent = '0 of 6 sorted';
+        if (liveScoreHud) liveScoreHud.textContent = 'Score: 0 / 6';
         activeBins = [document.getElementById('bin-good'), document.getElementById('bin-bad')];
 
         shuffle(HABITS).forEach(h => {
@@ -214,9 +232,11 @@
         activeBins.forEach(b => b.classList.remove('highlight'));
         const elRect = activeEl.getBoundingClientRect();
         let dropped = false;
+        let wrongBin = null;
         for (const bin of activeBins) {
           const rect = bin.getBoundingClientRect();
-          if (isOverlap(elRect, rect) && bin.dataset.accept === activeEl.dataset.kind) {
+          if (!isOverlap(elRect, rect)) continue;
+          if (bin.dataset.accept === activeEl.dataset.kind) {
             const items = bin.querySelector('.bin-items');
             items.appendChild(activeEl);
             activeEl.style.transform = 'none';
@@ -224,19 +244,30 @@
             activeEl.classList.remove('draggable');
             dropped = true;
             sortedCount++;
-            sortProgress.textContent = `${sortedCount} of 6 sorted`;
-            showToast();
-            if (sortedCount === 6) {
+            updateSortScore();
+            const good = activeEl.dataset.kind === 'good';
+            showToast(good ? 'Yes! Good for teeth — +1 ✨' : 'Right bin! Bad for teeth — +1 ✨', true);
+            if (sortedCount === SORT_TOTAL) {
               btnToQuiz.classList.remove('hidden');
               btnToQuiz.classList.add('animate-tada');
             }
             break;
           }
+          wrongBin = bin;
         }
         if (!dropped) {
           activeEl.style.transition = 'transform 0.25s ease';
           activeEl.style.transform = 'translate(0, 0)';
-          setTimeout(() => { activeEl.style.transition = ''; }, 250);
+          if (window.FunEffects) FunEffects.shake(activeEl);
+          if (wrongBin) {
+            showToast(
+              wrongBin.dataset.accept === 'good'
+                ? 'Oops! That habit is bad for teeth — try the red bin.'
+                : 'Oops! That habit is good for teeth — try the green bin.',
+              false
+            );
+          }
+          setTimeout(() => { if (activeEl) activeEl.style.transition = ''; }, 250);
         }
         activeEl = null;
       }
@@ -256,11 +287,6 @@
             bin.classList.remove('highlight');
           }
         });
-      }
-
-      function showToast() {
-        toast.style.opacity = '1';
-        setTimeout(() => { toast.style.opacity = '0'; }, 900);
       }
 
       document.addEventListener('pointermove', onPointerMove);

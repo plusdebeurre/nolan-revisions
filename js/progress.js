@@ -1,10 +1,11 @@
 /**
- * Nolan Hub progress: multi-child profiles, fruit PIN, medals, XP/levels.
- * Persistence: localStorage only (free Netlify static compatible).
+ * Learning Adventure progress: multi-child profiles, fruit PIN, medals, XP,
+ * Netlify Blobs family sync (localStorage cache).
  */
 (function (global) {
   const STORE_KEY = 'nolan-hub-v1';
   const SESSION_KEY = 'nolan-hub-session';
+  const FAMILY_KEY = 'nolan-family-code';
   const PIN_FRUITS = ['🍎', '🍌', '🍇', '🍓', '🍊', '🍉', '🍒', '🥝'];
   const AVATARS = ['🦊', '🐼', '🦁', '🐸', '🐯', '🐰', '🐻', '🐨', '🦄', '🐶'];
   const AVATAR_CREATURES = {
@@ -33,24 +34,57 @@
   const XP_PER_LEVEL = 150;
   const MEDAL_RANK = { gold: 3, silver: 2, bronze: 1, played: 0 };
 
+  let pushTimer = null;
+  let syncing = false;
+
   function uid() {
     return 'p_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7);
+  }
+
+  function nowIso() {
+    return new Date().toISOString();
+  }
+
+  function apiUrl() {
+    return '/.netlify/functions/family-api';
   }
 
   function load() {
     try {
       const raw = localStorage.getItem(STORE_KEY);
-      if (!raw) return { activeProfileId: null, profiles: {} };
+      if (!raw) return { activeProfileId: null, familyCode: getFamilyCode(), profiles: {} };
       const data = JSON.parse(raw);
       if (!data.profiles) data.profiles = {};
+      if (!data.familyCode) data.familyCode = getFamilyCode();
       return data;
     } catch (e) {
-      return { activeProfileId: null, profiles: {} };
+      return { activeProfileId: null, familyCode: getFamilyCode(), profiles: {} };
     }
   }
 
   function save(data) {
+    if (data.familyCode) setFamilyCode(data.familyCode);
     localStorage.setItem(STORE_KEY, JSON.stringify(data));
+  }
+
+  function getFamilyCode() {
+    try {
+      return (localStorage.getItem(FAMILY_KEY) || '').toUpperCase() || null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function setFamilyCode(code) {
+    try {
+      if (code) localStorage.setItem(FAMILY_KEY, String(code).toUpperCase());
+      else localStorage.removeItem(FAMILY_KEY);
+    } catch (e) { /* ignore */ }
+  }
+
+  function hasFamily() {
+    const c = getFamilyCode();
+    return !!(c && c.length >= 6);
   }
 
   function getSessionUnlockedId() {
@@ -87,9 +121,20 @@
     return levelEpithet(level) + ' ' + avatarCreature(avatarEmoji);
   }
 
-  /** @deprecated Level fruit emoji removed — kept empty for old callers. */
   function levelFruit() {
     return '';
+  }
+
+  function playerName() {
+    const p = getActiveProfile();
+    return (p && p.name) || 'You';
+  }
+
+  function fillName(text) {
+    const name = playerName();
+    return String(text || '')
+      .replace(/\{\{name\}\}/gi, name)
+      .replace(/\{\{Name\}\}/g, name);
   }
 
   function medalFromMistakes(mistakes) {
@@ -115,6 +160,11 @@
     const base = Math.round(40 * ratio);
     const bonus = mistakes === 0 ? 20 : mistakes === 1 ? 10 : mistakes === 2 ? 5 : 0;
     return base + bonus;
+  }
+
+  function touchProfile(p) {
+    if (p) p.updatedAt = nowIso();
+    return p;
   }
 
   function listProfiles() {
@@ -143,7 +193,7 @@
     const avatar = AVATARS.includes(avatarEmoji) ? avatarEmoji : AVATARS[0];
     const data = load();
     const id = uid();
-    data.profiles[id] = {
+    data.profiles[id] = touchProfile({
       id,
       name: clean,
       avatarEmoji: avatar,
@@ -151,8 +201,9 @@
       xp: 0,
       level: 1,
       games: {}
-    };
+    });
     save(data);
+    schedulePush();
     return data.profiles[id];
   }
 
@@ -197,9 +248,11 @@
       index: Math.max(0, Number(state.index) || 0),
       score: Math.max(0, Number(state.score) || 0),
       extra: state.extra && typeof state.extra === 'object' ? state.extra : {},
-      updatedAt: new Date().toISOString()
+      updatedAt: nowIso()
     };
+    touchProfile(p);
     save(data);
+    schedulePush();
     return entry.checkpoint;
   }
 
@@ -216,7 +269,9 @@
     const p = data.profiles[profile.id];
     if (!p || !p.games || !p.games[gameId]) return;
     delete p.games[gameId].checkpoint;
+    touchProfile(p);
     save(data);
+    schedulePush();
   }
 
   function recordResult(gameId, { score, total }) {
@@ -243,12 +298,13 @@
       bestScore: betterScore ? clamped : prev.bestScore,
       bestTotal: betterScore ? t : prev.bestTotal || t,
       plays: (prev.plays || 0) + 1,
-      lastPlayed: new Date().toISOString()
-      // checkpoint cleared on complete
+      lastPlayed: nowIso()
     };
     p.xp = (p.xp || 0) + gained;
     p.level = levelFromXp(p.xp);
+    touchProfile(p);
     save(data);
+    schedulePush();
 
     return {
       medal,
@@ -266,6 +322,40 @@
     const profile = getActiveProfile();
     if (!profile || !gameId) return null;
     return (profile.games && profile.games[gameId]) || null;
+  }
+
+  function countMedals(profile) {
+    const counts = { gold: 0, silver: 0, bronze: 0 };
+    if (!profile || !profile.games) return counts;
+    Object.keys(profile.games).forEach((gid) => {
+      const m = profile.games[gid] && profile.games[gid].bestMedal;
+      if (m === 'gold' || m === 'silver' || m === 'bronze') counts[m]++;
+    });
+    return counts;
+  }
+
+  function leaderboardRows() {
+    return listProfiles()
+      .map((p) => {
+        const medals = countMedals(p);
+        return {
+          id: p.id,
+          name: p.name,
+          avatarEmoji: p.avatarEmoji,
+          xp: p.xp || 0,
+          level: p.level || levelFromXp(p.xp || 0),
+          levelTitle: levelTitle(p.level || 1, p.avatarEmoji),
+          gold: medals.gold,
+          silver: medals.silver,
+          bronze: medals.bronze
+        };
+      })
+      .sort((a, b) => {
+        if (b.xp !== a.xp) return b.xp - a.xp;
+        if (b.gold !== a.gold) return b.gold - a.gold;
+        if (b.silver !== a.silver) return b.silver - a.silver;
+        return a.name.localeCompare(b.name);
+      });
   }
 
   function inferGameIdFromPath() {
@@ -299,7 +389,6 @@
     return recordResult(id, { score, total });
   }
 
-  /** Watch result/win screens and auto-record once per show. */
   function watchResultScreens() {
     const gameId = inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
     if (!gameId) return;
@@ -339,10 +428,6 @@
     setTimeout(() => toast.remove(), 2200);
   }
 
-  /**
-   * Convenience for round-based custom games.
-   * indexKey: property name on a shared state object, or use restoreRound helpers.
-   */
   function bindRoundCheckpoint(gameId, getters) {
     const id = gameId || inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
     if (!id) return null;
@@ -362,6 +447,112 @@
         clearCheckpoint(id);
       }
     };
+  }
+
+  async function apiPost(payload) {
+    const res = await fetch(apiUrl(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    let data = null;
+    try {
+      data = await res.json();
+    } catch (e) {
+      data = { ok: false, error: 'Bad response' };
+    }
+    if (!res.ok || !data.ok) {
+      const err = new Error((data && data.error) || 'Sync failed');
+      err.status = res.status;
+      err.data = data;
+      throw err;
+    }
+    return data;
+  }
+
+  function applyFamily(family) {
+    if (!family || !family.code) return;
+    const data = load();
+    data.familyCode = family.code;
+    setFamilyCode(family.code);
+    const incoming = family.profiles || {};
+    Object.keys(incoming).forEach((id) => {
+      const remote = incoming[id];
+      if (!remote) return;
+      const local = data.profiles[id];
+      if (!local) {
+        data.profiles[id] = remote;
+        return;
+      }
+      const remoteAt = Date.parse(remote.updatedAt || 0) || 0;
+      const localAt = Date.parse(local.updatedAt || 0) || 0;
+      if (remoteAt >= localAt) data.profiles[id] = remote;
+    });
+    save(data);
+    document.dispatchEvent(new CustomEvent('nolan:family', { detail: { code: family.code } }));
+  }
+
+  async function createFamily() {
+    const data = await apiPost({ action: 'create' });
+    applyFamily(data.family);
+    // Push any local profiles that existed before family
+    await pushFamily();
+    return data.family;
+  }
+
+  async function joinFamily(code) {
+    const data = await apiPost({ action: 'join', code: String(code || '').toUpperCase() });
+    applyFamily(data.family);
+    await pushFamily();
+    return data.family;
+  }
+
+  async function pullFamily() {
+    const code = getFamilyCode();
+    if (!code) return null;
+    try {
+      const data = await apiPost({ action: 'pull', code });
+      applyFamily(data.family);
+      return data.family;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function pushFamily() {
+    const code = getFamilyCode();
+    if (!code) return null;
+    const data = load();
+    try {
+      const res = await apiPost({ action: 'push', code, profiles: data.profiles });
+      applyFamily(res.family);
+      return res.family;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function schedulePush() {
+    if (!hasFamily()) return;
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(() => {
+      pushFamily().catch(() => {});
+    }, 600);
+  }
+
+  async function ensureFamilyReady() {
+    if (hasFamily()) {
+      if (!syncing) {
+        syncing = true;
+        try {
+          await pullFamily();
+        } finally {
+          syncing = false;
+        }
+      }
+      return true;
+    }
+    return false;
   }
 
   global.NolanProgress = {
@@ -394,6 +585,18 @@
     medalFromMistakes,
     inferGameIdFromPath,
     watchResultScreens,
+    playerName,
+    fillName,
+    countMedals,
+    leaderboardRows,
+    hasFamily,
+    getFamilyCode,
+    createFamily,
+    joinFamily,
+    pullFamily,
+    pushFamily,
+    ensureFamilyReady,
+    schedulePush,
     xpToNext(profile) {
       const xp = (profile && profile.xp) || 0;
       const level = levelFromXp(xp);

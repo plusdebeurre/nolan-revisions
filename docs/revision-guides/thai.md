@@ -1,6 +1,6 @@
 # Guide de révision — Thai Grade 2 (rattrapage)
 
-Guide parent pour aider Nolan à rattraper le niveau exigé par le curriculum thaï Grade 2. L’interface des jeux est en **anglais** ; les caractères thaïs apparaissent dans les exercices.
+Guide parent pour aider l'enfant à rattraper le niveau exigé par le curriculum thaï Grade 2. L’interface des jeux est en **anglais** ; les caractères thaïs apparaissent dans les exercices.
 
 ## Ouvrir les jeux
 

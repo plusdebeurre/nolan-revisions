@@ -79,12 +79,24 @@
       subtitle = 'Grade 2',
       backHref = '../index.html',
       homeHref = '../../../index.html',
-      quizData = [],
       perfectMessage = 'Perfect score! You are a champion! 🌟',
       goodMessage = 'Great job! Keep it up! 👍',
       tryAgainMessage = 'Good try! Practice again and you will get there! 💪',
       goodThreshold = 0.7
     } = config;
+
+    const fill = (t) =>
+      global.NolanProgress && global.NolanProgress.fillName
+        ? global.NolanProgress.fillName(t)
+        : String(t || '');
+    const quizData = (config.quizData || []).map((q) =>
+      Object.assign({}, q, {
+        question: fill(q.question),
+        explanation: fill(q.explanation),
+        hint: q.hint ? fill(q.hint) : q.hint,
+        options: Array.isArray(q.options) ? q.options.map(fill) : q.options
+      })
+    );
 
     document.body.className = `game theme-${subject}`;
     const app = document.getElementById('app') || document.body.appendChild(el('div', '', null));

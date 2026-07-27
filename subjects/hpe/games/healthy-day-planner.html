@@ -135,12 +135,21 @@
         } else if (selected.size < MAX_PICKS) {
           selected.add(id);
           btn.classList.add('selected');
+          const choice = getChoice(id);
+          if (choice && !choice.healthy) {
+            btn.classList.add('bad-pick');
+            if (window.FunEffects) FunEffects.shake(btn);
+          }
         }
         updatePickUI();
       }
 
       function updatePickUI() {
-        pickCount.textContent = `Selected: ${selected.size} / ${MAX_PICKS}`;
+        let healthyCount = 0;
+        selected.forEach((id) => {
+          if (getChoice(id).healthy) healthyCount++;
+        });
+        pickCount.textContent = `Selected: ${selected.size} / ${MAX_PICKS} · Healthy: ${healthyCount}`;
         const ready = selected.size === MAX_PICKS;
         checkBtn.disabled = !ready;
         checkBtn.classList.toggle('opacity-50', !ready);

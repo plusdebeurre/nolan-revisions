@@ -210,6 +210,14 @@
           activeEl.style.transform = 'translate(0, 0)';
           setTimeout(() => { activeEl.style.transition = ''; }, 250);
           if (window.FunEffects) FunEffects.shake(activeEl);
+          toast.textContent = 'Wrong bin — no point! Try the other one.';
+          toast.style.background = '#ef4444';
+          toast.style.opacity = '1';
+          setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.background = '';
+            toast.textContent = 'Nice! ✨';
+          }, 900);
         }
         activeEl = null;
         captureId = null;

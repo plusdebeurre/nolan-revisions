@@ -1,5 +1,5 @@
 /**
- * Nolan Hub shell: profile gate, top bar, fullscreen (app iframe), hub medals.
+ * Learning Adventure shell: family gate, profiles, leaderboard, fullscreen, hub medals.
  */
 (function () {
   const FS_KEY = 'nolanWantFs';
@@ -107,9 +107,11 @@
       document.body.prepend(bar);
     }
     const profile = NP && NP.getActiveProfile();
+    const familyBtn = `<button type="button" class="shell-lb-btn" id="shell-leaderboard" title="Leaderboard">🏆</button>`;
     if (!profile) {
       bar.innerHTML = `
         <button type="button" class="shell-profile-btn" id="shell-open-profiles">👤 Who is playing?</button>
+        ${familyBtn}
         <button type="button" class="shell-fs-btn" id="shell-fullscreen" title="Fullscreen">⛶ Full screen</button>
       `;
     } else {
@@ -128,11 +130,13 @@
           <div class="shell-xp-track"><div class="shell-xp-fill" style="width:${pct}%"></div></div>
           <span class="shell-xp-text">${profile.xp} XP</span>
         </div>
+        ${familyBtn}
         <button type="button" class="shell-fs-btn" id="shell-fullscreen" title="Fullscreen">⛶ Full screen</button>
       `;
     }
     document.getElementById('shell-open-profiles')?.addEventListener('click', () => openProfileModal());
     document.getElementById('shell-fullscreen')?.addEventListener('click', enterFullscreenFlow);
+    document.getElementById('shell-leaderboard')?.addEventListener('click', openLeaderboard);
   }
 
   function showFsChip() {
@@ -164,11 +168,152 @@
       }
       return;
     }
-    // Jump into app shell so navigation stays inside iframe while parent stays fullscreen
     location.href = resolveAppUrl();
   }
 
-  function openProfileModal(force) {
+  function openFamilyModal() {
+    if (IN_IFRAME) {
+      try {
+        window.top.postMessage({ type: 'nolan:open-family' }, '*');
+      } catch (e) { /* ignore */ }
+      return;
+    }
+    const NP = window.NolanProgress;
+    if (!NP) return;
+    let modal = document.getElementById('nolan-family-modal');
+    if (!modal) {
+      modal = el('div', 'nolan-modal-backdrop');
+      modal.id = 'nolan-family-modal';
+      document.body.appendChild(modal);
+    }
+    modal.classList.remove('hidden');
+    modal.innerHTML = `
+      <div class="nolan-modal question-card animate-pop" role="dialog" aria-modal="true">
+        <h2 class="nolan-modal-title">Family code</h2>
+        <p class="nolan-modal-sub">Save progress on every phone, tablet, and computer with one secret code.</p>
+        <button type="button" class="btn-primary w-full" id="btn-family-create">Create a new family</button>
+        <p class="text-center text-slate-500 font-semibold my-3">or</p>
+        <label class="block text-sm font-semibold mb-1">Enter family code</label>
+        <input id="family-code-input" class="profile-input" maxlength="8" placeholder="AB12CD" autocomplete="off" style="text-transform:uppercase" />
+        <button type="button" class="btn-primary w-full mt-3" id="btn-family-join">Join family</button>
+        <p id="family-error" class="hidden text-red-600 font-semibold mt-3 text-center"></p>
+        <p id="family-busy" class="hidden text-slate-500 text-center mt-3">Working…</p>
+      </div>
+    `;
+    const err = modal.querySelector('#family-error');
+    const busy = modal.querySelector('#family-busy');
+    const setBusy = (on) => busy.classList.toggle('hidden', !on);
+    const setErr = (msg) => {
+      if (!msg) {
+        err.classList.add('hidden');
+        return;
+      }
+      err.textContent = msg;
+      err.classList.remove('hidden');
+    };
+
+    modal.querySelector('#btn-family-create')?.addEventListener('click', async () => {
+      setErr('');
+      setBusy(true);
+      try {
+        const family = await NP.createFamily();
+        modal.classList.add('hidden');
+        openProfileModal(true);
+        alert('Your family code is ' + family.code + '. Write it down so other devices can join!');
+      } catch (e) {
+        setErr('Could not create family. Use the live website (not a local file).');
+      } finally {
+        setBusy(false);
+      }
+    });
+
+    modal.querySelector('#btn-family-join')?.addEventListener('click', async () => {
+      setErr('');
+      setBusy(true);
+      try {
+        const code = modal.querySelector('#family-code-input').value;
+        await NP.joinFamily(code);
+        modal.classList.add('hidden');
+        openProfileModal(true);
+      } catch (e) {
+        setErr('Code not found. Check the letters and try again.');
+      } finally {
+        setBusy(false);
+      }
+    });
+  }
+
+  async function openLeaderboard() {
+    if (IN_IFRAME) {
+      try {
+        window.top.postMessage({ type: 'nolan:open-leaderboard' }, '*');
+      } catch (e) { /* ignore */ }
+      return;
+    }
+    const NP = window.NolanProgress;
+    if (!NP) return;
+    if (!NP.hasFamily()) {
+      openFamilyModal();
+      return;
+    }
+    let modal = document.getElementById('nolan-leaderboard-modal');
+    if (!modal) {
+      modal = el('div', 'nolan-modal-backdrop');
+      modal.id = 'nolan-leaderboard-modal';
+      document.body.appendChild(modal);
+    }
+    modal.classList.remove('hidden');
+    modal.innerHTML = `
+      <div class="nolan-modal question-card animate-pop" role="dialog" aria-modal="true">
+        <h2 class="nolan-modal-title">🏆 Leaderboard</h2>
+        <p class="nolan-modal-sub">Family code: <strong id="lb-code">${escapeHtml(NP.getFamilyCode() || '')}</strong>
+          <button type="button" class="nav-link" id="lb-copy" style="display:inline;margin-left:0.35rem">Copy</button>
+        </p>
+        <p id="lb-status" class="text-center text-slate-500 text-sm mb-2">Loading…</p>
+        <div id="lb-list" class="leaderboard-list"></div>
+        <button type="button" class="nav-link mt-4" id="lb-close">Close</button>
+      </div>
+    `;
+    modal.querySelector('#lb-close')?.addEventListener('click', () => modal.classList.add('hidden'));
+    modal.querySelector('#lb-copy')?.addEventListener('click', () => {
+      const code = NP.getFamilyCode();
+      if (code && navigator.clipboard) navigator.clipboard.writeText(code).catch(() => {});
+    });
+
+    const status = modal.querySelector('#lb-status');
+    const list = modal.querySelector('#lb-list');
+    try {
+      await NP.pullFamily();
+      status.textContent = 'Ranked by XP and medals';
+    } catch (e) {
+      status.textContent = 'Showing saved scores (offline)';
+    }
+    const active = NP.getActiveProfile();
+    const rows = NP.leaderboardRows();
+    if (!rows.length) {
+      list.innerHTML = '<p class="text-center text-slate-500">No players yet. Create a profile!</p>';
+      return;
+    }
+    list.innerHTML = '';
+    rows.forEach((row, i) => {
+      const item = el('div', 'leaderboard-row' + (active && active.id === row.id ? ' is-you' : ''));
+      item.innerHTML = `
+        <span class="lb-rank">${i + 1}</span>
+        <span class="shell-avatar-photo">${row.avatarEmoji}</span>
+        <span class="lb-meta">
+          <span class="lb-name">${escapeHtml(row.name)}${active && active.id === row.id ? ' (you)' : ''}</span>
+          <span class="lb-title">${escapeHtml(row.levelTitle)}</span>
+        </span>
+        <span class="lb-stats">
+          <span class="lb-xp">${row.xp} XP</span>
+          <span class="lb-medals">🥇${row.gold} 🥈${row.silver} 🥉${row.bronze}</span>
+        </span>
+      `;
+      list.appendChild(item);
+    });
+  }
+
+  function openProfileModal() {
     if (IN_IFRAME) {
       try {
         window.top.postMessage({ type: 'nolan:open-profiles' }, '*');
@@ -177,6 +322,11 @@
     }
     const NP = window.NolanProgress;
     if (!NP) return;
+    if (!NP.hasFamily()) {
+      openFamilyModal();
+      return;
+    }
+
     let modal = document.getElementById('nolan-profile-modal');
     if (!modal) {
       modal = el('div', 'nolan-modal-backdrop');
@@ -187,11 +337,15 @@
 
     const profiles = NP.listProfiles();
     const unlocked = NP.isUnlocked();
+    const code = NP.getFamilyCode() || '';
 
     modal.innerHTML = `
       <div class="nolan-modal question-card animate-pop" role="dialog" aria-modal="true">
         <h2 class="nolan-modal-title">Who is playing?</h2>
         <p class="nolan-modal-sub">Pick a profile, then tap your secret fruit.</p>
+        <p class="family-code-chip">Family: <strong>${escapeHtml(code)}</strong>
+          <button type="button" class="nav-link" id="btn-copy-family" style="display:inline;margin-left:0.35rem">Copy</button>
+        </p>
         <div id="profile-list" class="profile-list"></div>
         <button type="button" class="btn-primary w-full mt-4" id="btn-create-profile">+ New profile</button>
         <div id="profile-create" class="hidden mt-4"></div>
@@ -199,6 +353,10 @@
         ${unlocked ? '<button type="button" class="nav-link mt-4" id="btn-close-profiles">Keep playing</button>' : ''}
       </div>
     `;
+
+    modal.querySelector('#btn-copy-family')?.addEventListener('click', () => {
+      if (code && navigator.clipboard) navigator.clipboard.writeText(code).catch(() => {});
+    });
 
     const list = modal.querySelector('#profile-list');
     if (!profiles.length) {
@@ -234,7 +392,7 @@
     box.innerHTML = `
       <h3 class="font-bold text-lg mb-2">Create a profile</h3>
       <label class="block text-sm font-semibold mb-1">First name</label>
-      <input id="create-name" class="profile-input" maxlength="24" placeholder="e.g. Nolan" autocomplete="off" />
+      <input id="create-name" class="profile-input" maxlength="24" placeholder="e.g. Alex" autocomplete="off" />
       <p class="text-sm font-semibold mt-3 mb-1">Pick an avatar</p>
       <div class="fruit-grid" id="avatar-grid"></div>
       <p class="text-sm font-semibold mt-3 mb-1">Secret fruit (remember it!)</p>
@@ -266,7 +424,7 @@
       });
       pinGrid.appendChild(b);
     });
-    box.querySelector('#btn-cancel-create')?.addEventListener('click', () => openProfileModal(true));
+    box.querySelector('#btn-cancel-create')?.addEventListener('click', () => openProfileModal());
     box.querySelector('#btn-save-profile')?.addEventListener('click', () => {
       const name = box.querySelector('#create-name').value;
       if (!name.trim()) {
@@ -329,7 +487,7 @@
       });
       grid.appendChild(b);
     });
-    box.querySelector('#btn-pin-back')?.addEventListener('click', () => openProfileModal(true));
+    box.querySelector('#btn-pin-back')?.addEventListener('click', () => openProfileModal());
   }
 
   function boot() {
@@ -340,36 +498,43 @@
     }
 
     ensureProgress(() => {
-      if (!IN_IFRAME) {
-        renderTopBar();
-        if (!window.NolanProgress?.isUnlocked()) {
-          openProfileModal(true);
+      const NP = window.NolanProgress;
+      const afterFamily = () => {
+        if (!IN_IFRAME) {
+          renderTopBar();
+          if (!NP?.hasFamily()) openFamilyModal();
+          else if (!NP.isUnlocked()) openProfileModal();
+          else paintHubMedals();
+          document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) hideFsChip();
+            else {
+              sessionStorage.setItem(FS_KEY, '0');
+              hideFsChip();
+            }
+          });
+          if (IS_APP && sessionStorage.getItem(FS_KEY) === '1' && !document.fullscreenElement) {
+            showFsChip();
+          }
         } else {
+          if (!NP?.isUnlocked()) {
+            try {
+              window.top.postMessage({ type: 'nolan:open-profiles' }, '*');
+            } catch (e) { /* ignore */ }
+          }
           paintHubMedals();
         }
-        document.addEventListener('fullscreenchange', () => {
-          if (document.fullscreenElement) hideFsChip();
-          else {
-            sessionStorage.setItem(FS_KEY, '0');
-            hideFsChip();
-          }
-        });
-        if (IS_APP && sessionStorage.getItem(FS_KEY) === '1' && !document.fullscreenElement) {
-          showFsChip();
+
+        if (document.body?.classList.contains('game') || /\/games\//.test(location.pathname)) {
+          NP?.watchResultScreens();
         }
+      };
+
+      if (NP?.hasFamily()) {
+        NP.ensureFamilyReady().finally(afterFamily);
       } else {
-        // Inside iframe: medals only; gate if locked (parent usually already unlocked)
-        if (!window.NolanProgress?.isUnlocked()) {
-          try {
-            window.top.postMessage({ type: 'nolan:open-profiles' }, '*');
-          } catch (e) { /* ignore */ }
-        }
-        paintHubMedals();
+        afterFamily();
       }
 
-      if (document.body?.classList.contains('game') || /\/games\//.test(location.pathname)) {
-        window.NolanProgress?.watchResultScreens();
-      }
       document.addEventListener('nolan:progress', () => {
         if (!IN_IFRAME) renderTopBar();
         paintHubMedals();
@@ -377,17 +542,18 @@
           if (IN_IFRAME) window.top.postMessage({ type: 'nolan:progress' }, '*');
         } catch (e) { /* ignore */ }
       });
+      document.addEventListener('nolan:family', () => {
+        if (!IN_IFRAME) renderTopBar();
+      });
     });
 
     window.addEventListener('message', (ev) => {
       if (!ev.data || typeof ev.data !== 'object') return;
-      if (ev.data.type === 'nolan:open-profiles' && !IN_IFRAME) openProfileModal(true);
-      if (ev.data.type === 'nolan:progress' && !IN_IFRAME) {
-        renderTopBar();
-      }
-      if (ev.data.type === 'nolan:unlocked' && IN_IFRAME) {
-        paintHubMedals();
-      }
+      if (ev.data.type === 'nolan:open-profiles' && !IN_IFRAME) openProfileModal();
+      if (ev.data.type === 'nolan:open-family' && !IN_IFRAME) openFamilyModal();
+      if (ev.data.type === 'nolan:open-leaderboard' && !IN_IFRAME) openLeaderboard();
+      if (ev.data.type === 'nolan:progress' && !IN_IFRAME) renderTopBar();
+      if (ev.data.type === 'nolan:unlocked' && IN_IFRAME) paintHubMedals();
     });
   }
 

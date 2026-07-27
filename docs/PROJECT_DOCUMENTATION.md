@@ -1,32 +1,26 @@
-# Nolan Grade 2 Learning Hub
+# Learning Adventure (Grade 2)
 
-Static, offline-friendly revision games for a Grade 2 learner (age ~7). Child UI is **English**. Parent revision guides may stay in French.
+Static revision games for a Grade 2 learner (age ~7). Child UI is **English**. Parent revision guides may stay in French. Brand uses the **active profile name** in game text (`{{name}}`), not a fixed child name.
 
 ## How to open
 
-Open [`index.html`](../index.html) or play mode [`app.html`](../app.html) (keeps fullscreen across pages). No build step required. Live: Netlify deploy of this folder.
+Open the live Netlify site (recommended — cloud family sync needs Functions), or [`index.html`](../index.html) / [`app.html`](../app.html) locally. For local Functions/Blobs: `npm install` then `netlify dev`.
 
 ## Structure
 
 ```
 nolan-revisions/
-├── index.html                 # Home — pick a subject
+├── index.html                 # Home — Learning Adventure
 ├── app.html                   # Play shell (fullscreen + iframe stage)
-├── css/shared.css             # Themes, score HUD, confetti/shake/streak
-├── js/quiz-engine.js          # MCQ engine (auto-loads fun-effects + progress)
-├── js/fun-effects.js          # Confetti, shake, streak badge
-├── js/progress.js             # Profiles, medals, XP, checkpoints
-├── js/shell.js                # Top bar, gate, fullscreen → app.html
-├── subjects/
-│   ├── math/                  # Amber (12 games)
-│   ├── science/               # Violet (12 games)
-│   ├── english/               # Emerald (12 games)
-│   ├── hpe/                   # Pink/purple (11 games)
-│   └── thai/                  # Red catch-up (13 games)
+├── netlify/functions/         # family-api (Netlify Blobs sync)
+├── css/shared.css
+├── js/quiz-engine.js
+├── js/fun-effects.js
+├── js/progress.js             # Profiles, XP, medals, checkpoints, family sync
+├── js/shell.js                # Family gate, leaderboard, profiles, fullscreen
+├── package.json               # @netlify/blobs for Functions
+├── subjects/ …
 └── docs/
-    ├── PROJECT_DOCUMENTATION.md
-    ├── RECENT_CHANGES_MEMORY.md
-    └── revision-guides/       # Parent notes (FR)
 ```
 
 ## Quality bar
@@ -92,12 +86,21 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 
 ## Profiles, medals & XP
 
-- Multi-child **profiles** (first name + avatar + secret fruit emoji PIN), stored in browser `localStorage` (`nolan-hub-v1`).
+- Multi-child **profiles** (first name + avatar + secret fruit emoji PIN).
+- **Family share code** syncs profiles/XP/medals via **Netlify Blobs** + `family-api` Function (cross-browser / device). `localStorage` is a cache only.
 - Unlock by tapping the secret fruit; switch profiles from the top bar avatar (circular **profile photo**).
 - Completing a game awards XP and a medal by mistakes (`total − score`): **gold** 0, **silver** 1, **bronze** 2.
-- Levels (every 150 XP) use a fun English title combined with the animal avatar, e.g. Sleepy Unicorn → Rookie Fox → … → Super Saiyan / Super Saiyan X. Epithets: Sleepy, Rookie, Speedy, Clever, Wizard, Indy, Ninja, Goal King, Super Saiyan, then Super Saiyan X / X2…
-- Progress is **per browser/device** (no cloud sync on free Netlify).
+- Levels (every 150 XP) use a fun English title combined with the animal avatar, e.g. Sleepy Unicorn → … → Super Saiyan X.
+- **Leaderboard** (trophy button): ranks family profiles by XP, then gold/silver/bronze counts.
+- Quiz copy can use `{{name}}` → active profile name (`NolanProgress.fillName` / QuizEngine).
 - Shared scripts: `js/progress.js`, `js/shell.js` (loaded on every page).
+
+## Family sync (Netlify Blobs)
+
+1. First visit: **Create a new family** or **Enter family code**.
+2. Write down the 6-character code for other devices.
+3. Progress pushes after profile create / game result / checkpoint (debounced).
+4. Leaderboard / boot pulls latest family JSON from Blobs.
 
 ## Streak celebrations
 

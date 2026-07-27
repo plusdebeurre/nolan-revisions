@@ -50,6 +50,7 @@
     <div class="text-center mb-6" id="title-block">
       <h1 class="text-3xl md:text-4xl font-bold mb-2 drop-shadow-sm" style="color: var(--accent-dark)">🧬 My Body Game 🧬</h1>
       <p id="instruction-text" class="text-xl text-slate-600 font-medium">Step 1: Drag the names to the correct organs!</p>
+      <p id="live-score-line" class="live-score-line">Score: 0 / 8</p>
     </div>
 
     <div id="phase1" class="animate-pop">
@@ -129,6 +130,7 @@
   </div>
 
   <div id="feedback-toast" class="feedback-toast">Perfect! ✨</div>
+  <div id="wrong-toast" class="feedback-toast" style="background:#ef4444">Wrong spot!</div>
 
   <script src="../../../js/fun-effects.js"></script>
   <script src="../../../js/progress.js"></script>
@@ -136,6 +138,8 @@
   <script>
     let currentPhase = 1;
     let placedCount = 0;
+    let score = 0;
+    const TOTAL_ORGANS = 8;
     let activeEl = null;
     let startX, startY, initialX = 0, initialY = 0;
     let activeZones = [];
@@ -146,9 +150,14 @@
     const btnNextPhase = document.getElementById('btn-next-phase');
     const winScreen = document.getElementById('win-screen');
     const feedbackToast = document.getElementById('feedback-toast');
+    const wrongToast = document.getElementById('wrong-toast');
+    const liveScoreLine = document.getElementById('live-score-line');
     const organsContainerPhase2 = document.getElementById('organs-container');
     const titleBlock = document.getElementById('title-block');
-    const TOTAL_ORGANS = 8;
+
+    function updateLiveScore() {
+      if (liveScoreLine) liveScoreLine.textContent = `Score: ${score} / ${TOTAL_ORGANS}`;
+    }
 
     function initPhase1() {
       currentPhase = 1;
@@ -204,20 +213,26 @@
       activeZones.forEach(z => z.classList.remove('highlight'));
       const elRect = activeEl.getBoundingClientRect();
       let dropped = false;
+      let overWrong = false;
       for (const zone of activeZones) {
+        const zoneRect = zone.getBoundingClientRect();
+        if (!isOverlapping(elRect, zoneRect)) continue;
         if (zone.dataset.accept === activeEl.dataset.id) {
-          const zoneRect = zone.getBoundingClientRect();
-          if (isOverlapping(elRect, zoneRect)) {
-            snapToZone(activeEl, zone);
-            dropped = true;
-            break;
-          }
+          snapToZone(activeEl, zone);
+          dropped = true;
+          break;
         }
+        overWrong = true;
       }
       if (!dropped) {
         activeEl.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
         activeEl.style.transform = 'translate(0px, 0px)';
-        setTimeout(() => { activeEl.style.transition = 'transform 0.1s'; }, 300);
+        if (window.FunEffects) FunEffects.shake(activeEl);
+        if (overWrong) {
+          wrongToast.style.opacity = '1';
+          setTimeout(() => { wrongToast.style.opacity = '0'; }, 900);
+        }
+        setTimeout(() => { if (activeEl) activeEl.style.transition = 'transform 0.1s'; }, 300);
       }
       activeEl = null;
     }
@@ -258,10 +273,13 @@
       }
       showToast();
       placedCount++;
+      score++;
+      updateLiveScore();
       checkProgress();
     }
 
     function showToast() {
+      feedbackToast.textContent = 'Perfect! +1 ✨';
       feedbackToast.style.opacity = '1';
       feedbackToast.classList.add('animate-pop');
       setTimeout(() => {
@@ -308,7 +326,7 @@
     });
 
     function showWinScreen() {
-      document.getElementById('score-display').textContent = String(TOTAL_ORGANS);
+      document.getElementById('score-display').textContent = String(score);
       if (window.FunEffects) FunEffects.confetti();
       phase2.classList.add('hidden');
       titleBlock.classList.add('hidden');

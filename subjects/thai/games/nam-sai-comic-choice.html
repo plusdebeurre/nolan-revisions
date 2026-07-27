@@ -122,7 +122,7 @@
         emoji: '📚🇹🇭', caption: 'Open the Thai reader.',
         question: 'Nam Sai is…',
         choices: [
-          { text: 'The story chapter Nolan studies', correct: true, pts: 1 },
+          { text: 'The story chapter {{name}} studies', correct: true, pts: 1 },
           { text: 'A math times table', correct: false, pts: 0 }
         ],
         tip: 'Nam Sai is story vocabulary from Thai class.'
@@ -185,26 +185,26 @@
     let i = 0, score = 0, streak = 0, locked = false;
       /* nolan-cp */
       function __nolanSaveCp() {
-        if (!window.NolanProgress) return;
-        var id = NolanProgress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
+        if (!window.{{name}}Progress) return;
+        var id = {{name}}Progress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
         if (!id) return;
-        NolanProgress.saveCheckpoint(id, { index: i, score: score });
+        {{name}}Progress.saveCheckpoint(id, { index: i, score: score });
       }
       function __nolanClearCp() {
-        if (!window.NolanProgress) return;
-        var id = NolanProgress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
+        if (!window.{{name}}Progress) return;
+        var id = {{name}}Progress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
         if (!id) return;
-        NolanProgress.clearCheckpoint(id);
+        {{name}}Progress.clearCheckpoint(id);
       }
       (function __nolanRestoreCp() {
-        if (!window.NolanProgress || !NolanProgress.loadCheckpoint) return;
-        var id = NolanProgress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
+        if (!window.{{name}}Progress || !{{name}}Progress.loadCheckpoint) return;
+        var id = {{name}}Progress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
         if (!id) return;
-        var cp = NolanProgress.loadCheckpoint(id);
+        var cp = {{name}}Progress.loadCheckpoint(id);
         if (!cp) return;
         i = Math.max(0, cp.index | 0);
         score = Math.max(0, Number(cp.score) || 0);
-        if (NolanProgress.showResumeToast) NolanProgress.showResumeToast('Resuming…');
+        if ({{name}}Progress.showResumeToast) {{name}}Progress.showResumeToast('Resuming…');
       })();
 
     const comicStrip = document.getElementById('comic-strip');
