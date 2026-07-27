@@ -6,6 +6,8 @@
   const STORE_KEY = 'nolan-hub-v1';
   const SESSION_KEY = 'nolan-hub-session';
   const FAMILY_KEY = 'nolan-family-code';
+  const FAMILY_NAME_KEY = 'nolan-family-name';
+  const NOLAN_RESET_KEY = 'nolan-profile-reset-v1';
   const PIN_FRUITS = ['🍎', '🍌', '🍇', '🍓', '🍊', '🍉', '🍒', '🥝'];
   const AVATARS = ['🦊', '🐼', '🦁', '🐸', '🐯', '🐰', '🐻', '🐨', '🦄', '🐶'];
   const AVATAR_CREATURES = {
@@ -82,9 +84,45 @@
     } catch (e) { /* ignore */ }
   }
 
+  function getFamilyName() {
+    try {
+      return localStorage.getItem(FAMILY_NAME_KEY) || getFamilyCode() || null;
+    } catch (e) {
+      return getFamilyCode();
+    }
+  }
+
+  function setFamilyName(name) {
+    try {
+      if (name) localStorage.setItem(FAMILY_NAME_KEY, String(name));
+      else localStorage.removeItem(FAMILY_NAME_KEY);
+    } catch (e) { /* ignore */ }
+  }
+
   function hasFamily() {
     const c = getFamilyCode();
-    return !!(c && c.length >= 6);
+    return !!(c && c.length >= 3);
+  }
+
+  function stripNolanLocal() {
+    try {
+      if (localStorage.getItem(NOLAN_RESET_KEY) === '1') return 0;
+    } catch (e) { /* ignore */ }
+    const data = load();
+    let removed = 0;
+    Object.keys(data.profiles || {}).forEach((id) => {
+      if (/^nolan$/i.test(String(data.profiles[id].name || '').trim())) {
+        delete data.profiles[id];
+        removed++;
+        if (getSessionUnlockedId() === id) setSessionUnlockedId(null);
+        if (data.activeProfileId === id) data.activeProfileId = null;
+      }
+    });
+    if (removed) save(data);
+    try {
+      localStorage.setItem(NOLAN_RESET_KEY, '1');
+    } catch (e) { /* ignore */ }
+    return removed;
   }
 
   function getSessionUnlockedId() {
@@ -347,7 +385,8 @@
           levelTitle: levelTitle(p.level || 1, p.avatarEmoji),
           gold: medals.gold,
           silver: medals.silver,
-          bronze: medals.bronze
+          bronze: medals.bronze,
+          familyName: getFamilyName() || ''
         };
       })
       .sort((a, b) => {
@@ -356,6 +395,20 @@
         if (b.silver !== a.silver) return b.silver - a.silver;
         return a.name.localeCompare(b.name);
       });
+  }
+
+  async function fetchGlobalLeaderboard() {
+    try {
+      const data = await apiPost({ action: 'leaderboard' });
+      const rows = (data.rows || []).map((row) =>
+        Object.assign({}, row, {
+          levelTitle: levelTitle(row.level || 1, row.avatarEmoji)
+        })
+      );
+      return rows;
+    } catch (e) {
+      return leaderboardRows();
+    }
   }
 
   function inferGameIdFromPath() {
@@ -475,10 +528,13 @@
     const data = load();
     data.familyCode = family.code;
     setFamilyCode(family.code);
+    setFamilyName(family.name || family.code);
     const incoming = family.profiles || {};
+    // Replace family profiles from cloud (keep only synced set + merge timestamps)
     Object.keys(incoming).forEach((id) => {
       const remote = incoming[id];
       if (!remote) return;
+      if (/^nolan$/i.test(String(remote.name || '').trim())) return;
       const local = data.profiles[id];
       if (!local) {
         data.profiles[id] = remote;
@@ -488,20 +544,30 @@
       const localAt = Date.parse(local.updatedAt || 0) || 0;
       if (remoteAt >= localAt) data.profiles[id] = remote;
     });
+    Object.keys(data.profiles).forEach((id) => {
+      if (/^nolan$/i.test(String(data.profiles[id].name || '').trim())) {
+        delete data.profiles[id];
+      }
+    });
     save(data);
-    document.dispatchEvent(new CustomEvent('nolan:family', { detail: { code: family.code } }));
+    document.dispatchEvent(
+      new CustomEvent('nolan:family', { detail: { code: family.code, name: family.name } })
+    );
   }
 
-  async function createFamily() {
-    const data = await apiPost({ action: 'create' });
+  async function createFamily(name) {
+    const data = await apiPost({ action: 'create', name: String(name || '').trim() });
     applyFamily(data.family);
-    // Push any local profiles that existed before family
     await pushFamily();
     return data.family;
   }
 
-  async function joinFamily(code) {
-    const data = await apiPost({ action: 'join', code: String(code || '').toUpperCase() });
+  async function joinFamily(nameOrCode) {
+    const data = await apiPost({
+      action: 'join',
+      name: String(nameOrCode || '').trim(),
+      code: String(nameOrCode || '').trim()
+    });
     applyFamily(data.family);
     await pushFamily();
     return data.family;
@@ -524,11 +590,33 @@
     if (!code) return null;
     const data = load();
     try {
-      const res = await apiPost({ action: 'push', code, profiles: data.profiles });
+      const res = await apiPost({
+        action: 'push',
+        code,
+        familyName: getFamilyName(),
+        profiles: data.profiles
+      });
       applyFamily(res.family);
       return res.family;
     } catch (e) {
       return null;
+    }
+  }
+
+  async function resetNolanEverywhere() {
+    let needCloud = false;
+    try {
+      needCloud = localStorage.getItem(NOLAN_RESET_KEY) !== '1';
+    } catch (e) {
+      needCloud = true;
+    }
+    stripNolanLocal();
+    const code = getFamilyCode();
+    if (!code || !needCloud) return { removedLocal: true, skippedCloud: !needCloud };
+    try {
+      return await apiPost({ action: 'resetProfile', code, profileName: 'Nolan' });
+    } catch (e) {
+      return { removedLocal: true, cloudError: true };
     }
   }
 
@@ -545,6 +633,7 @@
       if (!syncing) {
         syncing = true;
         try {
+          await resetNolanEverywhere();
           await pullFamily();
         } finally {
           syncing = false;
@@ -552,6 +641,7 @@
       }
       return true;
     }
+    stripNolanLocal();
     return false;
   }
 
@@ -589,14 +679,18 @@
     fillName,
     countMedals,
     leaderboardRows,
+    fetchGlobalLeaderboard,
     hasFamily,
     getFamilyCode,
+    getFamilyName,
     createFamily,
     joinFamily,
     pullFamily,
     pushFamily,
     ensureFamilyReady,
     schedulePush,
+    stripNolanLocal,
+    resetNolanEverywhere,
     xpToNext(profile) {
       const xp = (profile && profile.xp) || 0;
       const level = levelFromXp(xp);

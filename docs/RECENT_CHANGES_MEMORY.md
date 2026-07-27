@@ -1,5 +1,19 @@
 # Recent Changes Memory
 
+## 2026-07-28 — Named families + global leaderboard
+
+### What changed
+- Family identity is a **household name** you create (slug key, e.g. Maison Cayre → `MAISONCAYRE`), not a random 6-char code. Join with the same name.
+- **Global leaderboard** blob (`meta` / `global-leaderboard`): all site profiles ranked by XP/medals; family name shown as subtitle.
+- One-shot **Nolan** profile reset (local + cloud family + global index).
+- API actions: `create`/`join` by name, `leaderboard`, `resetProfile`.
+
+### User impact
+- Easier multi-device setup (“type our family name”). Trophy board shows everyone on Learning Adventure, not only the same household.
+
+### Key files
+- `netlify/functions/family-api.js`, `js/progress.js`, `js/shell.js`, `css/shared.css`, docs
+
 ## 2026-07-28 — Cloud family sync, leaderboard, score feedback
 
 ### What changed

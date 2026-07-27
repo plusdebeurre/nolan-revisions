@@ -189,12 +189,14 @@
     modal.classList.remove('hidden');
     modal.innerHTML = `
       <div class="nolan-modal question-card animate-pop" role="dialog" aria-modal="true">
-        <h2 class="nolan-modal-title">Family code</h2>
-        <p class="nolan-modal-sub">Save progress on every phone, tablet, and computer with one secret code.</p>
-        <button type="button" class="btn-primary w-full" id="btn-family-create">Create a new family</button>
-        <p class="text-center text-slate-500 font-semibold my-3">or</p>
-        <label class="block text-sm font-semibold mb-1">Enter family code</label>
-        <input id="family-code-input" class="profile-input" maxlength="8" placeholder="AB12CD" autocomplete="off" style="text-transform:uppercase" />
+        <h2 class="nolan-modal-title">Your family</h2>
+        <p class="nolan-modal-sub">Pick a family name so every phone and tablet can share the same players.</p>
+        <label class="block text-sm font-semibold mb-1">Create a new family</label>
+        <input id="family-create-name" class="profile-input" maxlength="48" placeholder="e.g. Maison Cayre" autocomplete="off" />
+        <button type="button" class="btn-primary w-full mt-3" id="btn-family-create">Create family</button>
+        <p class="text-center text-slate-500 font-semibold my-3">or join one</p>
+        <label class="block text-sm font-semibold mb-1">Family name</label>
+        <input id="family-join-name" class="profile-input" maxlength="48" placeholder="Type the family name" autocomplete="off" />
         <button type="button" class="btn-primary w-full mt-3" id="btn-family-join">Join family</button>
         <p id="family-error" class="hidden text-red-600 font-semibold mt-3 text-center"></p>
         <p id="family-busy" class="hidden text-slate-500 text-center mt-3">Working…</p>
@@ -216,12 +218,13 @@
       setErr('');
       setBusy(true);
       try {
-        const family = await NP.createFamily();
+        const name = modal.querySelector('#family-create-name').value;
+        const family = await NP.createFamily(name);
         modal.classList.add('hidden');
-        openProfileModal(true);
-        alert('Your family code is ' + family.code + '. Write it down so other devices can join!');
+        openProfileModal();
+        alert('Family ready: ' + (family.name || family.code) + '. Use this exact name on other devices to join!');
       } catch (e) {
-        setErr('Could not create family. Use the live website (not a local file).');
+        setErr((e && e.data && e.data.error) || e.message || 'Could not create family. Use the live website.');
       } finally {
         setBusy(false);
       }
@@ -231,12 +234,12 @@
       setErr('');
       setBusy(true);
       try {
-        const code = modal.querySelector('#family-code-input').value;
-        await NP.joinFamily(code);
+        const name = modal.querySelector('#family-join-name').value;
+        await NP.joinFamily(name);
         modal.classList.add('hidden');
-        openProfileModal(true);
+        openProfileModal();
       } catch (e) {
-        setErr('Code not found. Check the letters and try again.');
+        setErr((e && e.data && e.data.error) || 'Family not found. Check the name and try again.');
       } finally {
         setBusy(false);
       }
@@ -252,10 +255,6 @@
     }
     const NP = window.NolanProgress;
     if (!NP) return;
-    if (!NP.hasFamily()) {
-      openFamilyModal();
-      return;
-    }
     let modal = document.getElementById('nolan-leaderboard-modal');
     if (!modal) {
       modal = el('div', 'nolan-modal-backdrop');
@@ -265,31 +264,26 @@
     modal.classList.remove('hidden');
     modal.innerHTML = `
       <div class="nolan-modal question-card animate-pop" role="dialog" aria-modal="true">
-        <h2 class="nolan-modal-title">🏆 Leaderboard</h2>
-        <p class="nolan-modal-sub">Family code: <strong id="lb-code">${escapeHtml(NP.getFamilyCode() || '')}</strong>
-          <button type="button" class="nav-link" id="lb-copy" style="display:inline;margin-left:0.35rem">Copy</button>
-        </p>
+        <h2 class="nolan-modal-title">Leaderboard</h2>
+        <p class="nolan-modal-sub">All players — ranked by XP and medals</p>
         <p id="lb-status" class="text-center text-slate-500 text-sm mb-2">Loading…</p>
         <div id="lb-list" class="leaderboard-list"></div>
         <button type="button" class="nav-link mt-4" id="lb-close">Close</button>
       </div>
     `;
     modal.querySelector('#lb-close')?.addEventListener('click', () => modal.classList.add('hidden'));
-    modal.querySelector('#lb-copy')?.addEventListener('click', () => {
-      const code = NP.getFamilyCode();
-      if (code && navigator.clipboard) navigator.clipboard.writeText(code).catch(() => {});
-    });
 
     const status = modal.querySelector('#lb-status');
     const list = modal.querySelector('#lb-list');
+    let rows = [];
     try {
-      await NP.pullFamily();
-      status.textContent = 'Ranked by XP and medals';
+      rows = await NP.fetchGlobalLeaderboard();
+      status.textContent = 'Everyone on Learning Adventure';
     } catch (e) {
-      status.textContent = 'Showing saved scores (offline)';
+      rows = NP.leaderboardRows();
+      status.textContent = 'Showing local scores (offline)';
     }
     const active = NP.getActiveProfile();
-    const rows = NP.leaderboardRows();
     if (!rows.length) {
       list.innerHTML = '<p class="text-center text-slate-500">No players yet. Create a profile!</p>';
       return;
@@ -297,16 +291,18 @@
     list.innerHTML = '';
     rows.forEach((row, i) => {
       const item = el('div', 'leaderboard-row' + (active && active.id === row.id ? ' is-you' : ''));
+      const fam = row.familyName ? `<span class="lb-family">${escapeHtml(row.familyName)}</span>` : '';
       item.innerHTML = `
         <span class="lb-rank">${i + 1}</span>
-        <span class="shell-avatar-photo">${row.avatarEmoji}</span>
+        <span class="shell-avatar-photo">${row.avatarEmoji || '🦊'}</span>
         <span class="lb-meta">
           <span class="lb-name">${escapeHtml(row.name)}${active && active.id === row.id ? ' (you)' : ''}</span>
-          <span class="lb-title">${escapeHtml(row.levelTitle)}</span>
+          <span class="lb-title">${escapeHtml(row.levelTitle || '')}</span>
+          ${fam}
         </span>
         <span class="lb-stats">
-          <span class="lb-xp">${row.xp} XP</span>
-          <span class="lb-medals">🥇${row.gold} 🥈${row.silver} 🥉${row.bronze}</span>
+          <span class="lb-xp">${row.xp || 0} XP</span>
+          <span class="lb-medals">🥇${row.gold || 0} 🥈${row.silver || 0} 🥉${row.bronze || 0}</span>
         </span>
       `;
       list.appendChild(item);
@@ -337,13 +333,13 @@
 
     const profiles = NP.listProfiles();
     const unlocked = NP.isUnlocked();
-    const code = NP.getFamilyCode() || '';
+    const familyLabel = NP.getFamilyName() || NP.getFamilyCode() || '';
 
     modal.innerHTML = `
       <div class="nolan-modal question-card animate-pop" role="dialog" aria-modal="true">
         <h2 class="nolan-modal-title">Who is playing?</h2>
         <p class="nolan-modal-sub">Pick a profile, then tap your secret fruit.</p>
-        <p class="family-code-chip">Family: <strong>${escapeHtml(code)}</strong>
+        <p class="family-code-chip">Family: <strong>${escapeHtml(familyLabel)}</strong>
           <button type="button" class="nav-link" id="btn-copy-family" style="display:inline;margin-left:0.35rem">Copy</button>
         </p>
         <div id="profile-list" class="profile-list"></div>
@@ -355,7 +351,7 @@
     `;
 
     modal.querySelector('#btn-copy-family')?.addEventListener('click', () => {
-      if (code && navigator.clipboard) navigator.clipboard.writeText(code).catch(() => {});
+      if (familyLabel && navigator.clipboard) navigator.clipboard.writeText(familyLabel).catch(() => {});
     });
 
     const list = modal.querySelector('#profile-list');
@@ -499,6 +495,9 @@
 
     ensureProgress(() => {
       const NP = window.NolanProgress;
+      try {
+        NP?.stripNolanLocal?.();
+      } catch (e) { /* ignore */ }
       const afterFamily = () => {
         if (!IN_IFRAME) {
           renderTopBar();

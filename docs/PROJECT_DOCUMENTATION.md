@@ -87,20 +87,21 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 ## Profiles, medals & XP
 
 - Multi-child **profiles** (first name + avatar + secret fruit emoji PIN).
-- **Family share code** syncs profiles/XP/medals via **Netlify Blobs** + `family-api` Function (cross-browser / device). `localStorage` is a cache only.
+- **Family name** syncs profiles/XP/medals via **Netlify Blobs** + `family-api` Function (cross-browser / device). `localStorage` is a cache only. Create or join with the same household name (e.g. “Maison Cayre”); the API stores a slug key (`MAISONCAYRE`).
 - Unlock by tapping the secret fruit; switch profiles from the top bar avatar (circular **profile photo**).
 - Completing a game awards XP and a medal by mistakes (`total − score`): **gold** 0, **silver** 1, **bronze** 2.
 - Levels (every 150 XP) use a fun English title combined with the animal avatar, e.g. Sleepy Unicorn → … → Super Saiyan X.
-- **Leaderboard** (trophy button): ranks family profiles by XP, then gold/silver/bronze counts.
+- **Leaderboard** (trophy button): ranks **all site profiles** by XP, then gold/silver/bronze; each row shows the family name as a subtitle.
 - Quiz copy can use `{{name}}` → active profile name (`NolanProgress.fillName` / QuizEngine).
 - Shared scripts: `js/progress.js`, `js/shell.js` (loaded on every page).
 
 ## Family sync (Netlify Blobs)
 
-1. First visit: **Create a new family** or **Enter family code**.
-2. Write down the 6-character code for other devices.
-3. Progress pushes after profile create / game result / checkpoint (debounced).
-4. Leaderboard / boot pulls latest family JSON from Blobs.
+1. First visit: **Create a new family** or **Join** with the same family name.
+2. On other devices, type the exact family name to join (not a random code).
+3. Progress pushes after profile create / game result / checkpoint (debounced); push also upserts the global leaderboard blob.
+4. Leaderboard uses `action: "leaderboard"` (public XP/medal rows). Family pull/push still use the name slug.
+5. One-shot cleanup removes any profile named **Nolan** from local cache and cloud family + global index.
 
 ## Streak celebrations
 

@@ -700,6 +700,15 @@ body.theme-hub {
   white-space: nowrap;
 }
 
+.lb-family {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .lb-stats {
   display: flex;
   flex-direction: column;
