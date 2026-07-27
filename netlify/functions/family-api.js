@@ -63,9 +63,12 @@ function openStore(context) {
       connectLambda(context);
     } catch (e) { /* already connected */ }
   }
-  const siteID = process.env.SITE_ID || process.env.NETLIFY_SITE_ID;
+  const siteID =
+    process.env.SITE_ID ||
+    process.env.NETLIFY_SITE_ID ||
+    'c393b98c-b56b-4891-ad0c-d8db4c430bde';
   const token = process.env.NETLIFY_API_TOKEN || process.env.NETLIFY_AUTH_TOKEN;
-  if (siteID && token) {
+  if (token) {
     return getStore({
       name: 'families',
       consistency: 'strong',
