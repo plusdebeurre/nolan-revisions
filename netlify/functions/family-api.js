@@ -3,7 +3,7 @@
  * POST { action: "create" | "join" | "pull" | "push", code?, profiles? }
  * GET  ?code=ABCDEF
  */
-const { getStore } = require('@netlify/blobs');
+const { getStore, connectLambda } = require('@netlify/blobs');
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -57,14 +57,23 @@ function mergeProfiles(existing, incoming) {
   return next;
 }
 
-exports.handler = async (event) => {
+function openStore(context) {
+  if (context) {
+    try {
+      connectLambda(context);
+    } catch (e) { /* already connected */ }
+  }
+  return getStore({ name: 'families', consistency: 'strong' });
+}
+
+exports.handler = async (event, context) => {
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 204, headers: CORS, body: '' };
   }
 
   let store;
   try {
-    store = getStore({ name: 'families', consistency: 'strong' });
+    store = openStore(context);
   } catch (err) {
     return json(500, { ok: false, error: 'Blobs unavailable', detail: String(err && err.message) });
   }
