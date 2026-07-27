@@ -64,6 +64,8 @@
     </div>
   </main>
   <script src="../../../js/fun-effects.js"></script>
+  <script src="../../../js/progress.js"></script>
+  <script src="../../../js/shell.js"></script>
   <script>
     const ALPHABET = ['ก','ข','ฃ','ค','ฅ','ฆ','ง','จ','ฉ','ช','ซ','ฌ','ญ','ฎ','ฏ','ด','ต','ถ','ท','ธ','น','บ','ป','ผ','ฝ','พ','ฟ','ภ','ม','ย','ร','ล','ว','ศ','ษ','ส','ห','ฬ','อ','ฮ'];
     const ROUNDS = [
@@ -93,6 +95,30 @@
       { after: 37, tip: 'After ฬ comes อ (or aang).' }
     ];
     let i = 0, score = 0, streak = 0, locked = false;
+      /* nolan-cp */
+      function __nolanSaveCp() {
+        if (!window.NolanProgress) return;
+        var id = NolanProgress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
+        if (!id) return;
+        NolanProgress.saveCheckpoint(id, { index: i, score: score });
+      }
+      function __nolanClearCp() {
+        if (!window.NolanProgress) return;
+        var id = NolanProgress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
+        if (!id) return;
+        NolanProgress.clearCheckpoint(id);
+      }
+      (function __nolanRestoreCp() {
+        if (!window.NolanProgress || !NolanProgress.loadCheckpoint) return;
+        var id = NolanProgress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
+        if (!id) return;
+        var cp = NolanProgress.loadCheckpoint(id);
+        if (!cp) return;
+        i = Math.max(0, cp.index | 0);
+        score = Math.max(0, Number(cp.score) || 0);
+        if (NolanProgress.showResumeToast) NolanProgress.showResumeToast('Resuming…');
+      })();
+
     const currentLetter = document.getElementById('current-letter');
     const choices = document.getElementById('choices');
     const feedback = document.getElementById('feedback');
@@ -166,7 +192,7 @@
       nextBtn.classList.remove('hidden');
     }
     nextBtn.addEventListener('click', () => {
-      i++;
+      i++; __nolanSaveCp();
       if (i < ROUNDS.length) load();
       else {
         document.getElementById('play-screen').classList.add('hidden');
@@ -180,14 +206,12 @@
       }
     });
     document.getElementById('restart-btn').addEventListener('click', () => {
-      i = 0; score = 0; streak = 0;
+      __nolanClearCp(); i = 0; score = 0; streak = 0;
       document.getElementById('result-screen').classList.add('hidden');
       document.getElementById('play-screen').classList.remove('hidden');
       load();
     });
     load();
   </script>
-  <script src="../../../js/progress.js"></script>
-  <script src="../../../js/shell.js"></script>
 </body>
 </html>

@@ -4,16 +4,19 @@ Static, offline-friendly revision games for a Grade 2 learner (age ~7). Child UI
 
 ## How to open
 
-Open [`index.html`](../index.html) in a browser (double-click or “Open with…”). No build step and no server required.
+Open [`index.html`](../index.html) or play mode [`app.html`](../app.html) (keeps fullscreen across pages). No build step required. Live: Netlify deploy of this folder.
 
 ## Structure
 
 ```
 nolan-revisions/
 ├── index.html                 # Home — pick a subject
+├── app.html                   # Play shell (fullscreen + iframe stage)
 ├── css/shared.css             # Themes, score HUD, confetti/shake/streak
-├── js/quiz-engine.js          # MCQ engine (auto-loads fun-effects)
+├── js/quiz-engine.js          # MCQ engine (auto-loads fun-effects + progress)
 ├── js/fun-effects.js          # Confetti, shake, streak badge
+├── js/progress.js             # Profiles, medals, XP, checkpoints
+├── js/shell.js                # Top bar, gate, fullscreen → app.html
 ├── subjects/
 │   ├── math/                  # Amber (12 games)
 │   ├── science/               # Violet (12 games)
@@ -93,8 +96,29 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 - Unlock by tapping the secret fruit; switch profiles from the top bar avatar.
 - Completing a game awards XP and a medal by mistakes (`total − score`): **gold** 0, **silver** 1, **bronze** 2.
 - Level fruit emoji beside the profile (every 150 XP). Progress is **per browser/device** (no cloud sync on free Netlify).
-- **Fullscreen** button in the top shell bar.
 - Shared scripts: `js/progress.js`, `js/shell.js` (loaded on every page).
+
+## Persistent fullscreen (`app.html`)
+
+Browsers drop fullscreen on top-level navigation. Play mode uses [`app.html`](../app.html): parent chrome stays fullscreen while subject/game pages navigate inside `#nolan-stage` iframe.
+
+- Preferred entry: `/app.html` or `/play` (Netlify redirect).
+- **Full screen** in the shell bar opens app mode (or requests fullscreen when already on `app.html`).
+- `X-Frame-Options` is `SAMEORIGIN` so the same-origin iframe works.
+- Pages inside the iframe skip the duplicate top bar (`nolan-embedded`).
+
+## In-exercise checkpoints
+
+Per profile / game, mid-run state is stored as `games[gameId].checkpoint`:
+
+```js
+{ v: 1, index, score, extra, updatedAt }
+```
+
+- API: `saveCheckpoint` / `loadCheckpoint` / `clearCheckpoint` in `js/progress.js`.
+- `QuizEngine` restores on mount, saves after each answer / next, clears on finish or Play Again.
+- Round-based custom games save/restore round index + score; hubs show a **Continue** chip when a checkpoint exists.
+- Finishing a run (`recordResult`) clears the checkpoint.
 
 ## Shared quiz engine
 

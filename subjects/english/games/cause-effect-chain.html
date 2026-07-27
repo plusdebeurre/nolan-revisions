@@ -84,6 +84,8 @@
     </div>
   </main>
   <script src="../../../js/fun-effects.js"></script>
+  <script src="../../../js/progress.js"></script>
+  <script src="../../../js/shell.js"></script>
   <script>
     (function () {
       const ROUNDS = [
@@ -101,8 +103,32 @@
         { cause: '🐕 The dog sees a squirrel.', effect: '🏃 The dog runs to hunt it.' }
       ];
 
-      let roundIndex = 0;
-      let totalScore = 0;
+      let roundIndex = 0;let totalScore = 0;
+      /* nolan-cp */
+      function __nolanSaveCp() {
+        if (!window.NolanProgress) return;
+        var id = NolanProgress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
+        if (!id) return;
+        NolanProgress.saveCheckpoint(id, { index: roundIndex, score: totalScore });
+      }
+      function __nolanClearCp() {
+        if (!window.NolanProgress) return;
+        var id = NolanProgress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
+        if (!id) return;
+        NolanProgress.clearCheckpoint(id);
+      }
+      (function __nolanRestoreCp() {
+        if (!window.NolanProgress || !NolanProgress.loadCheckpoint) return;
+        var id = NolanProgress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
+        if (!id) return;
+        var cp = NolanProgress.loadCheckpoint(id);
+        if (!cp) return;
+        roundIndex = Math.max(0, cp.index | 0);
+        totalScore = Math.max(0, Number(cp.score) || 0);
+        if (NolanProgress.showResumeToast) NolanProgress.showResumeToast('Resuming…');
+      })();
+
+      
       let selectedCause = null;
       let matched = false;
 
@@ -205,7 +231,7 @@
       }
 
       nextBtn.addEventListener('click', () => {
-        roundIndex++;
+        roundIndex++; __nolanSaveCp();
         if (roundIndex < ROUNDS.length) loadRound();
         else finish();
       });
@@ -226,7 +252,7 @@
       }
 
       restartBtn.addEventListener('click', () => {
-        roundIndex = 0;
+        __nolanClearCp(); roundIndex = 0;
         totalScore = 0;
         updateHud();
         resultScreen.classList.add('hidden');
@@ -238,7 +264,5 @@
       loadRound();
     })();
   </script>
-  <script src="../../../js/progress.js"></script>
-  <script src="../../../js/shell.js"></script>
 </body>
 </html>

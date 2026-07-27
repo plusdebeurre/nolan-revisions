@@ -117,6 +117,8 @@
     </div>
   </main>
 
+  <script src="../../../js/progress.js"></script>
+  <script src="../../../js/shell.js"></script>
   <script>
     (function () {
       const ADVERBS = [
@@ -193,6 +195,30 @@
 
       let roundIndex = 0;
       let score = 0;
+      /* nolan-cp */
+      function __nolanSaveCp() {
+        if (!window.NolanProgress) return;
+        var id = NolanProgress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
+        if (!id) return;
+        NolanProgress.saveCheckpoint(id, { index: roundIndex, score: score });
+      }
+      function __nolanClearCp() {
+        if (!window.NolanProgress) return;
+        var id = NolanProgress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
+        if (!id) return;
+        NolanProgress.clearCheckpoint(id);
+      }
+      (function __nolanRestoreCp() {
+        if (!window.NolanProgress || !NolanProgress.loadCheckpoint) return;
+        var id = NolanProgress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
+        if (!id) return;
+        var cp = NolanProgress.loadCheckpoint(id);
+        if (!cp) return;
+        roundIndex = Math.max(0, cp.index | 0);
+        score = Math.max(0, Number(cp.score) || 0);
+        if (NolanProgress.showResumeToast) NolanProgress.showResumeToast('Resuming…');
+      })();
+
       let canAnswer = true;
 
       const playScreen = document.getElementById('play-screen');
@@ -276,12 +302,12 @@
       }
 
       nextBtn.addEventListener('click', () => {
-        roundIndex++;
+        roundIndex++; __nolanSaveCp();
         if (roundIndex < ROUNDS.length) loadRound();
         else showResults();
       });
 
-      function showResults() {
+      function showResults() { __nolanClearCp();
         playScreen.classList.add('hidden');
         resultScreen.classList.remove('hidden');
         scoreDisplay.textContent = score;
@@ -292,7 +318,7 @@
       }
 
       restartBtn.addEventListener('click', () => {
-        roundIndex = 0;
+        __nolanClearCp(); roundIndex = 0;
         score = 0;
         resultScreen.classList.add('hidden');
         playScreen.classList.remove('hidden');
@@ -302,7 +328,5 @@
       loadRound();
     })();
   </script>
-  <script src="../../../js/progress.js"></script>
-  <script src="../../../js/shell.js"></script>
 </body>
 </html>

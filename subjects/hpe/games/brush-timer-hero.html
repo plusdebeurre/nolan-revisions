@@ -104,6 +104,8 @@
   </main>
 
   <script src="../../../js/fun-effects.js"></script>
+  <script src="../../../js/progress.js"></script>
+  <script src="../../../js/shell.js"></script>
   <script>
     (function () {
       const SEQUENCE = [
@@ -116,9 +118,33 @@
       const ROUNDS = 3;
       const POINTS_PER_STEP = 1;
 
-      let round = 0;
-      let stepIndex = 0;
+      let round = 0;let stepIndex = 0;
       let hygieneScore = 0;
+      /* nolan-cp */
+      function __nolanSaveCp() {
+        if (!window.NolanProgress) return;
+        var id = NolanProgress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
+        if (!id) return;
+        NolanProgress.saveCheckpoint(id, { index: round, score: hygieneScore });
+      }
+      function __nolanClearCp() {
+        if (!window.NolanProgress) return;
+        var id = NolanProgress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
+        if (!id) return;
+        NolanProgress.clearCheckpoint(id);
+      }
+      (function __nolanRestoreCp() {
+        if (!window.NolanProgress || !NolanProgress.loadCheckpoint) return;
+        var id = NolanProgress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
+        if (!id) return;
+        var cp = NolanProgress.loadCheckpoint(id);
+        if (!cp) return;
+        round = Math.max(0, cp.index | 0);
+        hygieneScore = Math.max(0, Number(cp.score) || 0);
+        if (NolanProgress.showResumeToast) NolanProgress.showResumeToast('Resuming…');
+      })();
+
+      
       let streak = 0;
 
       const scoreHud = document.getElementById('score-hud');
@@ -213,11 +239,11 @@
 
       nextRoundBtn.addEventListener('click', () => {
         roundFeedback.classList.remove('showing-win');
-        round++;
+        round++; __nolanSaveCp();
         resetRoundVisuals();
       });
 
-      function showResults() {
+      function showResults() { __nolanClearCp();
         playScreen.classList.add('hidden');
         resultScreen.classList.remove('hidden');
         document.getElementById('final-score').textContent = String(hygieneScore);
@@ -232,10 +258,14 @@
         }
       }
 
-      function startGame() {
-        round = 0;
-        hygieneScore = 0;
-        streak = 0;
+      function startGame(reset) {
+        if (reset) {
+          __nolanClearCp();
+          round = 0;
+          hygieneScore = 0;
+          streak = 0;
+          stepIndex = 0;
+        }
         playScreen.classList.remove('hidden');
         resultScreen.classList.add('hidden');
         updateHud();
@@ -246,7 +276,5 @@
       startGame();
     })();
   </script>
-  <script src="../../../js/progress.js"></script>
-  <script src="../../../js/shell.js"></script>
 </body>
 </html>

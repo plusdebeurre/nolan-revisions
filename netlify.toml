@@ -2,7 +2,13 @@
   publish = "."
   command = "echo 'No build step'"
 
+# SAMEORIGIN so app.html can keep fullscreen while navigating inside #nolan-stage
 [[headers]]
   for = "/*"
   [headers.values]
-    X-Frame-Options = "DENY"
+    X-Frame-Options = "SAMEORIGIN"
+
+[[redirects]]
+  from = "/play"
+  to = "/app.html"
+  status = 302

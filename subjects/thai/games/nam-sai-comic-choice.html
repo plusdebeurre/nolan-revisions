@@ -87,6 +87,8 @@
     </div>
   </main>
   <script src="../../../js/fun-effects.js"></script>
+  <script src="../../../js/progress.js"></script>
+  <script src="../../../js/shell.js"></script>
   <script>
     const SCENES = [
       {
@@ -181,6 +183,30 @@
       }
     ];
     let i = 0, score = 0, streak = 0, locked = false;
+      /* nolan-cp */
+      function __nolanSaveCp() {
+        if (!window.NolanProgress) return;
+        var id = NolanProgress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
+        if (!id) return;
+        NolanProgress.saveCheckpoint(id, { index: i, score: score });
+      }
+      function __nolanClearCp() {
+        if (!window.NolanProgress) return;
+        var id = NolanProgress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
+        if (!id) return;
+        NolanProgress.clearCheckpoint(id);
+      }
+      (function __nolanRestoreCp() {
+        if (!window.NolanProgress || !NolanProgress.loadCheckpoint) return;
+        var id = NolanProgress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
+        if (!id) return;
+        var cp = NolanProgress.loadCheckpoint(id);
+        if (!cp) return;
+        i = Math.max(0, cp.index | 0);
+        score = Math.max(0, Number(cp.score) || 0);
+        if (NolanProgress.showResumeToast) NolanProgress.showResumeToast('Resuming…');
+      })();
+
     const comicStrip = document.getElementById('comic-strip');
     const sceneQuestion = document.getElementById('scene-question');
     const storyChoices = document.getElementById('story-choices');
@@ -244,7 +270,7 @@
       nextBtn.classList.remove('hidden');
     }
     nextBtn.addEventListener('click', () => {
-      i++;
+      i++; __nolanSaveCp();
       if (i < SCENES.length) load();
       else {
         progressBar.style.width = '100%';
@@ -258,14 +284,12 @@
       }
     });
     document.getElementById('restart-btn').addEventListener('click', () => {
-      i = 0; score = 0; streak = 0;
+      __nolanClearCp(); i = 0; score = 0; streak = 0;
       document.getElementById('result-screen').classList.add('hidden');
       document.getElementById('play-screen').classList.remove('hidden');
       load();
     });
     load();
   </script>
-  <script src="../../../js/progress.js"></script>
-  <script src="../../../js/shell.js"></script>
 </body>
 </html>

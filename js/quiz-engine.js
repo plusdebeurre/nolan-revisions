@@ -45,8 +45,31 @@
     document.head.appendChild(s);
   }
 
+  function ensureProgress(cb) {
+    if (global.NolanProgress) {
+      cb();
+      return;
+    }
+    const s = document.createElement('script');
+    s.src = '../../../js/progress.js';
+    const scripts = document.getElementsByTagName('script');
+    for (let i = 0; i < scripts.length; i++) {
+      if (scripts[i].src && scripts[i].src.indexOf('quiz-engine.js') !== -1) {
+        s.src = scripts[i].src.replace('quiz-engine.js', 'progress.js');
+        break;
+      }
+      if (scripts[i].src && scripts[i].src.indexOf('progress.js') !== -1) {
+        s.src = scripts[i].src;
+        break;
+      }
+    }
+    s.onload = cb;
+    s.onerror = cb;
+    document.head.appendChild(s);
+  }
+
   function mount(config) {
-    ensureFunEffects(() => mountInner(config));
+    ensureFunEffects(() => ensureProgress(() => mountInner(config)));
   }
 
   function mountInner(config) {
@@ -73,6 +96,35 @@
     let score = 0;
     let canAnswer = true;
     let streak = 0;
+
+    const gameId =
+      config.gameId ||
+      (document.body && document.body.getAttribute('data-game-id')) ||
+      (global.NolanProgress && global.NolanProgress.inferGameIdFromPath && global.NolanProgress.inferGameIdFromPath());
+
+    function persistCheckpoint() {
+      if (!gameId || !global.NolanProgress || !global.NolanProgress.saveCheckpoint) return;
+      global.NolanProgress.saveCheckpoint(gameId, {
+        index: currentQuestionIndex,
+        score,
+        extra: { streak }
+      });
+    }
+
+    function clearPersistedCheckpoint() {
+      if (!gameId || !global.NolanProgress || !global.NolanProgress.clearCheckpoint) return;
+      global.NolanProgress.clearCheckpoint(gameId);
+    }
+
+    if (gameId && global.NolanProgress && global.NolanProgress.loadCheckpoint) {
+      const cp = global.NolanProgress.loadCheckpoint(gameId);
+      if (cp && typeof cp.index === 'number' && cp.index >= 0 && cp.index < quizData.length) {
+        currentQuestionIndex = cp.index;
+        score = Math.max(0, Number(cp.score) || 0);
+        if (cp.extra && typeof cp.extra.streak === 'number') streak = cp.extra.streak;
+        if (global.NolanProgress.showResumeToast) global.NolanProgress.showResumeToast('Resuming…');
+      }
+    }
 
     app.innerHTML = `
       <div class="score-hud" id="live-score-hud">Score: 0 / ${quizData.length}</div>
@@ -205,6 +257,7 @@
         feedbackArea.classList.add('bg-red-100', 'text-red-800');
         feedbackArea.innerHTML = `<strong>Oops! 🙈</strong><br>${current.explanation}`;
       }
+      persistCheckpoint();
       nextBtn.classList.remove('hidden');
     }
 
@@ -221,10 +274,7 @@
       else resultMessage.textContent = tryAgainMessage;
       progressBar.style.width = '100%';
 
-      const gameId =
-        config.gameId ||
-        (document.body && document.body.getAttribute('data-game-id')) ||
-        (global.NolanProgress && global.NolanProgress.inferGameIdFromPath && global.NolanProgress.inferGameIdFromPath());
+      clearPersistedCheckpoint();
       if (gameId && global.NolanProgress && global.NolanProgress.recordResult) {
         const recorded = global.NolanProgress.recordResult(gameId, {
           score,
@@ -246,11 +296,14 @@
 
     nextBtn.addEventListener('click', () => {
       currentQuestionIndex++;
-      if (currentQuestionIndex < quizData.length) loadQuestion();
-      else showResults();
+      if (currentQuestionIndex < quizData.length) {
+        persistCheckpoint();
+        loadQuestion();
+      } else showResults();
     });
 
     restartBtn.addEventListener('click', () => {
+      clearPersistedCheckpoint();
       currentQuestionIndex = 0;
       score = 0;
       streak = 0;

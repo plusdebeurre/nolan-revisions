@@ -134,6 +134,54 @@
     setSessionUnlockedId(null);
   }
 
+  function ensureGameEntry(p, gameId, totalHint) {
+    if (!p.games) p.games = {};
+    if (!p.games[gameId]) {
+      p.games[gameId] = {
+        bestMedal: 'played',
+        bestScore: 0,
+        bestTotal: totalHint || 1,
+        plays: 0,
+        lastPlayed: null
+      };
+    }
+    return p.games[gameId];
+  }
+
+  function saveCheckpoint(gameId, state) {
+    const profile = getActiveProfile();
+    if (!profile || !gameId || !state) return null;
+    const data = load();
+    const p = data.profiles[profile.id];
+    if (!p) return null;
+    const entry = ensureGameEntry(p, gameId, Number(state.total) || 1);
+    entry.checkpoint = {
+      v: 1,
+      index: Math.max(0, Number(state.index) || 0),
+      score: Math.max(0, Number(state.score) || 0),
+      extra: state.extra && typeof state.extra === 'object' ? state.extra : {},
+      updatedAt: new Date().toISOString()
+    };
+    save(data);
+    return entry.checkpoint;
+  }
+
+  function loadCheckpoint(gameId) {
+    const prog = getGameProgress(gameId);
+    if (!prog || !prog.checkpoint) return null;
+    return prog.checkpoint;
+  }
+
+  function clearCheckpoint(gameId) {
+    const profile = getActiveProfile();
+    if (!profile || !gameId) return;
+    const data = load();
+    const p = data.profiles[profile.id];
+    if (!p || !p.games || !p.games[gameId]) return;
+    delete p.games[gameId].checkpoint;
+    save(data);
+  }
+
   function recordResult(gameId, { score, total }) {
     const profile = getActiveProfile();
     if (!profile || !gameId) return null;
@@ -147,14 +195,7 @@
     const data = load();
     const p = data.profiles[profile.id];
     if (!p) return null;
-    if (!p.games) p.games = {};
-    const prev = p.games[gameId] || {
-      bestMedal: 'played',
-      bestScore: 0,
-      bestTotal: t,
-      plays: 0,
-      lastPlayed: null
-    };
+    const prev = ensureGameEntry(p, gameId, t);
     const nextMedal = betterMedal(medal, prev.bestMedal);
     const betterScore =
       clamped > (prev.bestScore || 0) ||
@@ -166,6 +207,7 @@
       bestTotal: betterScore ? t : prev.bestTotal || t,
       plays: (prev.plays || 0) + 1,
       lastPlayed: new Date().toISOString()
+      // checkpoint cleared on complete
     };
     p.xp = (p.xp || 0) + gained;
     p.level = levelFromXp(p.xp);
@@ -248,6 +290,42 @@
     });
   }
 
+  function showResumeToast(msg) {
+    const existing = document.getElementById('nolan-resume-toast');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.id = 'nolan-resume-toast';
+    toast.className = 'nolan-resume-toast';
+    toast.textContent = msg || 'Resuming where you left off…';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2200);
+  }
+
+  /**
+   * Convenience for round-based custom games.
+   * indexKey: property name on a shared state object, or use restoreRound helpers.
+   */
+  function bindRoundCheckpoint(gameId, getters) {
+    const id = gameId || inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
+    if (!id) return null;
+    return {
+      id,
+      restore() {
+        const cp = loadCheckpoint(id);
+        if (!cp) return null;
+        showResumeToast('Resuming…');
+        if (getters && typeof getters.onRestore === 'function') getters.onRestore(cp);
+        return cp;
+      },
+      save(index, score, extra) {
+        return saveCheckpoint(id, { index, score, extra: extra || {} });
+      },
+      clear() {
+        clearCheckpoint(id);
+      }
+    };
+  }
+
   global.NolanProgress = {
     PIN_FRUITS,
     AVATARS,
@@ -262,6 +340,11 @@
     recordResult,
     recordFromDom,
     getGameProgress,
+    saveCheckpoint,
+    loadCheckpoint,
+    clearCheckpoint,
+    bindRoundCheckpoint,
+    showResumeToast,
     medalEmoji,
     levelFruit,
     levelFromXp,

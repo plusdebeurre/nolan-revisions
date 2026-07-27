@@ -1,5 +1,21 @@
 # Recent Changes Memory
 
+## 2026-07-28 — Persistent fullscreen + in-exercise resume
+
+### What changed
+- Added `app.html` play shell: parent stays in fullscreen; navigation happens inside `#nolan-stage` iframe.
+- `js/shell.js`: iframe pages skip duplicate chrome; Full screen routes into app mode; Continue chips on hubs with mid-game checkpoints.
+- Checkpoint API in `js/progress.js` (`saveCheckpoint` / `loadCheckpoint` / `clearCheckpoint`); cleared on `recordResult` / finish.
+- `QuizEngine` auto-resumes question index + score; round-based custom games save/restore similarly.
+- Netlify: `X-Frame-Options: SAMEORIGIN`, `/play` → `/app.html`.
+
+### User impact
+- Tablet play can stay fullscreen across subjects/games. Leaving mid-quiz shows **Continue** on the hub and picks up where Nolan stopped (same device/profile).
+
+### Key files
+- `app.html`, `js/shell.js`, `js/progress.js`, `js/quiz-engine.js`, `css/shared.css`, `netlify.toml`
+- Round-based `subjects/*/games/*.html`, docs
+
 ## 2026-07-28 — Profiles, medals, XP & fullscreen
 
 ### What changed

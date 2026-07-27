@@ -1,12 +1,28 @@
 /**
- * Nolan Hub shell: profile gate, top bar, fullscreen, hub medal badges.
+ * Nolan Hub shell: profile gate, top bar, fullscreen (app iframe), hub medals.
  */
 (function () {
+  const FS_KEY = 'nolanWantFs';
+  const IN_IFRAME = window.self !== window.top;
+  const IS_APP = document.body && document.body.getAttribute('data-nolan-app') === '1';
+
   function assetPrefix() {
+    if (IS_APP) return '';
     const path = (location.pathname || '').replace(/\\/g, '/');
     if (/\/subjects\/[^/]+\/games\//.test(path)) return '../../../';
     if (/\/subjects\/[^/]+\//.test(path)) return '../../';
     return '';
+  }
+
+  function resolveAppUrl() {
+    const path = location.pathname.replace(/\\/g, '/');
+    let src = 'index.html';
+    const idx = path.indexOf('/subjects/');
+    if (idx !== -1) src = path.slice(idx + 1);
+    else if (path.endsWith('/') || /index\.html$/i.test(path) || path === '' || path === '/') {
+      src = 'index.html';
+    }
+    return assetPrefix() + 'app.html?src=' + encodeURIComponent(src);
   }
 
   function ensureProgress(cb) {
@@ -28,6 +44,14 @@
     return n;
   }
 
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
   function paintHubMedals() {
     const NP = window.NolanProgress;
     if (!NP || !NP.isUnlocked()) return;
@@ -41,13 +65,26 @@
         if (h3) h3.appendChild(chip);
         else card.prepend(chip);
       }
+      let cont = card.querySelector('.continue-chip');
+      if (prog && prog.checkpoint) {
+        if (!cont) {
+          cont = el('span', 'continue-chip');
+          cont.textContent = 'Continue';
+          const h3 = card.querySelector('h3');
+          if (h3) h3.appendChild(cont);
+        }
+        cont.classList.remove('hidden');
+      } else if (cont) {
+        cont.classList.add('hidden');
+      }
+
       if (prog && prog.bestMedal && prog.bestMedal !== 'played') {
         chip.textContent = NP.medalEmoji(prog.bestMedal);
         chip.className = 'medal-chip medal-' + prog.bestMedal;
         chip.title = prog.bestMedal + ' · best ' + prog.bestScore + '/' + prog.bestTotal;
         card.classList.remove('medal-border-gold', 'medal-border-silver', 'medal-border-bronze');
         card.classList.add('medal-border-' + prog.bestMedal);
-      } else if (prog) {
+      } else if (prog && (prog.plays || prog.bestMedal === 'played')) {
         chip.textContent = '✓';
         chip.className = 'medal-chip medal-played';
         chip.title = 'Played';
@@ -61,6 +98,7 @@
   }
 
   function renderTopBar() {
+    if (IN_IFRAME) return;
     const NP = window.NolanProgress;
     let bar = document.getElementById('nolan-shell-bar');
     if (!bar) {
@@ -72,7 +110,7 @@
     if (!profile) {
       bar.innerHTML = `
         <button type="button" class="shell-profile-btn" id="shell-open-profiles">👤 Who is playing?</button>
-        <button type="button" class="shell-fs-btn" id="shell-fullscreen" title="Fullscreen">⛶</button>
+        <button type="button" class="shell-fs-btn" id="shell-fullscreen" title="Fullscreen">⛶ Full screen</button>
       `;
     } else {
       const xpInfo = NP.xpToNext(profile);
@@ -92,30 +130,49 @@
       `;
     }
     document.getElementById('shell-open-profiles')?.addEventListener('click', () => openProfileModal());
-    document.getElementById('shell-fullscreen')?.addEventListener('click', toggleFullscreen);
+    document.getElementById('shell-fullscreen')?.addEventListener('click', enterFullscreenFlow);
   }
 
-  function escapeHtml(s) {
-    return String(s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
-
-  function toggleFullscreen() {
-    const doc = document;
-    if (!doc.fullscreenElement) {
-      const root = doc.documentElement;
-      const req = root.requestFullscreen || root.webkitRequestFullscreen || root.msRequestFullscreen;
-      if (req) req.call(root);
-    } else {
-      const exit = doc.exitFullscreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
-      if (exit) exit.call(doc);
+  function showFsChip() {
+    if (IN_IFRAME || document.fullscreenElement) return;
+    if (sessionStorage.getItem(FS_KEY) !== '1') return;
+    let chip = document.getElementById('nolan-fs-chip');
+    if (!chip) {
+      chip = el('button', 'nolan-fs-chip');
+      chip.id = 'nolan-fs-chip';
+      chip.type = 'button';
+      chip.textContent = '⛶ Tap for full screen';
+      document.body.appendChild(chip);
+      chip.addEventListener('click', enterFullscreenFlow);
     }
+    chip.classList.remove('hidden');
+  }
+
+  function hideFsChip() {
+    document.getElementById('nolan-fs-chip')?.classList.add('hidden');
+  }
+
+  function enterFullscreenFlow() {
+    sessionStorage.setItem(FS_KEY, '1');
+    if (IS_APP) {
+      const root = document.documentElement;
+      const req = root.requestFullscreen || root.webkitRequestFullscreen;
+      if (req) {
+        req.call(root).then(() => hideFsChip()).catch(() => showFsChip());
+      }
+      return;
+    }
+    // Jump into app shell so navigation stays inside iframe while parent stays fullscreen
+    location.href = resolveAppUrl();
   }
 
   function openProfileModal(force) {
+    if (IN_IFRAME) {
+      try {
+        window.top.postMessage({ type: 'nolan:open-profiles' }, '*');
+      } catch (e) { /* ignore */ }
+      return;
+    }
     const NP = window.NolanProgress;
     if (!NP) return;
     let modal = document.getElementById('nolan-profile-modal');
@@ -128,10 +185,6 @@
 
     const profiles = NP.listProfiles();
     const unlocked = NP.isUnlocked();
-
-    if (!force && unlocked && profiles.length) {
-      /* allow switch: show list */
-    }
 
     modal.innerHTML = `
       <div class="nolan-modal question-card animate-pop" role="dialog" aria-modal="true">
@@ -258,6 +311,12 @@
           document.getElementById('nolan-profile-modal')?.classList.add('hidden');
           renderTopBar();
           paintHubMedals();
+          try {
+            const stage = document.getElementById('nolan-stage');
+            if (stage && stage.contentWindow) {
+              stage.contentWindow.postMessage({ type: 'nolan:unlocked' }, '*');
+            }
+          } catch (e) { /* ignore */ }
           if (window.FunEffects) window.FunEffects.confetti({ count: 18 });
         } else {
           const err = box.querySelector('#pin-error');
@@ -272,20 +331,61 @@
   }
 
   function boot() {
+    if (IN_IFRAME) {
+      sessionStorage.setItem('nolanInFrame', '1');
+      document.body.classList.add('nolan-embedded');
+      document.body.style.paddingTop = '0';
+    }
+
     ensureProgress(() => {
-      renderTopBar();
-      if (!window.NolanProgress?.isUnlocked()) {
-        openProfileModal(true);
+      if (!IN_IFRAME) {
+        renderTopBar();
+        if (!window.NolanProgress?.isUnlocked()) {
+          openProfileModal(true);
+        } else {
+          paintHubMedals();
+        }
+        document.addEventListener('fullscreenchange', () => {
+          if (document.fullscreenElement) hideFsChip();
+          else {
+            sessionStorage.setItem(FS_KEY, '0');
+            hideFsChip();
+          }
+        });
+        if (IS_APP && sessionStorage.getItem(FS_KEY) === '1' && !document.fullscreenElement) {
+          showFsChip();
+        }
       } else {
+        // Inside iframe: medals only; gate if locked (parent usually already unlocked)
+        if (!window.NolanProgress?.isUnlocked()) {
+          try {
+            window.top.postMessage({ type: 'nolan:open-profiles' }, '*');
+          } catch (e) { /* ignore */ }
+        }
         paintHubMedals();
       }
+
       if (document.body?.classList.contains('game') || /\/games\//.test(location.pathname)) {
         window.NolanProgress?.watchResultScreens();
       }
       document.addEventListener('nolan:progress', () => {
-        renderTopBar();
+        if (!IN_IFRAME) renderTopBar();
         paintHubMedals();
+        try {
+          if (IN_IFRAME) window.top.postMessage({ type: 'nolan:progress' }, '*');
+        } catch (e) { /* ignore */ }
       });
+    });
+
+    window.addEventListener('message', (ev) => {
+      if (!ev.data || typeof ev.data !== 'object') return;
+      if (ev.data.type === 'nolan:open-profiles' && !IN_IFRAME) openProfileModal(true);
+      if (ev.data.type === 'nolan:progress' && !IN_IFRAME) {
+        renderTopBar();
+      }
+      if (ev.data.type === 'nolan:unlocked' && IN_IFRAME) {
+        paintHubMedals();
+      }
     });
   }
 

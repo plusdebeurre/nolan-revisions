@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nolan's Learning Adventure — Play</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/shared.css">
+  <style>
+    html, body.app-shell {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      padding-top: 0;
+    }
+    body.app-shell {
+      display: flex;
+      flex-direction: column;
+      background: #0f172a;
+    }
+    #nolan-stage {
+      flex: 1;
+      width: 100%;
+      border: 0;
+      background: white;
+    }
+    body.app-shell .nolan-shell-bar {
+      position: relative;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body class="app-shell theme-hub" data-nolan-app="1">
+  <iframe id="nolan-stage" name="nolan-stage" title="Learning games" src="index.html"></iframe>
+  <script src="js/progress.js"></script>
+  <script src="js/shell.js"></script>
+  <script>
+    (function () {
+      const frame = document.getElementById('nolan-stage');
+      const params = new URLSearchParams(location.search);
+      let src = params.get('src') || 'index.html';
+      try {
+        src = decodeURIComponent(src);
+      } catch (e) { /* keep */ }
+      if (src.startsWith('http') || src.startsWith('//')) src = 'index.html';
+      if (src.startsWith('/')) src = src.replace(/^\//, '');
+      frame.src = src;
+
+      window.NolanApp = {
+        setStage(url) {
+          frame.src = url;
+        },
+        getStage() {
+          return frame;
+        }
+      };
+
+      document.addEventListener('fullscreenchange', () => {
+        if (!document.fullscreenElement) {
+          sessionStorage.setItem('nolanWantFs', '0');
+        }
+      });
+
+      if (sessionStorage.getItem('nolanWantFs') === '1') {
+        const tryFs = () => {
+          const root = document.documentElement;
+          const req = root.requestFullscreen || root.webkitRequestFullscreen;
+          if (req && !document.fullscreenElement) {
+            req.call(root).catch(() => {});
+          }
+        };
+        // User already clicked Full screen on previous page — try once; if blocked show chip via shell
+        setTimeout(tryFs, 200);
+      }
+    })();
+  </script>
+</body>
+</html>
