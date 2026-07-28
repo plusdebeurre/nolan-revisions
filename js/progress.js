@@ -457,11 +457,19 @@
   }
 
   async function apiPost(payload) {
-    const res = await fetch(apiUrl(), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+    const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), 10000) : null;
+    let res;
+    try {
+      res = await fetch(apiUrl(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: ctrl ? ctrl.signal : undefined
+      });
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
     let data = null;
     try {
       data = await res.json();

@@ -485,10 +485,15 @@
         }
       };
 
+      // Show UI immediately; cloud sync must not block login
+      afterSync();
       if (NP?.ensureProfilesReady) {
-        NP.ensureProfilesReady().finally(afterSync);
-      } else {
-        afterSync();
+        NP.ensureProfilesReady()
+          .then(() => {
+            if (!IN_IFRAME) renderTopBar();
+            paintHubMedals();
+          })
+          .catch(() => {});
       }
 
       document.addEventListener('nolan:progress', () => {
