@@ -444,6 +444,43 @@ body.theme-hub {
   100% { transform: translateX(-50%) scale(1); }
 }
 
+.xp-float {
+  position: fixed;
+  z-index: 70;
+  transform: translate(-50%, -8px) scale(0.85);
+  opacity: 0;
+  pointer-events: none;
+  font-weight: 800;
+  font-size: 1.15rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+  white-space: nowrap;
+  transition: opacity 0.25s ease, transform 0.35s ease;
+}
+
+.xp-float-gain {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(22, 163, 74, 0.35);
+}
+
+.xp-float-zero {
+  background: #e2e8f0;
+  color: #64748b;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 12px rgba(100, 116, 139, 0.2);
+}
+
+.xp-float-show {
+  opacity: 1;
+  transform: translate(-50%, -28px) scale(1);
+}
+
+.xp-float-hide {
+  opacity: 0;
+  transform: translate(-50%, -48px) scale(0.9);
+}
+
 .streak-tier-2 {
   background: linear-gradient(135deg, #38bdf8, #2563eb);
   box-shadow: 0 8px 18px rgba(37, 99, 235, 0.3);

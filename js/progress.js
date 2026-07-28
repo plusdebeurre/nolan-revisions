@@ -132,11 +132,32 @@
     return (MEDAL_RANK[a] || 0) >= (MEDAL_RANK[b] || 0) ? a : b;
   }
 
-  function xpGain(score, total, mistakes) {
-    const ratio = total > 0 ? score / total : 0;
-    const base = Math.round(40 * ratio);
-    const bonus = mistakes === 0 ? 20 : mistakes === 1 ? 10 : mistakes === 2 ? 5 : 0;
-    return base + bonus;
+  const XP_PER_CORRECT = 10;
+  const STREAK_XP = [
+    { min: 8, bonus: 15 },
+    { min: 5, bonus: 10 },
+    { min: 3, bonus: 5 }
+  ];
+
+  /** Stable short key from question/step content (survives shuffle). */
+  function questionKey(parts) {
+    const raw = (Array.isArray(parts) ? parts : [parts])
+      .map((p) => String(p == null ? '' : p).trim().toLowerCase().replace(/\s+/g, ' '))
+      .join('|');
+    let h = 2166136261;
+    for (let i = 0; i < raw.length; i++) {
+      h ^= raw.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return (h >>> 0).toString(36);
+  }
+
+  function streakBonus(streak) {
+    const n = Number(streak) || 0;
+    for (let i = 0; i < STREAK_XP.length; i++) {
+      if (n >= STREAK_XP[i].min) return STREAK_XP[i].bonus;
+    }
+    return 0;
   }
 
   function touchProfile(p) {
@@ -251,7 +272,73 @@
     schedulePush();
   }
 
-  function recordResult(gameId, { score, total }) {
+  function awardAnswerXp(gameId, { key, correct, streak } = {}) {
+    const profile = getActiveProfile();
+    if (!profile || !gameId) {
+      return { xpGained: 0, base: 0, bonus: 0, totalXp: 0, alreadyAwarded: false };
+    }
+    if (!correct) {
+      return {
+        xpGained: 0,
+        base: 0,
+        bonus: 0,
+        totalXp: profile.xp || 0,
+        alreadyAwarded: false
+      };
+    }
+    const qKey = String(key || '').trim();
+    if (!qKey) {
+      return { xpGained: 0, base: 0, bonus: 0, totalXp: profile.xp || 0, alreadyAwarded: false };
+    }
+
+    const data = load();
+    const p = data.profiles[profile.id];
+    if (!p) {
+      return { xpGained: 0, base: 0, bonus: 0, totalXp: 0, alreadyAwarded: false };
+    }
+    const entry = ensureGameEntry(p, gameId);
+    if (!entry.awardedKeys) entry.awardedKeys = {};
+    if (entry.awardedKeys[qKey]) {
+      return {
+        xpGained: 0,
+        base: 0,
+        bonus: 0,
+        totalXp: p.xp || 0,
+        alreadyAwarded: true
+      };
+    }
+
+    const base = XP_PER_CORRECT;
+    const bonus = streakBonus(streak);
+    const gained = base + bonus;
+    entry.awardedKeys[qKey] = {
+      base,
+      bonus,
+      streak: Number(streak) || 0,
+      at: nowIso()
+    };
+    entry.liveXp = true;
+    p.xp = (p.xp || 0) + gained;
+    p.level = levelFromXp(p.xp);
+    touchProfile(p);
+    save(data);
+    schedulePush();
+
+    const result = {
+      xpGained: gained,
+      base,
+      bonus,
+      totalXp: p.xp,
+      xp: p.xp,
+      level: p.level,
+      levelTitle: levelTitle(p.level, p.avatarEmoji),
+      alreadyAwarded: false
+    };
+    document.dispatchEvent(new CustomEvent('nolan:progress', { detail: result }));
+    return result;
+  }
+
+  function recordResult(gameId, { score, total, skipXp } = {}) {
     const profile = getActiveProfile();
     if (!profile || !gameId) return null;
     const s = Math.max(0, Number(score) || 0);
@@ -259,24 +346,34 @@
     const clamped = Math.min(s, t);
     const mistakes = Math.max(0, t - clamped);
     const medal = medalFromMistakes(mistakes);
-    const gained = xpGain(clamped, t, mistakes);
 
     const data = load();
     const p = data.profiles[profile.id];
     if (!p) return null;
     const prev = ensureGameEntry(p, gameId, t);
+    const prevBest = prev.bestScore || 0;
     const nextMedal = betterMedal(medal, prev.bestMedal);
     const betterScore =
-      clamped > (prev.bestScore || 0) ||
-      (clamped === prev.bestScore && t <= (prev.bestTotal || t));
+      clamped > prevBest || (clamped === prevBest && t <= (prev.bestTotal || t));
+
+    const hasLiveAwards =
+      !!prev.liveXp || (prev.awardedKeys && Object.keys(prev.awardedKeys).length > 0);
+    let gained = 0;
+    if (!skipXp && !hasLiveAwards) {
+      // Legacy / custom games: XP only for newly beaten best score (corrects only).
+      gained = XP_PER_CORRECT * Math.max(0, clamped - prevBest);
+    }
 
     p.games[gameId] = {
       bestMedal: nextMedal,
-      bestScore: betterScore ? clamped : prev.bestScore,
+      bestScore: betterScore ? clamped : prevBest,
       bestTotal: betterScore ? t : prev.bestTotal || t,
       plays: (prev.plays || 0) + 1,
-      lastPlayed: nowIso()
+      lastPlayed: nowIso(),
+      awardedKeys: prev.awardedKeys || {},
+      liveXp: prev.liveXp || false
     };
+    if (prev.checkpoint) p.games[gameId].checkpoint = prev.checkpoint;
     p.xp = (p.xp || 0) + gained;
     p.level = levelFromXp(p.xp);
     touchProfile(p);
@@ -545,6 +642,9 @@
     unlockProfile,
     lock,
     recordResult,
+    awardAnswerXp,
+    questionKey,
+    XP_PER_CORRECT,
     recordFromDom,
     getGameProgress,
     saveCheckpoint,

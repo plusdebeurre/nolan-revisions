@@ -1,5 +1,19 @@
 # Recent Changes Memory
 
+## 2026-07-28 — Per-answer XP (no farm)
+
+### What changed
+- XP only on first-time correct answers (`awardAnswerXp` + content `questionKey`); wrong = 0; replays show “Already earned · +0 XP”.
+- Streak bonuses (+5/+10/+15 at 3/5/8) only when the question still had unclaimed base XP.
+- QuizEngine awards live mid-quiz; end `recordResult` uses `skipXp`. Legacy custom games: improvement-only end XP.
+- `FunEffects.showXpGain` floating animation.
+
+### User impact
+- Replaying the same exercise no longer farms XP; kids see clear +XP / already-earned feedback. Existing profile XP totals are kept.
+
+### Key files
+- `js/progress.js`, `js/quiz-engine.js`, `js/fun-effects.js`, `css/shared.css`, docs
+
 ## 2026-07-28 — Fix Nolan profile persistence
 
 ### What changed

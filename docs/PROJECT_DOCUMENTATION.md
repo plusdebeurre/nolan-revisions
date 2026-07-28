@@ -89,7 +89,8 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 - Multi-child **profiles** (first name + avatar + secret fruit emoji PIN).
 - **Public cloud sync** via Netlify Blobs (`family-api`): every device can see and unlock all profiles; `localStorage` is a cache.
 - Unlock by tapping the secret fruit; switch profiles from the top bar avatar (circular **profile photo**).
-- Completing a game awards XP and a medal by mistakes (`total − score`): **gold** 0, **silver** 1, **bronze** 2.
+- Completing a game awards a medal by mistakes (`total − score`): **gold** 0, **silver** 1, **bronze** 2.
+- **XP** is earned per **first-time correct answer** (+10), keyed by question content (replays of the same question = +0). Wrong answers give 0. Streak bonuses (+5 / +10 / +15 at streaks 3 / 5 / 8) only on first-claim corrects. Live `+XP` float animation via `FunEffects.showXpGain`. Custom games without live awards get improvement-only XP (`+10 × max(0, score − bestScore)`).
 - Levels (every 150 XP) use a fun English title combined with the animal avatar, e.g. Sleepy Unicorn → … → Super Saiyan X.
 - **Leaderboard** (trophy button): ranks **all site profiles** by XP, then gold/silver/bronze.
 - Quiz copy can use `{{name}}` → active profile name (`NolanProgress.fillName` / QuizEngine).

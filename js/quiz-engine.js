@@ -258,6 +258,29 @@
         streak++;
         updateScoreUI();
         if (fun()) fun().showStreak(streak);
+        if (gameId && global.NolanProgress && global.NolanProgress.awardAnswerXp) {
+          const correctText =
+            current.options && current.options[current.correctAnswer] != null
+              ? current.options[current.correctAnswer]
+              : current.correctAnswer;
+          const key = global.NolanProgress.questionKey([
+            gameId,
+            current.question,
+            correctText
+          ]);
+          const awarded = global.NolanProgress.awardAnswerXp(gameId, {
+            key,
+            correct: true,
+            streak
+          });
+          if (fun() && fun().showXpGain) {
+            fun().showXpGain(awarded.xpGained, {
+              alreadyAwarded: !!awarded.alreadyAwarded,
+              bonus: awarded.bonus,
+              anchor: document.getElementById('live-score')
+            });
+          }
+        }
         feedbackArea.classList.add('bg-green-100', 'text-green-800');
         feedbackArea.innerHTML = `<strong>Well done! 🎉</strong><br>${current.explanation}`;
       } else {
@@ -287,7 +310,8 @@
       if (gameId && global.NolanProgress && global.NolanProgress.recordResult) {
         const recorded = global.NolanProgress.recordResult(gameId, {
           score,
-          total: quizData.length
+          total: quizData.length,
+          skipXp: true
         });
         if (recorded) {
           document.dispatchEvent(new CustomEvent('nolan:progress', { detail: recorded }));

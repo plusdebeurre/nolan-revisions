@@ -142,6 +142,41 @@
     el.classList.add('score-pulse');
   }
 
+  function showXpGain(amount, opts) {
+    const gained = Math.max(0, Number(amount) || 0);
+    const already = !!(opts && opts.alreadyAwarded);
+    const anchor = (opts && opts.anchor) || document.getElementById('live-score') || null;
+
+    const el = document.createElement('div');
+    el.className =
+      'xp-float' + (gained > 0 ? ' xp-float-gain' : already ? ' xp-float-zero' : ' xp-float-zero');
+    el.setAttribute('aria-live', 'polite');
+    if (gained > 0) {
+      const bonus = opts && opts.bonus ? Number(opts.bonus) : 0;
+      el.textContent = bonus > 0 ? '+' + gained + ' XP (streak!)' : '+' + gained + ' XP';
+    } else if (already) {
+      el.textContent = 'Already earned · +0 XP';
+    } else {
+      el.textContent = '+0 XP';
+    }
+
+    document.body.appendChild(el);
+    if (anchor && anchor.getBoundingClientRect) {
+      const r = anchor.getBoundingClientRect();
+      el.style.left = Math.round(r.left + r.width / 2) + 'px';
+      el.style.top = Math.round(r.top - 8) + 'px';
+    } else {
+      el.style.left = '50%';
+      el.style.top = '42%';
+    }
+    requestAnimationFrame(() => el.classList.add('xp-float-show'));
+    setTimeout(() => {
+      el.classList.remove('xp-float-show');
+      el.classList.add('xp-float-hide');
+      setTimeout(() => el.remove(), 400);
+    }, gained > 0 ? 1400 : 1100);
+  }
+
   function celebratePerfect() {
     confetti({ count: 40 });
     burstStars(12);
@@ -152,6 +187,7 @@
     confetti,
     shake,
     showStreak,
+    showXpGain,
     pulseScore,
     celebratePerfect,
     burstStars,
