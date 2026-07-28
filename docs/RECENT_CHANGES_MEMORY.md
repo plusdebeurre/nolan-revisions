@@ -1,5 +1,16 @@
 # Recent Changes Memory
 
+## 2026-07-28 — Fix Pulse Check JS syntax
+
+### What changed
+- Escaped `{{name}}'s` strings in `subjects/hpe/games/pulse-check.html` (apostrophe broke the script so the quiz never mounted).
+
+### User impact
+- Pulse Check in HPE loads and plays again.
+
+### Key files
+- `subjects/hpe/games/pulse-check.html`, docs
+
 ## 2026-07-28 — Per-answer XP (no farm)
 
 ### What changed
