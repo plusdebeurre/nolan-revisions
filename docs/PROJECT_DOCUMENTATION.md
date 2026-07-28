@@ -4,7 +4,7 @@ Static revision games for a Grade 2 learner (age ~7). Child UI is **English**. P
 
 ## How to open
 
-Open the live Netlify site (recommended — cloud family sync needs Functions), or [`index.html`](../index.html) / [`app.html`](../app.html) locally. For local Functions/Blobs: `npm install` then `netlify dev`.
+Open the live Netlify site (recommended — cloud profile sync needs Functions), or [`index.html`](../index.html) / [`app.html`](../app.html) locally. For local Functions/Blobs: `npm install` then `netlify dev`.
 
 ## Structure
 
@@ -12,12 +12,12 @@ Open the live Netlify site (recommended — cloud family sync needs Functions), 
 nolan-revisions/
 ├── index.html                 # Home — Learning Adventure
 ├── app.html                   # Play shell (fullscreen + iframe stage)
-├── netlify/functions/         # family-api (Netlify Blobs sync)
+├── netlify/functions/         # family-api (public profiles + leaderboard via Netlify Blobs)
 ├── css/shared.css
 ├── js/quiz-engine.js
 ├── js/fun-effects.js
-├── js/progress.js             # Profiles, XP, medals, checkpoints, family sync
-├── js/shell.js                # Family gate, leaderboard, profiles, fullscreen
+├── js/progress.js             # Profiles, XP, medals, checkpoints, public sync
+├── js/shell.js                # Profile gate, leaderboard, fullscreen
 ├── package.json               # @netlify/blobs for Functions
 ├── subjects/ …
 └── docs/
@@ -87,21 +87,21 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 ## Profiles, medals & XP
 
 - Multi-child **profiles** (first name + avatar + secret fruit emoji PIN).
-- **Family name** syncs profiles/XP/medals via **Netlify Blobs** + `family-api` Function (cross-browser / device). `localStorage` is a cache only. Create or join with the same household name (e.g. “Maison Cayre”); the API stores a slug key (`MAISONCAYRE`).
+- **Public cloud sync** via Netlify Blobs (`family-api`): every device can see and unlock all profiles; `localStorage` is a cache.
 - Unlock by tapping the secret fruit; switch profiles from the top bar avatar (circular **profile photo**).
 - Completing a game awards XP and a medal by mistakes (`total − score`): **gold** 0, **silver** 1, **bronze** 2.
 - Levels (every 150 XP) use a fun English title combined with the animal avatar, e.g. Sleepy Unicorn → … → Super Saiyan X.
-- **Leaderboard** (trophy button): ranks **all site profiles** by XP, then gold/silver/bronze; each row shows the family name as a subtitle.
+- **Leaderboard** (trophy button): ranks **all site profiles** by XP, then gold/silver/bronze.
 - Quiz copy can use `{{name}}` → active profile name (`NolanProgress.fillName` / QuizEngine).
 - Shared scripts: `js/progress.js`, `js/shell.js` (loaded on every page).
+- Profile create / fruit unlock modal is **wide on desktop** (side-by-side avatar + PIN) so it fits without vertical scroll.
 
-## Family sync (Netlify Blobs)
+## Profile sync (Netlify Blobs)
 
-1. First visit: **Create a new family** or **Join** with the same family name.
-2. On other devices, type the exact family name to join (not a random code).
-3. Progress pushes after profile create / game result / checkpoint (debounced); push also upserts the global leaderboard blob.
-4. Leaderboard uses `action: "leaderboard"` (public XP/medal rows). Family pull/push still use the name slug.
-5. One-shot cleanup removes any profile named **Nolan** from local cache and cloud family + global index.
+1. First visit: create a profile (name + avatar + secret fruit) — no family code.
+2. Boot pulls all public profiles; create/play pushes local profiles to the global store.
+3. Leaderboard uses `action: "leaderboard"` (public XP/medal rows).
+4. One-shot cleanup removes any profile named **Nolan** from local cache and cloud.
 
 ## Streak celebrations
 

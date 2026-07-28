@@ -1,6 +1,7 @@
 /**
- * Family + global leaderboard API (Netlify Blobs).
- * POST actions: create | join | pull | push | leaderboard | resetProfile
+ * Public profiles + leaderboard API (Netlify Blobs).
+ * POST actions: list | push | leaderboard | resetProfile
+ * (legacy create/join/pull/push-family accepted as aliases where useful)
  */
 const { getStore, connectLambda } = require('@netlify/blobs');
 
@@ -11,7 +12,8 @@ const CORS = {
   'Content-Type': 'application/json'
 };
 
-const GLOBAL_KEY = 'global-leaderboard';
+const PROFILES_KEY = 'global-profiles';
+const LEGACY_LB_KEY = 'global-leaderboard';
 const SITE_ID =
   process.env.SITE_ID ||
   process.env.NETLIFY_SITE_ID ||
@@ -21,34 +23,15 @@ function json(status, body) {
   return { statusCode: status, headers: CORS, body: JSON.stringify(body) };
 }
 
-/** Slug from family name: letters/digits only, uppercase, 3–32 chars. */
-function slugifyName(name) {
-  return String(name || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, '')
-    .slice(0, 32);
-}
-
-function normalizeCode(code) {
-  return slugifyName(code);
-}
-
-function emptyFamily(code, name) {
-  return {
-    code,
-    name: String(name || code).trim().slice(0, 48) || code,
-    updatedAt: new Date().toISOString(),
-    profiles: {}
-  };
-}
-
 function mergeProfiles(existing, incoming) {
   const next = { ...(existing || {}) };
   Object.keys(incoming || {}).forEach((id) => {
     const remote = incoming[id];
-    if (!remote || typeof remote !== 'object') return;
+    if (!remote || typeof remote !== 'object' || !remote.id) return;
+    if (/^nolan$/i.test(String(remote.name || '').trim())) {
+      delete next[id];
+      return;
+    }
     const local = next[id];
     if (!local) {
       next[id] = remote;
@@ -71,7 +54,7 @@ function countMedals(profile) {
   return counts;
 }
 
-function publicRow(profile, familyName) {
+function publicRow(profile) {
   const medals = countMedals(profile);
   const xp = profile.xp || 0;
   const level = Math.max(1, Math.floor(xp / 150) + 1);
@@ -84,7 +67,6 @@ function publicRow(profile, familyName) {
     gold: medals.gold,
     silver: medals.silver,
     bronze: medals.bronze,
-    familyName: familyName || '',
     updatedAt: profile.updatedAt || new Date().toISOString()
   };
 }
@@ -104,39 +86,53 @@ function openStore(context, storeName) {
   return getStore(opts);
 }
 
-async function loadGlobal(meta) {
-  return (await meta.get(GLOBAL_KEY, { type: 'json' })) || { updatedAt: null, profiles: {} };
-}
-
-async function saveGlobal(meta, data) {
-  data.updatedAt = new Date().toISOString();
-  await meta.setJSON(GLOBAL_KEY, data);
+async function loadProfiles(meta) {
+  const data = (await meta.get(PROFILES_KEY, { type: 'json' })) || { updatedAt: null, profiles: {} };
+  if (!data.profiles) data.profiles = {};
+  // One-time enrich from legacy public leaderboard rows (no PIN)
+  if (!Object.keys(data.profiles).length) {
+    const legacy = (await meta.get(LEGACY_LB_KEY, { type: 'json' })) || {};
+    if (legacy.profiles && Object.keys(legacy.profiles).length) {
+      Object.keys(legacy.profiles).forEach((id) => {
+        const row = legacy.profiles[id];
+        if (!row || !row.id) return;
+        data.profiles[id] = {
+          id: row.id,
+          name: row.name,
+          avatarEmoji: row.avatarEmoji || '🦊',
+          pinFruit: null,
+          xp: row.xp || 0,
+          level: row.level || 1,
+          games: {},
+          updatedAt: row.updatedAt || new Date().toISOString()
+        };
+      });
+    }
+  }
   return data;
 }
 
-async function upsertGlobalFromFamily(meta, family) {
-  const global = await loadGlobal(meta);
-  if (!global.profiles) global.profiles = {};
-  const familyName = family.name || family.code;
-  Object.keys(family.profiles || {}).forEach((id) => {
-    const p = family.profiles[id];
-    if (!p || !p.id) return;
-    if (/^nolan$/i.test(String(p.name || '').trim())) {
-      delete global.profiles[id];
-      return;
-    }
-    global.profiles[id] = publicRow(p, familyName);
+async function saveProfiles(meta, data) {
+  data.updatedAt = new Date().toISOString();
+  await meta.setJSON(PROFILES_KEY, data);
+  // Keep legacy LB blob in sync for any old clients
+  const lb = { updatedAt: data.updatedAt, profiles: {} };
+  Object.keys(data.profiles || {}).forEach((id) => {
+    lb.profiles[id] = publicRow(data.profiles[id]);
   });
-  return saveGlobal(meta, global);
+  await meta.setJSON(LEGACY_LB_KEY, lb);
+  return data;
 }
 
-function sortedLeaderboard(global) {
-  return Object.values((global && global.profiles) || {}).sort((a, b) => {
-    if (b.xp !== a.xp) return b.xp - a.xp;
-    if (b.gold !== a.gold) return b.gold - a.gold;
-    if (b.silver !== a.silver) return b.silver - a.silver;
-    return String(a.name).localeCompare(String(b.name));
-  });
+function sortedLeaderboard(store) {
+  return Object.values((store && store.profiles) || {})
+    .map(publicRow)
+    .sort((a, b) => {
+      if (b.xp !== a.xp) return b.xp - a.xp;
+      if (b.gold !== a.gold) return b.gold - a.gold;
+      if (b.silver !== a.silver) return b.silver - a.silver;
+      return String(a.name).localeCompare(String(b.name));
+    });
 }
 
 exports.handler = async (event, context) => {
@@ -144,10 +140,8 @@ exports.handler = async (event, context) => {
     return { statusCode: 204, headers: CORS, body: '' };
   }
 
-  let store;
   let meta;
   try {
-    store = openStore(context, 'families');
     meta = openStore(context, 'meta');
   } catch (err) {
     return json(500, { ok: false, error: 'Blobs unavailable', detail: String(err && err.message) });
@@ -155,11 +149,8 @@ exports.handler = async (event, context) => {
 
   try {
     if (event.httpMethod === 'GET') {
-      const code = normalizeCode(event.queryStringParameters && event.queryStringParameters.code);
-      if (code.length < 3) return json(400, { ok: false, error: 'Invalid family name' });
-      const raw = await store.get(code, { type: 'json' });
-      if (!raw) return json(404, { ok: false, error: 'Family not found' });
-      return json(200, { ok: true, family: raw });
+      const store = await loadProfiles(meta);
+      return json(200, { ok: true, profiles: store.profiles });
     }
 
     if (event.httpMethod !== 'POST') {
@@ -167,82 +158,52 @@ exports.handler = async (event, context) => {
     }
 
     const body = JSON.parse(event.body || '{}');
-    const action = body.action || 'pull';
+    const action = body.action || 'list';
 
-    if (action === 'create') {
-      const displayName = String(body.name || '').trim().slice(0, 48);
-      const code = slugifyName(displayName);
-      if (code.length < 3) {
-        return json(400, { ok: false, error: 'Family name too short (use at least 3 letters)' });
-      }
-      const existing = await store.get(code, { type: 'json' });
-      if (existing) {
-        return json(409, {
-          ok: false,
-          error: 'That family name is taken — join it or pick another name'
-        });
-      }
-      const family = emptyFamily(code, displayName);
-      await store.setJSON(code, family);
-      return json(200, { ok: true, family });
+    if (action === 'list' || action === 'pull' || action === 'join') {
+      const store = await loadProfiles(meta);
+      return json(200, { ok: true, profiles: store.profiles });
     }
 
-    if (action === 'join' || action === 'pull') {
-      const code = normalizeCode(body.code || body.name);
-      if (code.length < 3) return json(400, { ok: false, error: 'Invalid family name' });
-      const family = await store.get(code, { type: 'json' });
-      if (!family) return json(404, { ok: false, error: 'Family not found' });
-      return json(200, { ok: true, family });
-    }
-
-    if (action === 'push') {
-      const code = normalizeCode(body.code || body.name);
-      if (code.length < 3) return json(400, { ok: false, error: 'Invalid family name' });
-      const current = (await store.get(code, { type: 'json' })) || emptyFamily(code, body.name || code);
-      current.profiles = mergeProfiles(current.profiles, body.profiles || {});
-      Object.keys(current.profiles).forEach((id) => {
-        if (/^nolan$/i.test(String(current.profiles[id].name || '').trim())) {
-          delete current.profiles[id];
+    if (action === 'push' || action === 'upsert') {
+      const store = await loadProfiles(meta);
+      const incoming = body.profiles || {};
+      if (body.profile && body.profile.id) {
+        incoming[body.profile.id] = body.profile;
+      }
+      store.profiles = mergeProfiles(store.profiles, incoming);
+      Object.keys(store.profiles).forEach((id) => {
+        if (/^nolan$/i.test(String(store.profiles[id].name || '').trim())) {
+          delete store.profiles[id];
         }
       });
-      current.updatedAt = new Date().toISOString();
-      current.code = code;
-      if (body.familyName) current.name = String(body.familyName).trim().slice(0, 48);
-      else if (body.name && !current.name) current.name = String(body.name).trim().slice(0, 48);
-      await store.setJSON(code, current);
-      await upsertGlobalFromFamily(meta, current);
-      return json(200, { ok: true, family: current });
+      await saveProfiles(meta, store);
+      return json(200, { ok: true, profiles: store.profiles });
     }
 
     if (action === 'leaderboard') {
-      const global = await loadGlobal(meta);
-      return json(200, { ok: true, rows: sortedLeaderboard(global) });
+      const store = await loadProfiles(meta);
+      return json(200, { ok: true, rows: sortedLeaderboard(store) });
     }
 
     if (action === 'resetProfile') {
-      const code = normalizeCode(body.code || body.name);
-      const targetName = String(body.profileName || 'Nolan').trim();
-      if (code.length < 3) return json(400, { ok: false, error: 'Invalid family name' });
-      const family = await store.get(code, { type: 'json' });
-      if (!family) return json(404, { ok: false, error: 'Family not found' });
+      const targetName = String(body.profileName || 'Nolan').trim().toLowerCase();
+      const store = await loadProfiles(meta);
       let removed = 0;
-      Object.keys(family.profiles || {}).forEach((id) => {
-        if (String(family.profiles[id].name || '').trim().toLowerCase() === targetName.toLowerCase()) {
-          delete family.profiles[id];
+      Object.keys(store.profiles || {}).forEach((id) => {
+        if (String(store.profiles[id].name || '').trim().toLowerCase() === targetName) {
+          delete store.profiles[id];
           removed++;
         }
       });
-      family.updatedAt = new Date().toISOString();
-      await store.setJSON(code, family);
-      const global = await loadGlobal(meta);
-      Object.keys(global.profiles || {}).forEach((id) => {
-        if (String(global.profiles[id].name || '').trim().toLowerCase() === targetName.toLowerCase()) {
-          delete global.profiles[id];
-        }
-      });
-      await saveGlobal(meta, global);
-      await upsertGlobalFromFamily(meta, family);
-      return json(200, { ok: true, removed, family });
+      await saveProfiles(meta, store);
+      return json(200, { ok: true, removed, profiles: store.profiles });
+    }
+
+    // Legacy family create no longer needed — treat as list so old clients don't hard-fail
+    if (action === 'create') {
+      const store = await loadProfiles(meta);
+      return json(200, { ok: true, profiles: store.profiles, legacy: true });
     }
 
     return json(400, { ok: false, error: 'Unknown action' });

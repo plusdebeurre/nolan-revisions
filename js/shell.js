@@ -1,5 +1,5 @@
 /**
- * Learning Adventure shell: family gate, profiles, leaderboard, fullscreen, hub medals.
+ * Learning Adventure shell: profiles, leaderboard, fullscreen, hub medals.
  */
 (function () {
   const FS_KEY = 'nolanWantFs';
@@ -171,82 +171,7 @@
     location.href = resolveAppUrl();
   }
 
-  function openFamilyModal() {
-    if (IN_IFRAME) {
-      try {
-        window.top.postMessage({ type: 'nolan:open-family' }, '*');
-      } catch (e) { /* ignore */ }
-      return;
-    }
-    const NP = window.NolanProgress;
-    if (!NP) return;
-    let modal = document.getElementById('nolan-family-modal');
-    if (!modal) {
-      modal = el('div', 'nolan-modal-backdrop');
-      modal.id = 'nolan-family-modal';
-      document.body.appendChild(modal);
-    }
-    modal.classList.remove('hidden');
-    modal.innerHTML = `
-      <div class="nolan-modal question-card animate-pop" role="dialog" aria-modal="true">
-        <h2 class="nolan-modal-title">Your family</h2>
-        <p class="nolan-modal-sub">Pick a family name so every phone and tablet can share the same players.</p>
-        <label class="block text-sm font-semibold mb-1">Create a new family</label>
-        <input id="family-create-name" class="profile-input" maxlength="48" placeholder="e.g. Maison Cayre" autocomplete="off" />
-        <button type="button" class="btn-primary w-full mt-3" id="btn-family-create">Create family</button>
-        <p class="text-center text-slate-500 font-semibold my-3">or join one</p>
-        <label class="block text-sm font-semibold mb-1">Family name</label>
-        <input id="family-join-name" class="profile-input" maxlength="48" placeholder="Type the family name" autocomplete="off" />
-        <button type="button" class="btn-primary w-full mt-3" id="btn-family-join">Join family</button>
-        <p id="family-error" class="hidden text-red-600 font-semibold mt-3 text-center"></p>
-        <p id="family-busy" class="hidden text-slate-500 text-center mt-3">Working…</p>
-      </div>
-    `;
-    const err = modal.querySelector('#family-error');
-    const busy = modal.querySelector('#family-busy');
-    const setBusy = (on) => busy.classList.toggle('hidden', !on);
-    const setErr = (msg) => {
-      if (!msg) {
-        err.classList.add('hidden');
-        return;
-      }
-      err.textContent = msg;
-      err.classList.remove('hidden');
-    };
-
-    modal.querySelector('#btn-family-create')?.addEventListener('click', async () => {
-      setErr('');
-      setBusy(true);
-      try {
-        const name = modal.querySelector('#family-create-name').value;
-        const family = await NP.createFamily(name);
-        modal.classList.add('hidden');
-        openProfileModal();
-        alert('Family ready: ' + (family.name || family.code) + '. Use this exact name on other devices to join!');
-      } catch (e) {
-        setErr((e && e.data && e.data.error) || e.message || 'Could not create family. Use the live website.');
-      } finally {
-        setBusy(false);
-      }
-    });
-
-    modal.querySelector('#btn-family-join')?.addEventListener('click', async () => {
-      setErr('');
-      setBusy(true);
-      try {
-        const name = modal.querySelector('#family-join-name').value;
-        await NP.joinFamily(name);
-        modal.classList.add('hidden');
-        openProfileModal();
-      } catch (e) {
-        setErr((e && e.data && e.data.error) || 'Family not found. Check the name and try again.');
-      } finally {
-        setBusy(false);
-      }
-    });
-  }
-
-  async function openLeaderboard() {
+  function openLeaderboard() {
     if (IN_IFRAME) {
       try {
         window.top.postMessage({ type: 'nolan:open-leaderboard' }, '*');
@@ -263,7 +188,7 @@
     }
     modal.classList.remove('hidden');
     modal.innerHTML = `
-      <div class="nolan-modal question-card animate-pop" role="dialog" aria-modal="true">
+      <div class="nolan-modal nolan-modal--wide question-card animate-pop" role="dialog" aria-modal="true">
         <h2 class="nolan-modal-title">Leaderboard</h2>
         <p class="nolan-modal-sub">All players — ranked by XP and medals</p>
         <p id="lb-status" class="text-center text-slate-500 text-sm mb-2">Loading…</p>
@@ -276,37 +201,37 @@
     const status = modal.querySelector('#lb-status');
     const list = modal.querySelector('#lb-list');
     let rows = [];
-    try {
-      rows = await NP.fetchGlobalLeaderboard();
-      status.textContent = 'Everyone on Learning Adventure';
-    } catch (e) {
-      rows = NP.leaderboardRows();
-      status.textContent = 'Showing local scores (offline)';
-    }
-    const active = NP.getActiveProfile();
-    if (!rows.length) {
-      list.innerHTML = '<p class="text-center text-slate-500">No players yet. Create a profile!</p>';
-      return;
-    }
-    list.innerHTML = '';
-    rows.forEach((row, i) => {
-      const item = el('div', 'leaderboard-row' + (active && active.id === row.id ? ' is-you' : ''));
-      const fam = row.familyName ? `<span class="lb-family">${escapeHtml(row.familyName)}</span>` : '';
-      item.innerHTML = `
-        <span class="lb-rank">${i + 1}</span>
-        <span class="shell-avatar-photo">${row.avatarEmoji || '🦊'}</span>
-        <span class="lb-meta">
-          <span class="lb-name">${escapeHtml(row.name)}${active && active.id === row.id ? ' (you)' : ''}</span>
-          <span class="lb-title">${escapeHtml(row.levelTitle || '')}</span>
-          ${fam}
-        </span>
-        <span class="lb-stats">
-          <span class="lb-xp">${row.xp || 0} XP</span>
-          <span class="lb-medals">🥇${row.gold || 0} 🥈${row.silver || 0} 🥉${row.bronze || 0}</span>
-        </span>
-      `;
-      list.appendChild(item);
-    });
+    (async () => {
+      try {
+        rows = await NP.fetchGlobalLeaderboard();
+        status.textContent = 'Everyone on Learning Adventure';
+      } catch (e) {
+        rows = NP.leaderboardRows();
+        status.textContent = 'Showing local scores (offline)';
+      }
+      const active = NP.getActiveProfile();
+      if (!rows.length) {
+        list.innerHTML = '<p class="text-center text-slate-500">No players yet. Create a profile!</p>';
+        return;
+      }
+      list.innerHTML = '';
+      rows.forEach((row, i) => {
+        const item = el('div', 'leaderboard-row' + (active && active.id === row.id ? ' is-you' : ''));
+        item.innerHTML = `
+          <span class="lb-rank">${i + 1}</span>
+          <span class="shell-avatar-photo">${row.avatarEmoji || '🦊'}</span>
+          <span class="lb-meta">
+            <span class="lb-name">${escapeHtml(row.name)}${active && active.id === row.id ? ' (you)' : ''}</span>
+            <span class="lb-title">${escapeHtml(row.levelTitle || '')}</span>
+          </span>
+          <span class="lb-stats">
+            <span class="lb-xp">${row.xp || 0} XP</span>
+            <span class="lb-medals">🥇${row.gold || 0} 🥈${row.silver || 0} 🥉${row.bronze || 0}</span>
+          </span>
+        `;
+        list.appendChild(item);
+      });
+    })();
   }
 
   function openProfileModal() {
@@ -318,10 +243,6 @@
     }
     const NP = window.NolanProgress;
     if (!NP) return;
-    if (!NP.hasFamily()) {
-      openFamilyModal();
-      return;
-    }
 
     let modal = document.getElementById('nolan-profile-modal');
     if (!modal) {
@@ -333,30 +254,22 @@
 
     const profiles = NP.listProfiles();
     const unlocked = NP.isUnlocked();
-    const familyLabel = NP.getFamilyName() || NP.getFamilyCode() || '';
 
     modal.innerHTML = `
-      <div class="nolan-modal question-card animate-pop" role="dialog" aria-modal="true">
+      <div class="nolan-modal nolan-modal--profile question-card animate-pop" role="dialog" aria-modal="true">
         <h2 class="nolan-modal-title">Who is playing?</h2>
         <p class="nolan-modal-sub">Pick a profile, then tap your secret fruit.</p>
-        <p class="family-code-chip">Family: <strong>${escapeHtml(familyLabel)}</strong>
-          <button type="button" class="nav-link" id="btn-copy-family" style="display:inline;margin-left:0.35rem">Copy</button>
-        </p>
         <div id="profile-list" class="profile-list"></div>
-        <button type="button" class="btn-primary w-full mt-4" id="btn-create-profile">+ New profile</button>
-        <div id="profile-create" class="hidden mt-4"></div>
-        <div id="profile-pin" class="hidden mt-4"></div>
-        ${unlocked ? '<button type="button" class="nav-link mt-4" id="btn-close-profiles">Keep playing</button>' : ''}
+        <button type="button" class="btn-primary w-full mt-3" id="btn-create-profile">+ New profile</button>
+        <div id="profile-create" class="hidden"></div>
+        <div id="profile-pin" class="hidden"></div>
+        ${unlocked ? '<button type="button" class="nav-link mt-3" id="btn-close-profiles">Keep playing</button>' : ''}
       </div>
     `;
 
-    modal.querySelector('#btn-copy-family')?.addEventListener('click', () => {
-      if (familyLabel && navigator.clipboard) navigator.clipboard.writeText(familyLabel).catch(() => {});
-    });
-
     const list = modal.querySelector('#profile-list');
     if (!profiles.length) {
-      list.innerHTML = '<p class="text-slate-500 text-center">No profiles yet. Create one!</p>';
+      list.innerHTML = '';
     } else {
       profiles.forEach((p) => {
         const btn = el('button', 'profile-pick-btn');
@@ -379,28 +292,42 @@
     const box = document.getElementById('profile-create');
     const pinBox = document.getElementById('profile-pin');
     const list = document.getElementById('profile-list');
+    const createBtn = document.getElementById('btn-create-profile');
+    const closeBtn = document.getElementById('btn-close-profiles');
     if (!box) return;
     list?.classList.add('hidden');
     pinBox?.classList.add('hidden');
+    createBtn?.classList.add('hidden');
+    closeBtn?.classList.add('hidden');
     box.classList.remove('hidden');
     let avatar = NP.AVATARS[0];
     let pinFruit = null;
     box.innerHTML = `
-      <h3 class="font-bold text-lg mb-2">Create a profile</h3>
-      <label class="block text-sm font-semibold mb-1">First name</label>
+      <h3 class="profile-step-title">Create a profile</h3>
+      <label class="profile-field-label" for="create-name">First name</label>
       <input id="create-name" class="profile-input" maxlength="24" placeholder="e.g. Alex" autocomplete="off" />
-      <p class="text-sm font-semibold mt-3 mb-1">Pick an avatar</p>
-      <div class="fruit-grid" id="avatar-grid"></div>
-      <p class="text-sm font-semibold mt-3 mb-1">Secret fruit (remember it!)</p>
-      <div class="fruit-grid" id="pin-grid-create"></div>
-      <button type="button" class="btn-primary w-full mt-4" id="btn-save-profile">Save profile</button>
-      <button type="button" class="nav-link mt-2" id="btn-cancel-create">Back</button>
+      <div class="profile-create-panels">
+        <div class="profile-create-panel">
+          <p class="profile-field-label">Pick an avatar</p>
+          <div class="fruit-grid fruit-grid--dense" id="avatar-grid"></div>
+        </div>
+        <div class="profile-create-panel">
+          <p class="profile-field-label">Secret fruit (remember it!)</p>
+          <div class="fruit-grid fruit-grid--dense" id="pin-grid-create"></div>
+        </div>
+      </div>
+      <div class="profile-step-actions">
+        <button type="button" class="btn-primary" id="btn-save-profile">Save profile</button>
+        <button type="button" class="nav-link" id="btn-cancel-create">Back</button>
+      </div>
+      <p id="create-error" class="hidden text-red-600 font-semibold mt-2 text-center"></p>
     `;
     const avatarGrid = box.querySelector('#avatar-grid');
     NP.AVATARS.forEach((a) => {
       const b = el('button', 'fruit-btn' + (a === avatar ? ' selected' : ''));
       b.type = 'button';
       b.textContent = a;
+      b.setAttribute('aria-label', 'Avatar ' + a);
       b.addEventListener('click', () => {
         avatar = a;
         avatarGrid.querySelectorAll('.fruit-btn').forEach((x) => x.classList.remove('selected'));
@@ -413,6 +340,7 @@
       const b = el('button', 'fruit-btn');
       b.type = 'button';
       b.textContent = f;
+      b.setAttribute('aria-label', 'Secret fruit ' + f);
       b.addEventListener('click', () => {
         pinFruit = f;
         pinGrid.querySelectorAll('.fruit-btn').forEach((x) => x.classList.remove('selected'));
@@ -420,22 +348,41 @@
       });
       pinGrid.appendChild(b);
     });
+    const err = box.querySelector('#create-error');
+    const setErr = (msg) => {
+      if (!msg) {
+        err.classList.add('hidden');
+        return;
+      }
+      err.textContent = msg;
+      err.classList.remove('hidden');
+    };
     box.querySelector('#btn-cancel-create')?.addEventListener('click', () => openProfileModal());
     box.querySelector('#btn-save-profile')?.addEventListener('click', () => {
+      setErr('');
       const name = box.querySelector('#create-name').value;
       if (!name.trim()) {
-        alert('Please enter a first name.');
+        setErr('Please enter a first name.');
         return;
       }
       if (!pinFruit) {
-        alert('Pick your secret fruit!');
+        setErr('Pick your secret fruit!');
         return;
       }
       try {
         const p = NP.createProfile({ name, avatarEmoji: avatar, pinFruit });
-        showPinStep(p);
+        // Confirm unlock with the fruit they just chose (same session)
+        const unlocked = NP.unlockProfile(p.id, pinFruit);
+        if (unlocked.ok) {
+          document.getElementById('nolan-profile-modal')?.classList.add('hidden');
+          renderTopBar();
+          paintHubMedals();
+          if (window.FunEffects) window.FunEffects.confetti({ count: 18 });
+        } else {
+          showPinStep(p);
+        }
       } catch (e) {
-        alert(e.message || 'Could not create profile');
+        setErr(e.message || 'Could not create profile');
       }
     });
   }
@@ -445,22 +392,33 @@
     const box = document.getElementById('profile-pin');
     const create = document.getElementById('profile-create');
     const list = document.getElementById('profile-list');
+    const createBtn = document.getElementById('btn-create-profile');
+    const closeBtn = document.getElementById('btn-close-profiles');
     create?.classList.add('hidden');
     list?.classList.add('hidden');
+    createBtn?.classList.add('hidden');
+    closeBtn?.classList.add('hidden');
     box.classList.remove('hidden');
-    const decoys = NP.PIN_FRUITS.slice().sort(() => Math.random() - 0.5);
+    const decoys = NP.PIN_FRUITS.slice();
+    for (let i = decoys.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const t = decoys[i];
+      decoys[i] = decoys[j];
+      decoys[j] = t;
+    }
     box.innerHTML = `
-      <h3 class="font-bold text-lg mb-1">Hi ${escapeHtml(profile.name)}!</h3>
-      <p class="text-slate-500 mb-3">Tap your secret fruit to unlock.</p>
-      <div class="fruit-grid" id="pin-unlock-grid"></div>
-      <p id="pin-error" class="hidden text-red-600 font-semibold mt-3 text-center">Wrong fruit — try again!</p>
-      <button type="button" class="nav-link mt-4" id="btn-pin-back">Back</button>
+      <h3 class="profile-step-title">Hi ${escapeHtml(profile.name)}!</h3>
+      <p class="nolan-modal-sub" style="margin-bottom:0.75rem">Tap your secret fruit to unlock.</p>
+      <div class="fruit-grid fruit-grid--pin" id="pin-unlock-grid"></div>
+      <p id="pin-error" class="hidden text-red-600 font-semibold mt-2 text-center">Wrong fruit — try again!</p>
+      <button type="button" class="nav-link mt-3" id="btn-pin-back">Back</button>
     `;
     const grid = box.querySelector('#pin-unlock-grid');
     decoys.forEach((f) => {
       const b = el('button', 'fruit-btn fruit-btn-lg');
       b.type = 'button';
       b.textContent = f;
+      b.setAttribute('aria-label', 'Fruit ' + f);
       b.addEventListener('click', () => {
         const res = NP.unlockProfile(profile.id, f);
         if (res.ok) {
@@ -475,8 +433,8 @@
           } catch (e) { /* ignore */ }
           if (window.FunEffects) window.FunEffects.confetti({ count: 18 });
         } else {
-          const err = box.querySelector('#pin-error');
-          err?.classList.remove('hidden');
+          const errEl = box.querySelector('#pin-error');
+          errEl?.classList.remove('hidden');
           b.classList.add('shake-wrong');
           setTimeout(() => b.classList.remove('shake-wrong'), 450);
         }
@@ -498,11 +456,10 @@
       try {
         NP?.stripNolanLocal?.();
       } catch (e) { /* ignore */ }
-      const afterFamily = () => {
+      const afterSync = () => {
         if (!IN_IFRAME) {
           renderTopBar();
-          if (!NP?.hasFamily()) openFamilyModal();
-          else if (!NP.isUnlocked()) openProfileModal();
+          if (!NP?.isUnlocked()) openProfileModal();
           else paintHubMedals();
           document.addEventListener('fullscreenchange', () => {
             if (document.fullscreenElement) hideFsChip();
@@ -528,10 +485,10 @@
         }
       };
 
-      if (NP?.hasFamily()) {
-        NP.ensureFamilyReady().finally(afterFamily);
+      if (NP?.ensureProfilesReady) {
+        NP.ensureProfilesReady().finally(afterSync);
       } else {
-        afterFamily();
+        afterSync();
       }
 
       document.addEventListener('nolan:progress', () => {
@@ -541,7 +498,7 @@
           if (IN_IFRAME) window.top.postMessage({ type: 'nolan:progress' }, '*');
         } catch (e) { /* ignore */ }
       });
-      document.addEventListener('nolan:family', () => {
+      document.addEventListener('nolan:profiles', () => {
         if (!IN_IFRAME) renderTopBar();
       });
     });
@@ -549,7 +506,6 @@
     window.addEventListener('message', (ev) => {
       if (!ev.data || typeof ev.data !== 'object') return;
       if (ev.data.type === 'nolan:open-profiles' && !IN_IFRAME) openProfileModal();
-      if (ev.data.type === 'nolan:open-family' && !IN_IFRAME) openFamilyModal();
       if (ev.data.type === 'nolan:open-leaderboard' && !IN_IFRAME) openLeaderboard();
       if (ev.data.type === 'nolan:progress' && !IN_IFRAME) renderTopBar();
       if (ev.data.type === 'nolan:unlocked' && IN_IFRAME) paintHubMedals();

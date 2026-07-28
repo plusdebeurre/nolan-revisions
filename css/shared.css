@@ -906,6 +906,22 @@ body {
   border: 4px solid #fbbf24;
 }
 
+.nolan-modal--wide,
+.nolan-modal--profile {
+  max-width: 42rem;
+}
+
+.nolan-modal--profile {
+  padding: 1.25rem 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .nolan-modal--profile {
+    max-height: none;
+    overflow: visible;
+  }
+}
+
 .nolan-modal-title {
   font-size: 1.75rem;
   font-weight: 700;
@@ -920,10 +936,68 @@ body {
   margin: 0 0 1rem;
 }
 
+.profile-step-title {
+  font-weight: 700;
+  font-size: 1.2rem;
+  margin: 0 0 0.5rem;
+  color: #334155;
+  text-align: center;
+}
+
+.profile-field-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin: 0 0 0.35rem;
+  color: #475569;
+}
+
+.profile-create-panels {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .profile-create-panels {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+}
+
+.profile-create-panel {
+  min-width: 0;
+}
+
+.profile-step-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  margin-top: 0.85rem;
+}
+
+.profile-step-actions .btn-primary {
+  min-width: 10rem;
+}
+
 .profile-list {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  max-height: 40vh;
+  overflow: auto;
+}
+
+@media (min-width: 768px) {
+  .profile-list {
+    max-height: none;
+    overflow: visible;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .profile-pick-btn {
@@ -949,11 +1023,11 @@ body {
 
 .profile-input {
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.65rem 1rem;
   border: 3px solid #e2e8f0;
   border-radius: 1rem;
   font-family: inherit;
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 600;
   box-sizing: border-box;
 }
@@ -964,6 +1038,25 @@ body {
   gap: 0.5rem;
 }
 
+.fruit-grid--dense {
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.35rem;
+}
+
+.fruit-grid--pin {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.45rem;
+  max-width: 22rem;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .fruit-grid--pin {
+    grid-template-columns: repeat(8, 1fr);
+    max-width: none;
+  }
+}
+
 .fruit-btn {
   font-size: 1.75rem;
   padding: 0.55rem;
@@ -972,6 +1065,13 @@ body {
   background: white;
   cursor: pointer;
   line-height: 1;
+}
+
+.fruit-grid--dense .fruit-btn {
+  font-size: 1.45rem;
+  padding: 0.4rem;
+  border-width: 2px;
+  border-radius: 0.75rem;
 }
 
 .fruit-btn-lg {

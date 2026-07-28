@@ -1,12 +1,10 @@
 /**
  * Learning Adventure progress: multi-child profiles, fruit PIN, medals, XP,
- * Netlify Blobs family sync (localStorage cache).
+ * public Netlify Blobs sync (localStorage cache).
  */
 (function (global) {
   const STORE_KEY = 'nolan-hub-v1';
   const SESSION_KEY = 'nolan-hub-session';
-  const FAMILY_KEY = 'nolan-family-code';
-  const FAMILY_NAME_KEY = 'nolan-family-name';
   const NOLAN_RESET_KEY = 'nolan-profile-reset-v1';
   const PIN_FRUITS = ['🍎', '🍌', '🍇', '🍓', '🍊', '🍉', '🍒', '🥝'];
   const AVATARS = ['🦊', '🐼', '🦁', '🐸', '🐯', '🐰', '🐻', '🐨', '🦄', '🐶'];
@@ -54,60 +52,20 @@
   function load() {
     try {
       const raw = localStorage.getItem(STORE_KEY);
-      if (!raw) return { activeProfileId: null, familyCode: getFamilyCode(), profiles: {} };
+      if (!raw) return { activeProfileId: null, profiles: {} };
       const data = JSON.parse(raw);
       if (!data.profiles) data.profiles = {};
-      if (!data.familyCode) data.familyCode = getFamilyCode();
       return data;
     } catch (e) {
-      return { activeProfileId: null, familyCode: getFamilyCode(), profiles: {} };
+      return { activeProfileId: null, profiles: {} };
     }
   }
 
   function save(data) {
-    if (data.familyCode) setFamilyCode(data.familyCode);
     localStorage.setItem(STORE_KEY, JSON.stringify(data));
   }
 
-  function getFamilyCode() {
-    try {
-      return (localStorage.getItem(FAMILY_KEY) || '').toUpperCase() || null;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  function setFamilyCode(code) {
-    try {
-      if (code) localStorage.setItem(FAMILY_KEY, String(code).toUpperCase());
-      else localStorage.removeItem(FAMILY_KEY);
-    } catch (e) { /* ignore */ }
-  }
-
-  function getFamilyName() {
-    try {
-      return localStorage.getItem(FAMILY_NAME_KEY) || getFamilyCode() || null;
-    } catch (e) {
-      return getFamilyCode();
-    }
-  }
-
-  function setFamilyName(name) {
-    try {
-      if (name) localStorage.setItem(FAMILY_NAME_KEY, String(name));
-      else localStorage.removeItem(FAMILY_NAME_KEY);
-    } catch (e) { /* ignore */ }
-  }
-
-  function hasFamily() {
-    const c = getFamilyCode();
-    return !!(c && c.length >= 3);
-  }
-
   function stripNolanLocal() {
-    try {
-      if (localStorage.getItem(NOLAN_RESET_KEY) === '1') return 0;
-    } catch (e) { /* ignore */ }
     const data = load();
     let removed = 0;
     Object.keys(data.profiles || {}).forEach((id) => {
@@ -119,9 +77,6 @@
       }
     });
     if (removed) save(data);
-    try {
-      localStorage.setItem(NOLAN_RESET_KEY, '1');
-    } catch (e) { /* ignore */ }
     return removed;
   }
 
@@ -385,8 +340,7 @@
           levelTitle: levelTitle(p.level || 1, p.avatarEmoji),
           gold: medals.gold,
           silver: medals.silver,
-          bronze: medals.bronze,
-          familyName: getFamilyName() || ''
+          bronze: medals.bronze
         };
       })
       .sort((a, b) => {
@@ -523,17 +477,12 @@
     return data;
   }
 
-  function applyFamily(family) {
-    if (!family || !family.code) return;
+  function applyCloudProfiles(incoming) {
+    if (!incoming || typeof incoming !== 'object') return;
     const data = load();
-    data.familyCode = family.code;
-    setFamilyCode(family.code);
-    setFamilyName(family.name || family.code);
-    const incoming = family.profiles || {};
-    // Replace family profiles from cloud (keep only synced set + merge timestamps)
     Object.keys(incoming).forEach((id) => {
       const remote = incoming[id];
-      if (!remote) return;
+      if (!remote || !remote.id) return;
       if (/^nolan$/i.test(String(remote.name || '').trim())) return;
       const local = data.profiles[id];
       if (!local) {
@@ -543,6 +492,9 @@
       const remoteAt = Date.parse(remote.updatedAt || 0) || 0;
       const localAt = Date.parse(local.updatedAt || 0) || 0;
       if (remoteAt >= localAt) data.profiles[id] = remote;
+      else if (!local.pinFruit && remote.pinFruit) {
+        local.pinFruit = remote.pinFruit;
+      }
     });
     Object.keys(data.profiles).forEach((id) => {
       if (/^nolan$/i.test(String(data.profiles[id].name || '').trim())) {
@@ -550,54 +502,25 @@
       }
     });
     save(data);
-    document.dispatchEvent(
-      new CustomEvent('nolan:family', { detail: { code: family.code, name: family.name } })
-    );
+    document.dispatchEvent(new CustomEvent('nolan:profiles', { detail: { count: Object.keys(data.profiles).length } }));
   }
 
-  async function createFamily(name) {
-    const data = await apiPost({ action: 'create', name: String(name || '').trim() });
-    applyFamily(data.family);
-    await pushFamily();
-    return data.family;
-  }
-
-  async function joinFamily(nameOrCode) {
-    const data = await apiPost({
-      action: 'join',
-      name: String(nameOrCode || '').trim(),
-      code: String(nameOrCode || '').trim()
-    });
-    applyFamily(data.family);
-    await pushFamily();
-    return data.family;
-  }
-
-  async function pullFamily() {
-    const code = getFamilyCode();
-    if (!code) return null;
+  async function pullProfiles() {
     try {
-      const data = await apiPost({ action: 'pull', code });
-      applyFamily(data.family);
-      return data.family;
+      const data = await apiPost({ action: 'list' });
+      applyCloudProfiles(data.profiles || {});
+      return data.profiles;
     } catch (e) {
       return null;
     }
   }
 
-  async function pushFamily() {
-    const code = getFamilyCode();
-    if (!code) return null;
+  async function pushProfiles() {
     const data = load();
     try {
-      const res = await apiPost({
-        action: 'push',
-        code,
-        familyName: getFamilyName(),
-        profiles: data.profiles
-      });
-      applyFamily(res.family);
-      return res.family;
+      const res = await apiPost({ action: 'push', profiles: data.profiles });
+      applyCloudProfiles(res.profiles || {});
+      return res.profiles;
     } catch (e) {
       return null;
     }
@@ -611,38 +534,35 @@
       needCloud = true;
     }
     stripNolanLocal();
-    const code = getFamilyCode();
-    if (!code || !needCloud) return { removedLocal: true, skippedCloud: !needCloud };
-    try {
-      return await apiPost({ action: 'resetProfile', code, profileName: 'Nolan' });
-    } catch (e) {
-      return { removedLocal: true, cloudError: true };
+    if (needCloud) {
+      try {
+        await apiPost({ action: 'resetProfile', profileName: 'Nolan' });
+      } catch (e) { /* offline ok */ }
+      try {
+        localStorage.setItem(NOLAN_RESET_KEY, '1');
+      } catch (e) { /* ignore */ }
     }
+    return { ok: true };
   }
 
   function schedulePush() {
-    if (!hasFamily()) return;
     clearTimeout(pushTimer);
     pushTimer = setTimeout(() => {
-      pushFamily().catch(() => {});
+      pushProfiles().catch(() => {});
     }, 600);
   }
 
-  async function ensureFamilyReady() {
-    if (hasFamily()) {
-      if (!syncing) {
-        syncing = true;
-        try {
-          await resetNolanEverywhere();
-          await pullFamily();
-        } finally {
-          syncing = false;
-        }
-      }
-      return true;
+  async function ensureProfilesReady() {
+    if (syncing) return true;
+    syncing = true;
+    try {
+      await resetNolanEverywhere();
+      await pullProfiles();
+      await pushProfiles();
+    } finally {
+      syncing = false;
     }
-    stripNolanLocal();
-    return false;
+    return true;
   }
 
   global.NolanProgress = {
@@ -680,14 +600,9 @@
     countMedals,
     leaderboardRows,
     fetchGlobalLeaderboard,
-    hasFamily,
-    getFamilyCode,
-    getFamilyName,
-    createFamily,
-    joinFamily,
-    pullFamily,
-    pushFamily,
-    ensureFamilyReady,
+    pullProfiles,
+    pushProfiles,
+    ensureProfilesReady,
     schedulePush,
     stripNolanLocal,
     resetNolanEverywhere,

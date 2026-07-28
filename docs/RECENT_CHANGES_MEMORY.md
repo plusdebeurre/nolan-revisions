@@ -1,5 +1,19 @@
 # Recent Changes Memory
 
+## 2026-07-28 — Public profiles (no family) + desktop login layout
+
+### What changed
+- Removed family create/join gate. Profiles are public site-wide via Blobs (`global-profiles`).
+- API: `list` / `push` / `leaderboard` / `resetProfile` (no household name).
+- Create profile auto-unlocks with the chosen secret fruit; fruit PIN still required when switching profiles.
+- Wider profile modal on desktop: side-by-side avatar + PIN grids, no vertical scroll.
+
+### User impact
+- Open the site → create/pick a child profile immediately. Leaderboard ranks everyone. Login panels fit on desktop without scrolling.
+
+### Key files
+- `netlify/functions/family-api.js`, `js/progress.js`, `js/shell.js`, `css/shared.css`, docs
+
 ## 2026-07-28 — Named families + global leaderboard
 
 ### What changed
