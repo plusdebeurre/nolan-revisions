@@ -1,5 +1,18 @@
 # Recent Changes Memory
 
+## 2026-07-28 — Activity stats + safe profile delete-by-id
+
+### What changed
+- API `deleteByIds` with `protectIds` guard (never wipe production by name).
+- Profile `activity.days` buckets: XP / exercises / questions; summary for today, week, month, year.
+- Profile modal shows activity stats for the unlocked player.
+
+### User impact
+- Trial accounts can be removed by ID without risking Nolan/Leon. Kids see how much they learned today vs the week.
+
+### Key files
+- `netlify/functions/family-api.js`, `js/progress.js`, `js/shell.js`, `css/shared.css`, docs
+
 ## 2026-07-28 — Fix Pulse Check JS syntax
 
 ### What changed

@@ -254,11 +254,28 @@
 
     const profiles = NP.listProfiles();
     const unlocked = NP.isUnlocked();
+    const active = NP.getActiveProfile();
+    const stats = active && NP.activitySummary ? NP.activitySummary(active) : null;
 
     modal.innerHTML = `
       <div class="nolan-modal nolan-modal--profile question-card animate-pop" role="dialog" aria-modal="true">
         <h2 class="nolan-modal-title">Who is playing?</h2>
         <p class="nolan-modal-sub">Pick a profile, then tap your secret fruit.</p>
+        ${
+          stats && active
+            ? `<div class="profile-activity" aria-label="Activity stats">
+          <p class="profile-activity-title">${escapeHtml(active.avatarEmoji || '')} ${escapeHtml(active.name)} — progress</p>
+          <div class="profile-activity-grid">
+            <div><span class="profile-activity-label">XP today</span><strong>${stats.today.xp}</strong></div>
+            <div><span class="profile-activity-label">This week</span><strong>${stats.week.xp}</strong></div>
+            <div><span class="profile-activity-label">This month</span><strong>${stats.month.xp}</strong></div>
+            <div><span class="profile-activity-label">This year</span><strong>${stats.year.xp}</strong></div>
+            <div><span class="profile-activity-label">Exercises done</span><strong>${stats.exercisesTotal}</strong></div>
+            <div><span class="profile-activity-label">Questions done</span><strong>${stats.questionsTotal}</strong></div>
+          </div>
+        </div>`
+            : ''
+        }
         <div id="profile-list" class="profile-list"></div>
         <button type="button" class="btn-primary w-full mt-3" id="btn-create-profile">+ New profile</button>
         <div id="profile-create" class="hidden"></div>

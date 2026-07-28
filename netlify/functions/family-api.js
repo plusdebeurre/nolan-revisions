@@ -1,6 +1,6 @@
 /**
  * Public profiles + leaderboard API (Netlify Blobs).
- * POST actions: list | push | leaderboard | resetProfile
+ * POST actions: list | push | leaderboard | resetProfile | deleteByIds
  * (legacy create/join/pull/push-family accepted as aliases where useful)
  */
 const { getStore, connectLambda } = require('@netlify/blobs');
@@ -189,6 +189,41 @@ exports.handler = async (event, context) => {
       });
       await saveProfiles(meta, store);
       return json(200, { ok: true, removed, profiles: store.profiles });
+    }
+
+    if (action === 'deleteByIds') {
+      const ids = Array.isArray(body.ids) ? body.ids.map((id) => String(id)) : [];
+      const protect = new Set(
+        (Array.isArray(body.protectIds) ? body.protectIds : []).map((id) => String(id))
+      );
+      if (!ids.length) {
+        return json(400, { ok: false, error: 'ids required' });
+      }
+      const blocked = ids.filter((id) => protect.has(id));
+      if (blocked.length) {
+        return json(400, {
+          ok: false,
+          error: 'Refused: protected profile id in delete list',
+          blocked
+        });
+      }
+      const store = await loadProfiles(meta);
+      let removed = 0;
+      const removedIds = [];
+      ids.forEach((id) => {
+        if (store.profiles && store.profiles[id]) {
+          delete store.profiles[id];
+          removed++;
+          removedIds.push(id);
+        }
+      });
+      await saveProfiles(meta, store);
+      return json(200, {
+        ok: true,
+        removed,
+        removedIds,
+        profiles: store.profiles
+      });
     }
 
     // Legacy family create no longer needed — treat as list so old clients don't hard-fail

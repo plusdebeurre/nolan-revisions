@@ -165,6 +165,98 @@
     return p;
   }
 
+  function todayKey(d) {
+    const dt = d || new Date();
+    const y = dt.getFullYear();
+    const m = String(dt.getMonth() + 1).padStart(2, '0');
+    const day = String(dt.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + day;
+  }
+
+  function ensureActivity(p) {
+    if (!p.activity || typeof p.activity !== 'object') p.activity = { days: {} };
+    if (!p.activity.days || typeof p.activity.days !== 'object') p.activity.days = {};
+    return p.activity;
+  }
+
+  function bumpActivity(p, { xp, exercises, questions } = {}) {
+    const activity = ensureActivity(p);
+    const key = todayKey();
+    if (!activity.days[key]) activity.days[key] = { xp: 0, exercises: 0, questions: 0 };
+    const row = activity.days[key];
+    row.xp = (row.xp || 0) + Math.max(0, Number(xp) || 0);
+    row.exercises = (row.exercises || 0) + Math.max(0, Number(exercises) || 0);
+    row.questions = (row.questions || 0) + Math.max(0, Number(questions) || 0);
+    return row;
+  }
+
+  function parseDayKey(key) {
+    const parts = String(key || '').split('-');
+    if (parts.length !== 3) return null;
+    const y = Number(parts[0]);
+    const m = Number(parts[1]);
+    const d = Number(parts[2]);
+    if (!y || !m || !d) return null;
+    return new Date(y, m - 1, d);
+  }
+
+  function activitySummary(profile) {
+    const empty = {
+      today: { xp: 0, exercises: 0, questions: 0 },
+      week: { xp: 0, exercises: 0, questions: 0 },
+      month: { xp: 0, exercises: 0, questions: 0 },
+      year: { xp: 0, exercises: 0, questions: 0 },
+      exercisesTotal: 0,
+      questionsTotal: 0,
+      xpLogged: 0
+    };
+    if (!profile) return empty;
+    const days = (profile.activity && profile.activity.days) || {};
+    const now = new Date();
+    const today = todayKey(now);
+    const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
+    const month = now.getMonth();
+    const year = now.getFullYear();
+
+    const sum = { xp: 0, exercises: 0, questions: 0 };
+    Object.keys(days).forEach((key) => {
+      const row = days[key] || {};
+      const xp = Number(row.xp) || 0;
+      const exercises = Number(row.exercises) || 0;
+      const questions = Number(row.questions) || 0;
+      sum.xp += xp;
+      sum.exercises += exercises;
+      sum.questions += questions;
+
+      if (key === today) {
+        empty.today.xp += xp;
+        empty.today.exercises += exercises;
+        empty.today.questions += questions;
+      }
+      const dt = parseDayKey(key);
+      if (!dt) return;
+      if (dt >= weekStart && dt <= now) {
+        empty.week.xp += xp;
+        empty.week.exercises += exercises;
+        empty.week.questions += questions;
+      }
+      if (dt.getFullYear() === year && dt.getMonth() === month) {
+        empty.month.xp += xp;
+        empty.month.exercises += exercises;
+        empty.month.questions += questions;
+      }
+      if (dt.getFullYear() === year) {
+        empty.year.xp += xp;
+        empty.year.exercises += exercises;
+        empty.year.questions += questions;
+      }
+    });
+    empty.exercisesTotal = sum.exercises;
+    empty.questionsTotal = sum.questions;
+    empty.xpLogged = sum.xp;
+    return empty;
+  }
+
   function listProfiles() {
     const data = load();
     return Object.values(data.profiles).sort((a, b) => a.name.localeCompare(b.name));
@@ -198,7 +290,8 @@
       pinFruit,
       xp: 0,
       level: 1,
-      games: {}
+      games: {},
+      activity: { days: {} }
     });
     save(data);
     schedulePush();
@@ -320,6 +413,7 @@
     entry.liveXp = true;
     p.xp = (p.xp || 0) + gained;
     p.level = levelFromXp(p.xp);
+    bumpActivity(p, { xp: gained, questions: 1 });
     touchProfile(p);
     save(data);
     schedulePush();
@@ -376,6 +470,12 @@
     if (prev.checkpoint) p.games[gameId].checkpoint = prev.checkpoint;
     p.xp = (p.xp || 0) + gained;
     p.level = levelFromXp(p.xp);
+    const legacyQuestions = !skipXp && !hasLiveAwards ? Math.max(0, clamped - prevBest) : 0;
+    bumpActivity(p, {
+      xp: gained,
+      exercises: 1,
+      questions: legacyQuestions
+    });
     touchProfile(p);
     save(data);
     schedulePush();
@@ -645,6 +745,9 @@
     awardAnswerXp,
     questionKey,
     XP_PER_CORRECT,
+    activitySummary,
+    bumpActivity,
+    todayKey,
     recordFromDom,
     getGameProgress,
     saveCheckpoint,
