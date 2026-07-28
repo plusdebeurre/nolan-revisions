@@ -28,10 +28,6 @@ function mergeProfiles(existing, incoming) {
   Object.keys(incoming || {}).forEach((id) => {
     const remote = incoming[id];
     if (!remote || typeof remote !== 'object' || !remote.id) return;
-    if (/^nolan$/i.test(String(remote.name || '').trim())) {
-      delete next[id];
-      return;
-    }
     const local = next[id];
     if (!local) {
       next[id] = remote;
@@ -172,11 +168,6 @@ exports.handler = async (event, context) => {
         incoming[body.profile.id] = body.profile;
       }
       store.profiles = mergeProfiles(store.profiles, incoming);
-      Object.keys(store.profiles).forEach((id) => {
-        if (/^nolan$/i.test(String(store.profiles[id].name || '').trim())) {
-          delete store.profiles[id];
-        }
-      });
       await saveProfiles(meta, store);
       return json(200, { ok: true, profiles: store.profiles });
     }

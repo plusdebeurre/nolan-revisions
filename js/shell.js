@@ -453,9 +453,6 @@
 
     ensureProgress(() => {
       const NP = window.NolanProgress;
-      try {
-        NP?.stripNolanLocal?.();
-      } catch (e) { /* ignore */ }
       const afterSync = () => {
         if (!IN_IFRAME) {
           renderTopBar();

@@ -99,9 +99,9 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 ## Profile sync (Netlify Blobs)
 
 1. First visit: create a profile (name + avatar + secret fruit) — no family code.
-2. Boot pulls all public profiles; create/play pushes local profiles to the global store.
+2. Boot pulls all public profiles; create/play pushes local profiles to the global store (same `push` path for create and XP/medals).
 3. Leaderboard uses `action: "leaderboard"` (public XP/medal rows).
-4. One-shot cleanup removes any profile named **Nolan** from local cache and cloud.
+4. Use `resetProfile` only to delete a named profile from the cloud store when cleaning up.
 
 ## Streak celebrations
 

@@ -5,7 +5,6 @@
 (function (global) {
   const STORE_KEY = 'nolan-hub-v1';
   const SESSION_KEY = 'nolan-hub-session';
-  const NOLAN_RESET_KEY = 'nolan-profile-reset-v1';
   const PIN_FRUITS = ['🍎', '🍌', '🍇', '🍓', '🍊', '🍉', '🍒', '🥝'];
   const AVATARS = ['🦊', '🐼', '🦁', '🐸', '🐯', '🐰', '🐻', '🐨', '🦄', '🐶'];
   const AVATAR_CREATURES = {
@@ -63,21 +62,6 @@
 
   function save(data) {
     localStorage.setItem(STORE_KEY, JSON.stringify(data));
-  }
-
-  function stripNolanLocal() {
-    const data = load();
-    let removed = 0;
-    Object.keys(data.profiles || {}).forEach((id) => {
-      if (/^nolan$/i.test(String(data.profiles[id].name || '').trim())) {
-        delete data.profiles[id];
-        removed++;
-        if (getSessionUnlockedId() === id) setSessionUnlockedId(null);
-        if (data.activeProfileId === id) data.activeProfileId = null;
-      }
-    });
-    if (removed) save(data);
-    return removed;
   }
 
   function getSessionUnlockedId() {
@@ -491,7 +475,6 @@
     Object.keys(incoming).forEach((id) => {
       const remote = incoming[id];
       if (!remote || !remote.id) return;
-      if (/^nolan$/i.test(String(remote.name || '').trim())) return;
       const local = data.profiles[id];
       if (!local) {
         data.profiles[id] = remote;
@@ -502,11 +485,6 @@
       if (remoteAt >= localAt) data.profiles[id] = remote;
       else if (!local.pinFruit && remote.pinFruit) {
         local.pinFruit = remote.pinFruit;
-      }
-    });
-    Object.keys(data.profiles).forEach((id) => {
-      if (/^nolan$/i.test(String(data.profiles[id].name || '').trim())) {
-        delete data.profiles[id];
       }
     });
     save(data);
@@ -534,25 +512,6 @@
     }
   }
 
-  async function resetNolanEverywhere() {
-    let needCloud = false;
-    try {
-      needCloud = localStorage.getItem(NOLAN_RESET_KEY) !== '1';
-    } catch (e) {
-      needCloud = true;
-    }
-    stripNolanLocal();
-    if (needCloud) {
-      try {
-        await apiPost({ action: 'resetProfile', profileName: 'Nolan' });
-      } catch (e) { /* offline ok */ }
-      try {
-        localStorage.setItem(NOLAN_RESET_KEY, '1');
-      } catch (e) { /* ignore */ }
-    }
-    return { ok: true };
-  }
-
   function schedulePush() {
     clearTimeout(pushTimer);
     pushTimer = setTimeout(() => {
@@ -564,7 +523,6 @@
     if (syncing) return true;
     syncing = true;
     try {
-      await resetNolanEverywhere();
       await pullProfiles();
       await pushProfiles();
     } finally {
@@ -612,8 +570,6 @@
     pushProfiles,
     ensureProfilesReady,
     schedulePush,
-    stripNolanLocal,
-    resetNolanEverywhere,
     xpToNext(profile) {
       const xp = (profile && profile.xp) || 0;
       const level = levelFromXp(xp);

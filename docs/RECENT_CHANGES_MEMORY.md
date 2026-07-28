@@ -1,5 +1,17 @@
 # Recent Changes Memory
 
+## 2026-07-28 — Fix Nolan profile persistence
+
+### What changed
+- Removed leftover Nolan name blacklist that deleted any profile named “Nolan” on every sync (client + Blobs `push`).
+- Create and XP/checkpoints already share one store (`nolan-hub-v1` → `schedulePush` → `pushProfiles`); sync no longer wipes Nolan.
+
+### User impact
+- Creating a profile named Nolan now persists locally and in the cloud like any other child.
+
+### Key files
+- `js/progress.js`, `js/shell.js`, `netlify/functions/family-api.js`, docs
+
 ## 2026-07-28 — Public profiles (no family) + desktop login layout
 
 ### What changed
