@@ -16,3 +16,8 @@
   from = "/play"
   to = "/app.html"
   status = 302
+
+[[redirects]]
+  from = "/app"
+  to = "/app.html"
+  status = 302

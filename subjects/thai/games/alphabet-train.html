@@ -67,10 +67,10 @@
   <script src="../../../js/progress.js"></script>
   <script src="../../../js/shell.js"></script>
   <script>
-    const ALPHABET = ['ก','ข','ฃ','ค','ฅ','ฆ','ง','จ','ฉ','ช','ซ','ฌ','ญ','ฎ','ฏ','ด','ต','ถ','ท','ธ','น','บ','ป','ผ','ฝ','พ','ฟ','ภ','ม','ย','ร','ล','ว','ศ','ษ','ส','ห','ฬ','อ','ฮ'];
-    const ROUNDS = [
+    const ALPHABET = ['ก','ข','ฃ','ค','ฅ','ฆ','ง','จ','ฉ','ช','ซ','ฌ','ญ','ฎ','ฏ','ฐ','ฑ','ฒ','ณ','ด','ต','ถ','ท','ธ','น','บ','ป','ผ','ฝ','พ','ฟ','ภ','ม','ย','ร','ล','ว','ศ','ษ','ส','ห','ฬ','อ','ฮ'];
+    const ROUND_POOL = [
       { after: 0, tip: 'After ก (gor gai) comes ข (khor khai).' },
-      { after: 1, tip: 'After ข comes ฃ — rare letter, then ค.' },
+      { after: 1, tip: 'After ข comes ฃ — rare obsolete letter.' },
       { after: 3, tip: 'After ค (khor kwai) comes ฅ.' },
       { after: 5, tip: 'After ฆ comes ง (ngor ngu).' },
       { after: 6, tip: 'After ง comes จ (jor jaan).' },
@@ -78,22 +78,27 @@
       { after: 9, tip: 'After ช comes ซ (sor so).' },
       { after: 11, tip: 'After ฌ comes ญ (yor ying).' },
       { after: 13, tip: 'After ฎ comes ฏ (tor tao).' },
-      { after: 15, tip: 'After ด comes ต (tor tao).' },
-      { after: 16, tip: 'After ต comes ถ (thor thung).' },
-      { after: 18, tip: 'After ท comes ธ (thor thong).' },
-      { after: 20, tip: 'After น comes บ (bor bai mai).' },
-      { after: 21, tip: 'After บ comes ป (por plaa).' },
-      { after: 23, tip: 'After ฝ comes พ (phor phaan).' },
-      { after: 25, tip: 'After ฟ comes ภ (phor samphao).' },
-      { after: 27, tip: 'After ม comes ย (yor yak).' },
-      { after: 28, tip: 'After ย comes ร (ror rua).' },
-      { after: 29, tip: 'After ร comes ล (lor ling).' },
-      { after: 30, tip: 'After ล comes ว (wor waen).' },
-      { after: 32, tip: 'After ศ comes ษ (sor rue-si).' },
-      { after: 34, tip: 'After ส comes ห (hor heep).' },
-      { after: 36, tip: 'After ห comes ฬ (lor chulaa).' },
-      { after: 37, tip: 'After ฬ comes อ (or aang).' }
+      { after: 14, tip: 'After ฏ comes ฐ (thor than).' },
+      { after: 15, tip: 'After ฐ comes ฑ (thor montho).' },
+      { after: 18, tip: 'After ณ comes ด (dor dek).' },
+      { after: 19, tip: 'After ด comes ต (tor tao).' },
+      { after: 20, tip: 'After ต comes ถ (thor thung).' },
+      { after: 22, tip: 'After ท comes ธ (thor thong).' },
+      { after: 24, tip: 'After น comes บ (bor bai mai).' },
+      { after: 25, tip: 'After บ comes ป (por plaa).' },
+      { after: 27, tip: 'After ผ comes ฝ (for fa).' },
+      { after: 28, tip: 'After ฝ comes พ (phor phaan).' },
+      { after: 30, tip: 'After ฟ comes ภ (phor samphao).' },
+      { after: 32, tip: 'After ม comes ย (yor yak).' },
+      { after: 33, tip: 'After ย comes ร (ror rua).' },
+      { after: 34, tip: 'After ร comes ล (lor ling).' },
+      { after: 35, tip: 'After ล comes ว (wor waen).' },
+      { after: 37, tip: 'After ศ comes ษ (sor rue-si).' },
+      { after: 39, tip: 'After ส comes ห (hor heep).' },
+      { after: 40, tip: 'After ห comes ฬ (lor chulaa).' },
+      { after: 41, tip: 'After ฬ comes อ (or aang).' }
     ];
+    let rounds = ROUND_POOL.slice();
     let i = 0, score = 0, streak = 0, locked = false;
       /* nolan-cp */
       function __nolanSaveCp() {
@@ -134,6 +139,15 @@
       }
       return x;
     }
+    function startRound(keepProgress) {
+      rounds = shuffle(ROUND_POOL);
+      if (!keepProgress) {
+        i = 0;
+        score = 0;
+        streak = 0;
+      }
+      if (i >= rounds.length) i = 0;
+    }
     function wrongOptions(correctIdx) {
       const pool = [correctIdx - 2, correctIdx - 1, correctIdx + 1, correctIdx + 2, correctIdx + 3]
         .filter((n) => n >= 0 && n < ALPHABET.length && n !== correctIdx);
@@ -148,13 +162,13 @@
       locked = false;
       feedback.classList.add('hidden');
       nextBtn.classList.add('hidden');
-      const r = ROUNDS[i];
+      const r = rounds[i];
       const letter = ALPHABET[r.after];
       const answerIdx = r.after + 1;
       const answer = ALPHABET[answerIdx];
       currentLetter.textContent = letter;
-      progressBar.style.width = `${(i / ROUNDS.length) * 100}%`;
-      scoreHud.textContent = `Score: ${score} · Round ${i + 1} of ${ROUNDS.length}`;
+      progressBar.style.width = `${(i / rounds.length) * 100}%`;
+      scoreHud.textContent = `Score: ${score} · Round ${i + 1} of ${rounds.length}`;
       choices.innerHTML = '';
       shuffle([answer, ...wrongOptions(answerIdx)]).forEach((opt) => {
         const btn = document.createElement('button');
@@ -188,29 +202,32 @@
         feedback.classList.add('bg-red-100', 'text-red-800');
         feedback.innerHTML = `<strong>Check the train order!</strong><br>${r.tip}`;
       }
-      scoreHud.textContent = `Score: ${score} · Round ${i + 1} of ${ROUNDS.length}`;
+      scoreHud.textContent = `Score: ${score} · Round ${i + 1} of ${rounds.length}`;
       nextBtn.classList.remove('hidden');
     }
     nextBtn.addEventListener('click', () => {
       i++; __nolanSaveCp();
-      if (i < ROUNDS.length) load();
+      if (i < rounds.length) load();
       else {
+        __nolanClearCp();
         document.getElementById('play-screen').classList.add('hidden');
         document.getElementById('result-screen').classList.remove('hidden');
         document.getElementById('score-display').textContent = score;
-        document.getElementById('total-display').textContent = ROUNDS.length;
+        document.getElementById('total-display').textContent = rounds.length;
         document.getElementById('result-message').textContent =
-          score === ROUNDS.length ? 'Full alphabet train! 🌟' : score >= 18 ? 'Strong Trai Yang order! 👍' : 'Ride the train again! 💪';
+          score === rounds.length ? 'Full alphabet train! 🌟' : score >= 18 ? 'Strong Trai Yang order! 👍' : 'Ride the train again! 💪';
         progressBar.style.width = '100%';
-        if (score === ROUNDS.length && window.FunEffects) FunEffects.confetti();
+        if (score === rounds.length && window.FunEffects) FunEffects.confetti();
       }
     });
     document.getElementById('restart-btn').addEventListener('click', () => {
-      __nolanClearCp(); i = 0; score = 0; streak = 0;
+      __nolanClearCp();
       document.getElementById('result-screen').classList.add('hidden');
       document.getElementById('play-screen').classList.remove('hidden');
+      startRound(false);
       load();
     });
+    startRound(true);
     load();
   </script>
 </body>

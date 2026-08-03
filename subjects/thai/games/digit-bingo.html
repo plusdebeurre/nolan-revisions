@@ -76,17 +76,35 @@
   <script src="../../../js/shell.js"></script>
   <script>
     const THAI_DIGITS = ['๐', '๑', '๒', '๓', '๔', '๕', '๖', '๗', '๘', '๙'];
-    const CALLS = [3, 7, 1, 9, 5, 0, 8, 2, 6, 4, 11, 15, 12, 20, 9, 7, 4, 2];
-    const BOARD_LAYOUT = [2, 7, 1, 9, 4, 6, 0, 8, 3, 5];
+    const CALL_POOL = [3, 7, 1, 9, 5, 0, 8, 2, 6, 4, 11, 15, 12, 20, 9, 7, 4, 2];
+    const BOARD_POOL = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+    let calls = CALL_POOL.slice();
+    let boardLayout = BOARD_POOL.slice();
     let callIndex = 0, score = 0, streak = 0, locked = false;
     const callDisplay = document.getElementById('call-display');
     const boardEl = document.getElementById('bingo-board');
     const statusMsg = document.getElementById('status-msg');
     const scoreHud = document.getElementById('score-hud');
 
+    function shuffle(a) {
+      const x = a.slice();
+      for (let n = x.length - 1; n > 0; n--) {
+        const j = Math.floor(Math.random() * (n + 1));
+        [x[n], x[j]] = [x[j], x[n]];
+      }
+      return x;
+    }
+    function startRound() {
+      calls = shuffle(CALL_POOL);
+      boardLayout = shuffle(BOARD_POOL);
+      callIndex = 0;
+      score = 0;
+      streak = 0;
+      locked = false;
+    }
     function buildBoard() {
       boardEl.innerHTML = '';
-      BOARD_LAYOUT.forEach((digit) => {
+      boardLayout.forEach((digit) => {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'bingo-cell';
@@ -97,7 +115,7 @@
       });
     }
     function currentTarget() {
-      const n = CALLS[callIndex];
+      const n = calls[callIndex];
       if (n <= 9) return { mode: 'single', value: n, label: String(n) };
       return { mode: 'read', value: n, label: String(n), hint: n === 11 ? 'Sip-et uses ๑ + ๑' : 'Read the tens and ones!' };
     }
@@ -105,10 +123,10 @@
       locked = false;
       const t = currentTarget();
       callDisplay.textContent = t.label;
-      scoreHud.textContent = `Score: ${score} · Call ${callIndex + 1} of ${CALLS.length}`;
+      scoreHud.textContent = `Score: ${score} · Call ${callIndex + 1} of ${calls.length}`;
       statusMsg.textContent = t.mode === 'read' ? 'Bonus call — tap the first digit you hear!' : 'Find it on your board!';
       [...boardEl.children].forEach((b) => {
-        if (!b.classList.contains('marked')) b.classList.remove('wrong', 'hit');
+        b.classList.remove('wrong', 'hit');
       });
     }
     function expectedDigit(t) {
@@ -120,7 +138,8 @@
       return Math.floor(t.value / 10);
     }
     function onTap(btn, digit) {
-      if (locked || btn.classList.contains('marked')) return;
+      // Marked cells stay tappable so bonus/repeat calls (e.g. 11 → ๑) never deadlock.
+      if (locked) return;
       locked = true;
       const t = currentTarget();
       const want = expectedDigit(t);
@@ -147,29 +166,30 @@
           locked = false;
         }, 650);
       }
-      scoreHud.textContent = `Score: ${score} · Call ${callIndex + 1} of ${CALLS.length}`;
+      scoreHud.textContent = `Score: ${score} · Call ${callIndex + 1} of ${calls.length}`;
     }
     function nextCall() {
       callIndex++;
-      if (callIndex < CALLS.length) loadCall();
+      if (callIndex < calls.length) loadCall();
       else showResult();
     }
     function showResult() {
       document.getElementById('play-screen').classList.add('hidden');
       document.getElementById('result-screen').classList.remove('hidden');
       document.getElementById('score-display').textContent = score;
-      document.getElementById('total-display').textContent = CALLS.length;
+      document.getElementById('total-display').textContent = calls.length;
       document.getElementById('result-message').textContent =
-        score === CALLS.length ? 'Full house! ๑๐๑ 🌟' : score >= 14 ? 'Sharp digit ears! 👍' : 'Practice ๐–๙ on the board! 💪';
-      if (score === CALLS.length && window.FunEffects) FunEffects.confetti();
+        score === calls.length ? 'Full house! ๑๐๑ 🌟' : score >= 14 ? 'Sharp digit ears! 👍' : 'Practice ๐–๙ on the board! 💪';
+      if (score === calls.length && window.FunEffects) FunEffects.confetti();
     }
     document.getElementById('restart-btn').addEventListener('click', () => {
-      callIndex = 0; score = 0; streak = 0;
       document.getElementById('result-screen').classList.add('hidden');
       document.getElementById('play-screen').classList.remove('hidden');
+      startRound();
       buildBoard();
       loadCall();
     });
+    startRound();
     buildBoard();
     loadCall();
   </script>

@@ -1,5 +1,62 @@
 # Recent Changes Memory
 
+## 2026-08-03 — Thai game fixes, subject stats, kid-safe names
+
+### What changed
+- **Digit Bingo:** marked cells stay tappable so bonus calls (e.g. 11 → ๑) no longer deadlock; call order + board layout shuffle each run.
+- **Nam Sai Comic Choice:** fixed `{{name}}Progress` SyntaxError → `NolanProgress`; fillName on copy; shuffle scenes/choices; clear checkpoint on finish.
+- **Tone Karaoke:** only syllables with real ่ ้ ๊ ๋; shuffle verses + choice order.
+- **Alphabet Train:** full 44 consonants (added ฐ ฑ ฒ ณ); tips match answers; round shuffle; clear CP on finish.
+- **QuizEngine + Thai customs:** shuffle question/round order (and options) to reduce memorized-order cheating; checkpoint stores shuffle order.
+- **My Progress:** subject distribution of successful exercises + first-claim correct answers (`subjectStats`).
+- **Name moderation** (EN/FR/DE/IT/TH/HE): block insults on create; disable existing bad names while keeping XP/games; rename to a clean name reactivates; server sanitizes on push/load.
+
+### User impact
+- Thai games play through without soft-locks; questions vary each run; kids see per-subject success; rude profile names are paused until renamed (progress kept).
+
+### Key files
+- `subjects/thai/games/*`, `js/quiz-engine.js`, `js/progress.js`, `js/shell.js`, `js/name-moderation.js`, `netlify/functions/family-api.js`, `css/shared.css`, `index.html`, `app.html`, docs
+
+## 2026-07-30 — Personal progress modal, Log out, anti-cache XP/medals
+
+### What changed
+- Active avatar opens **my stats only** (no other players list / create).
+- Top-right **Log out** locks session and returns to Create / Pick (works via postMessage in play-mode iframe).
+- Dirty map stores `updatedAt`; push clears dirty only if unchanged during flight; critical 150ms flush after answer XP and medal `recordResult`; remake dirty after cloud merge when needed; hub medals repaint on sync.
+
+### User impact
+- With many class profiles, kids no longer browse everyone from their avatar. Switching player is explicit via Log out. Exercise XP and medals are much less likely to vanish due to sync/cache races.
+
+### Key files
+- `js/shell.js`, `css/shared.css`, `js/progress.js`, docs
+
+## 2026-07-30 — Reliable sync, hub gate, play-mode fullscreen
+
+### What changed
+- Dirty-profile push queue with retry/backoff + flush on hide/online/pagehide; `awardedKeys` capped at 400/game.
+- Server deep-merge of games / awardedKeys / activity / max XP (no whole-profile clobber).
+- Hub requires Create or Pick + fruit before subject tiles unlock; clearer modal copy.
+- **Open play mode** uses the same fullscreen flow as the shell button; `/app` redirects to `app.html`.
+
+### User impact
+- Progress is much less likely to be lost on flaky network or multi-device play. Landing page always asks who is playing. Play mode actually requests fullscreen (chip fallback if the browser blocks it).
+
+### Key files
+- `js/progress.js`, `netlify/functions/family-api.js`, `js/shell.js`, `index.html`, `css/shared.css`, `netlify.toml`, docs
+
+## 2026-07-30 — Archive test profiles (tombstones)
+
+### What changed
+- `family-api` now archives profiles into `archived` with tombstone IDs; `push` refuses to resurrect them.
+- `deleteByIds` / `archiveByIds` move live profiles to archive (protectIds still blocks Nolan/Leon).
+- Client `progress.js` prunes `archivedIds` from `localStorage` on pull/push so open tabs stop re-injecting tests.
+
+### User impact
+- Test profiles (Alex, E2EKid, duplicate Nolan) stay archived; only real NOLAN + Leon remain active.
+
+### Key files
+- `netlify/functions/family-api.js`, `js/progress.js`, docs
+
 ## 2026-07-28 — Activity stats + safe profile delete-by-id
 
 ### What changed

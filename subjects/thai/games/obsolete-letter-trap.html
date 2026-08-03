@@ -71,7 +71,7 @@
   <script src="../../../js/progress.js"></script>
   <script src="../../../js/shell.js"></script>
   <script>
-    const ROUNDS = [
+    const ROUND_POOL = [
       { target: 'ฃ', letters: ['ข', 'ฃ', 'ค', 'ง'], tip: 'ฃ (khor khuat) — obsolete; ข is common.' },
       { target: 'ฅ', letters: ['ค', 'ฅ', 'ข', 'ช'], tip: 'ฅ (khor khon) — obsolete; ค is common.' },
       { target: 'ฃ', letters: ['ฃ', 'ข', 'ฉ', 'จ'], tip: 'Only ฃ is the rare khuat letter.' },
@@ -89,6 +89,7 @@
       { target: 'ฃ', letters: ['ห', 'ฃ', 'อ', 'ฮ'], tip: 'Last stretch — find ฃ!' },
       { target: 'ฅ', letters: ['ด', 'ต', 'ฅ', 'ค'], tip: 'Final trap: tap ฅ fast!' }
     ];
+    let rounds = ROUND_POOL.slice();
     const ROUND_MS = 4500;
     let i = 0, score = 0, streak = 0, locked = false, timerId = null, roundStart = 0, totalReaction = 0;
       /* nolan-cp */
@@ -130,6 +131,16 @@
       }
       return x;
     }
+    function startRound(keepProgress) {
+      rounds = shuffle(ROUND_POOL);
+      if (!keepProgress) {
+        i = 0;
+        score = 0;
+        streak = 0;
+        totalReaction = 0;
+      }
+      if (i >= rounds.length) i = 0;
+    }
     function clearTimer() {
       if (timerId) cancelAnimationFrame(timerId);
       timerId = null;
@@ -147,9 +158,9 @@
     function load() {
       locked = false;
       clearTimer();
-      const r = ROUNDS[i];
+      const r = rounds[i];
       roundPrompt.textContent = r.target === 'ฃ' ? 'Find ฃ (khor khuat)!' : 'Find ฅ (khor khon)!';
-      scoreHud.textContent = `Score: ${score} · Round ${i + 1} of ${ROUNDS.length}`;
+      scoreHud.textContent = `Score: ${score} · Round ${i + 1} of ${rounds.length}`;
       statusMsg.textContent = 'Quick eyes!';
       trapGrid.innerHTML = '';
       shuffle(r.letters).forEach((ch) => {
@@ -166,9 +177,9 @@
     function onMiss() {
       locked = true;
       streak = 0;
-      statusMsg.textContent = 'Too slow! ' + ROUNDS[i].tip;
+      statusMsg.textContent = 'Too slow! ' + rounds[i].tip;
       [...trapGrid.children].forEach((b) => {
-        if (b.textContent === ROUNDS[i].target) b.classList.add('correct-pick');
+        if (b.textContent === rounds[i].target) b.classList.add('correct-pick');
       });
       if (window.FunEffects) FunEffects.shake(trapGrid);
       setTimeout(nextRound, 900);
@@ -197,12 +208,12 @@
         statusMsg.textContent = 'That was a lookalike! ' + r.tip;
         if (window.FunEffects) FunEffects.shake(btn);
       }
-      scoreHud.textContent = `Score: ${score} · Round ${i + 1} of ${ROUNDS.length}`;
+      scoreHud.textContent = `Score: ${score} · Round ${i + 1} of ${rounds.length}`;
       setTimeout(nextRound, 750);
     }
     function nextRound() {
       i++; __nolanSaveCp();
-      if (i < ROUNDS.length) load();
+      if (i < rounds.length) load();
       else showResult();
     }
     function showResult() {
@@ -210,22 +221,24 @@
       document.getElementById('play-screen').classList.add('hidden');
       document.getElementById('result-screen').classList.remove('hidden');
       document.getElementById('score-display').textContent = score;
-      document.getElementById('total-display').textContent = ROUNDS.length;
+      document.getElementById('total-display').textContent = rounds.length;
       const avg = score ? Math.round(totalReaction / score / 100) / 10 : '—';
       document.getElementById('speed-msg').textContent =
-        score === ROUNDS.length
+        score === rounds.length
           ? `Perfect trap dodge! Avg ${avg}s per hit. 🌟`
           : score >= 12
             ? `Nice reflexes! Avg ${avg}s when correct. 👍`
             : 'Practice telling ฃ/ฅ from ข/ค! 💪';
-      if (score === ROUNDS.length && window.FunEffects) FunEffects.confetti();
+      if (score === rounds.length && window.FunEffects) FunEffects.confetti();
     }
     document.getElementById('restart-btn').addEventListener('click', () => {
-      __nolanClearCp(); i = 0; score = 0; streak = 0; totalReaction = 0;
+      __nolanClearCp();
       document.getElementById('result-screen').classList.add('hidden');
       document.getElementById('play-screen').classList.remove('hidden');
+      startRound(false);
       load();
     });
+    startRound(true);
     load();
   </script>
 </body>

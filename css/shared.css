@@ -338,6 +338,11 @@ body.theme-hub {
   font-size: 1rem;
 }
 
+body.hub-locked .hub-tile {
+  pointer-events: none;
+  opacity: 0.55;
+}
+
 .exercise-card {
   background: white;
   border: 3px solid #e2e8f0;
@@ -789,7 +794,8 @@ body {
 
 .shell-profile-btn,
 .shell-fs-btn,
-.shell-lb-btn {
+.shell-lb-btn,
+.shell-logout-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -806,8 +812,28 @@ body {
 
 .shell-profile-btn:hover,
 .shell-fs-btn:hover,
-.shell-lb-btn:hover {
+.shell-lb-btn:hover,
+.shell-logout-btn:hover {
   border-color: var(--accent, #94a3b8);
+}
+
+.shell-bar-right {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.shell-logout-btn {
+  color: #b45309;
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.shell-logout-btn:hover {
+  border-color: #fbbf24;
+  background: #fef3c7;
 }
 
 .shell-lb-btn {
@@ -932,6 +958,18 @@ body {
 
 .nolan-modal-backdrop.hidden {
   display: none !important;
+}
+
+.nolan-modal-backdrop.nolan-modal-backdrop--required {
+  /* Gate: cannot dismiss by interacting outside the dialog */
+  pointer-events: auto;
+}
+
+button.nav-link {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
 }
 
 .nolan-modal {
@@ -1066,6 +1104,56 @@ body {
 .profile-activity-grid strong {
   font-size: 1rem;
   color: #0f172a;
+}
+
+.profile-subject-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.profile-subject-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.profile-subject-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.profile-subject-label {
+  font-weight: 800;
+  color: #334155;
+  min-width: 4.5rem;
+}
+
+.profile-subject-extra {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.profile-subject-bar {
+  height: 0.45rem;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.profile-subject-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #38bdf8, #0ea5e9);
+}
+
+.profile-pick-btn--disabled {
+  opacity: 0.72;
+  border-style: dashed;
 }
 
 @media (min-width: 768px) {

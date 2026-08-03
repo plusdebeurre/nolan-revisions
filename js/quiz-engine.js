@@ -89,14 +89,48 @@
       global.NolanProgress && global.NolanProgress.fillName
         ? global.NolanProgress.fillName(t)
         : String(t || '');
-    const quizData = (config.quizData || []).map((q) =>
-      Object.assign({}, q, {
+
+    function shuffle(arr) {
+      const x = arr.slice();
+      for (let n = x.length - 1; n > 0; n--) {
+        const j = Math.floor(Math.random() * (n + 1));
+        const t = x[n];
+        x[n] = x[j];
+        x[j] = t;
+      }
+      return x;
+    }
+
+    function prepareQuestion(q) {
+      const filled = Object.assign({}, q, {
         question: fill(q.question),
         explanation: fill(q.explanation),
         hint: q.hint ? fill(q.hint) : q.hint,
         options: Array.isArray(q.options) ? q.options.map(fill) : q.options
-      })
-    );
+      });
+      if (!Array.isArray(filled.options) || typeof filled.correctAnswer !== 'number') return filled;
+      const indexed = filled.options.map((opt, idx) => ({ opt, idx }));
+      const shuffled = shuffle(indexed);
+      filled.options = shuffled.map((row) => row.opt);
+      filled.correctAnswer = shuffled.findIndex((row) => row.idx === q.correctAnswer);
+      return filled;
+    }
+
+    function buildQuizData(order) {
+      const source = config.quizData || [];
+      const idxs =
+        Array.isArray(order) && order.length === source.length
+          ? order
+          : shuffle(source.map((_, i) => i));
+      return {
+        order: idxs,
+        quizData: idxs.map((idx) => prepareQuestion(source[idx]))
+      };
+    }
+
+    let built = buildQuizData(null);
+    let quizData = built.quizData;
+    let questionOrder = built.order;
 
     document.body.className = `game theme-${subject}`;
     const app = document.getElementById('app') || document.body.appendChild(el('div', '', null));
@@ -119,7 +153,7 @@
       global.NolanProgress.saveCheckpoint(gameId, {
         index: currentQuestionIndex,
         score,
-        extra: { streak }
+        extra: { streak, order: questionOrder }
       });
     }
 
@@ -130,11 +164,18 @@
 
     if (gameId && global.NolanProgress && global.NolanProgress.loadCheckpoint) {
       const cp = global.NolanProgress.loadCheckpoint(gameId);
-      if (cp && typeof cp.index === 'number' && cp.index >= 0 && cp.index < quizData.length) {
-        currentQuestionIndex = cp.index;
-        score = Math.max(0, Number(cp.score) || 0);
-        if (cp.extra && typeof cp.extra.streak === 'number') streak = cp.extra.streak;
-        if (global.NolanProgress.showResumeToast) global.NolanProgress.showResumeToast('Resuming…');
+      if (cp && typeof cp.index === 'number' && cp.index >= 0) {
+        if (cp.extra && Array.isArray(cp.extra.order) && cp.extra.order.length === (config.quizData || []).length) {
+          built = buildQuizData(cp.extra.order);
+          quizData = built.quizData;
+          questionOrder = built.order;
+        }
+        if (cp.index < quizData.length) {
+          currentQuestionIndex = cp.index;
+          score = Math.max(0, Number(cp.score) || 0);
+          if (cp.extra && typeof cp.extra.streak === 'number') streak = cp.extra.streak;
+          if (global.NolanProgress.showResumeToast) global.NolanProgress.showResumeToast('Resuming…');
+        }
       }
     }
 
@@ -337,6 +378,9 @@
 
     restartBtn.addEventListener('click', () => {
       clearPersistedCheckpoint();
+      built = buildQuizData(null);
+      quizData = built.quizData;
+      questionOrder = built.order;
       currentQuestionIndex = 0;
       score = 0;
       streak = 0;

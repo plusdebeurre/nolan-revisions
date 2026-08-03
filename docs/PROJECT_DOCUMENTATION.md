@@ -87,23 +87,28 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 ## Profiles, medals & XP
 
 - Multi-child **profiles** (first name + avatar + secret fruit emoji PIN).
-- **Public cloud sync** via Netlify Blobs (`family-api`): every device can see and unlock all profiles; `localStorage` is a cache.
-- Unlock by tapping the secret fruit; switch profiles from the top bar avatar (circular **profile photo**).
+- **Name moderation** (`js/name-moderation.js`): blocks rude / insulting / condescending first names in English, French, German, Italian, Thai, and Hebrew. Create rejects them; existing bad names are **disabled** (XP/games kept) until the child **renames** to a kinder name.
+- **Public cloud sync** via Netlify Blobs (`family-api`): every device can see and unlock all profiles; `localStorage` is a cache. Server also sanitizes names on load/push and preserves `disabled` in merges.
+- Unlock by tapping the secret fruit; **Log out** (top-right) returns to Create / Pick. Clicking the active avatar opens **your stats only** (not other players).
 - Completing a game awards a medal by mistakes (`total − score`): **gold** 0, **silver** 1, **bronze** 2.
 - **XP** is earned per **first-time correct answer** (+10), keyed by question content (replays of the same question = +0). Wrong answers give 0. Streak bonuses (+5 / +10 / +15 at streaks 3 / 5 / 8) only on first-claim corrects. Live `+XP` float animation via `FunEffects.showXpGain`. Custom games without live awards get improvement-only XP (`+10 × max(0, score − bestScore)`).
+- Dirty sync uses `updatedAt` generations so in-flight answers/medals are never marked clean if the profile changed during push; XP/medal writes flush in ~150ms.
 - **Activity stats** on each profile (`activity.days`): XP / exercises / questions for today, week, month, year — shown in the profile modal when unlocked.
+- **Subject success** in My Progress: `subjectStats(profile)` aggregates successful games / first-claim corrects from `games` keys (`math/…`, `thai/…`, etc.).
 - Levels (every 150 XP) use a fun English title combined with the animal avatar, e.g. Sleepy Unicorn → … → Super Saiyan X.
-- **Leaderboard** (trophy button): ranks **all site profiles** by XP, then gold/silver/bronze.
+- **Leaderboard** (trophy button): ranks **active** (non-disabled) site profiles by XP, then gold/silver/bronze.
 - Quiz copy can use `{{name}}` → active profile name (`NolanProgress.fillName` / QuizEngine).
-- Shared scripts: `js/progress.js`, `js/shell.js` (loaded on every page).
+- Shared scripts: `js/name-moderation.js`, `js/progress.js`, `js/shell.js` (loaded on every page; moderation also sync-loaded from `progress.js` when needed).
 - Profile create / fruit unlock modal is **wide on desktop** (side-by-side avatar + PIN) so it fits without vertical scroll.
+- **QuizEngine** shuffles question order and option order each run (checkpoint stores the order for resume).
 
 ## Profile sync (Netlify Blobs)
 
-1. First visit: create a profile (name + avatar + secret fruit) — no family code.
-2. Boot pulls all public profiles; create/play pushes local profiles to the global store (same `push` path for create and XP/medals).
-3. Leaderboard uses `action: "leaderboard"` (public XP/medal rows).
-4. Use `resetProfile` only to delete a named profile from the cloud store when cleaning up.
+1. First visit (hub): non-dismissible **Who is playing?** modal — create a profile or pick an existing one and tap the secret fruit. Subject tiles stay locked (`hub-locked`) until unlock.
+2. Boot pulls all public profiles; mutations mark profiles **dirty** with their `updatedAt`. Push sends only dirty IDs; dirty clears only if local `updatedAt` still matches the pushed snapshot (in-flight XP/medals stay dirty). Retry/backoff on failure; flush on `visibilitychange` / `online` / `pagehide`. Answer XP and `recordResult` use a fast ~150ms critical flush.
+3. Server **deep-merges** games / `awardedKeys` / activity and keeps `max(xp)` so concurrent devices do not wipe progress. After pull/merge, still-dirty profiles are re-marked so local gains re-push. `awardedKeys` capped at 400 per game (oldest pruned).
+4. Leaderboard uses `action: "leaderboard"` (public XP/medal rows).
+5. Use `archiveByIds` / `deleteByIds` to move test profiles into `archived` with tombstone IDs so stale browser caches cannot re-push them. Clients prune `archivedIds` from `localStorage` on pull/push.
 
 ## Streak celebrations
 
@@ -117,8 +122,9 @@ Bigger streaks add more confetti, star bursts, screen flash, and shake. QuizEngi
 
 Browsers drop fullscreen on top-level navigation. Play mode uses [`app.html`](../app.html): parent chrome stays fullscreen while subject/game pages navigate inside `#nolan-stage` iframe.
 
-- Preferred entry: `/app.html` or `/play` (Netlify redirect).
+- Preferred entry: `/app.html`, `/app`, or `/play` (Netlify redirects), or hub **Open play mode** (sets `nolanWantFs` then navigates — same as shell Full screen).
 - **Full screen** in the shell bar opens app mode (or requests fullscreen when already on `app.html`).
+- If the browser blocks auto-FS after navigation, the **Tap for full screen** chip appears.
 - `X-Frame-Options` is `SAMEORIGIN` so the same-origin iframe works.
 - Pages inside the iframe skip the duplicate top bar (`nolan-embedded`).
 

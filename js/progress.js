@@ -3,6 +3,27 @@
  * public Netlify Blobs sync (localStorage cache).
  */
 (function (global) {
+  (function ensureNameModeration() {
+    if (global.NameModeration) return;
+    let src = 'js/name-moderation.js';
+    const scripts = document.getElementsByTagName('script');
+    for (let i = 0; i < scripts.length; i++) {
+      if (scripts[i].src && scripts[i].src.indexOf('progress.js') !== -1) {
+        src = scripts[i].src.replace(/progress\.js(\?.*)?$/, 'name-moderation.js');
+        break;
+      }
+    }
+    try {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', src, false);
+      xhr.send(null);
+      if (xhr.status >= 200 && xhr.status < 400 && xhr.responseText) {
+        // eslint-disable-next-line no-eval
+        (0, eval)(xhr.responseText);
+      }
+    } catch (e) { /* offline / file:// may fail; create still uses empty check */ }
+  })();
+
   const STORE_KEY = 'nolan-hub-v1';
   const SESSION_KEY = 'nolan-hub-session';
   const PIN_FRUITS = ['🍎', '🍌', '🍇', '🍓', '🍊', '🍉', '🍒', '🥝'];
@@ -32,9 +53,17 @@
   ];
   const XP_PER_LEVEL = 150;
   const MEDAL_RANK = { gold: 3, silver: 2, bronze: 1, played: 0 };
+  const DIRTY_KEY = 'nolan-hub-dirty';
+  const MAX_AWARDED_KEYS = 400;
+  const RETRY_DELAYS_MS = [1000, 2000, 5000, 15000, 15000, 15000, 15000, 15000];
 
   let pushTimer = null;
+  let criticalPushTimer = null;
+  let retryTimer = null;
   let syncing = false;
+  let pushing = false;
+  let retryAttempt = 0;
+  let flushBound = false;
 
   function uid() {
     return 'p_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7);
@@ -160,9 +189,178 @@
     return 0;
   }
 
+  function loadDirty() {
+    try {
+      const raw = localStorage.getItem(DIRTY_KEY);
+      if (!raw) return {};
+      const o = JSON.parse(raw);
+      return o && typeof o === 'object' ? o : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function saveDirty(dirty) {
+    try {
+      localStorage.setItem(DIRTY_KEY, JSON.stringify(dirty || {}));
+    } catch (e) { /* ignore */ }
+  }
+
+  function markDirty(id, updatedAt) {
+    if (!id) return;
+    const dirty = loadDirty();
+    dirty[id] = updatedAt || nowIso();
+    saveDirty(dirty);
+  }
+
+  function clearDirtyIfUnchanged(ids, pushedUpdatedAt) {
+    if (!ids || !ids.length) return;
+    const dirty = loadDirty();
+    const data = load();
+    let stillDirty = false;
+    ids.forEach((id) => {
+      const local = data.profiles[id];
+      const pushedAt = pushedUpdatedAt && pushedUpdatedAt[id];
+      const localAt = local && local.updatedAt;
+      // Only clear if local profile was not mutated after the snapshot we pushed
+      if (pushedAt && localAt && localAt === pushedAt) {
+        delete dirty[id];
+      } else if (dirty[id]) {
+        stillDirty = true;
+        if (localAt) dirty[id] = localAt;
+      }
+    });
+    saveDirty(dirty);
+    return stillDirty;
+  }
+
   function touchProfile(p) {
-    if (p) p.updatedAt = nowIso();
+    if (p) {
+      p.updatedAt = nowIso();
+      if (p.id) markDirty(p.id, p.updatedAt);
+    }
     return p;
+  }
+
+  function capAwardedKeys(entry) {
+    if (!entry || !entry.awardedKeys || typeof entry.awardedKeys !== 'object') return;
+    const keys = Object.keys(entry.awardedKeys);
+    if (keys.length <= MAX_AWARDED_KEYS) return;
+    keys.sort((a, b) => {
+      const atA = Date.parse((entry.awardedKeys[a] && entry.awardedKeys[a].at) || 0) || 0;
+      const atB = Date.parse((entry.awardedKeys[b] && entry.awardedKeys[b].at) || 0) || 0;
+      return atA - atB;
+    });
+    const drop = keys.length - MAX_AWARDED_KEYS;
+    for (let i = 0; i < drop; i++) delete entry.awardedKeys[keys[i]];
+  }
+
+  function mergeAwardedKeys(a, b) {
+    const out = Object.assign({}, a || {});
+    Object.keys(b || {}).forEach((k) => {
+      if (!out[k]) {
+        out[k] = b[k];
+        return;
+      }
+      const atA = Date.parse((out[k] && out[k].at) || 0) || 0;
+      const atB = Date.parse((b[k] && b[k].at) || 0) || 0;
+      if (atB && (!atA || atB < atA)) out[k] = b[k];
+    });
+    return out;
+  }
+
+  function mergeGameEntry(local, remote) {
+    if (!local) return remote;
+    if (!remote) return local;
+    const awardedKeys = mergeAwardedKeys(local.awardedKeys, remote.awardedKeys);
+    capAwardedKeys({ awardedKeys });
+    const localScore = local.bestScore || 0;
+    const remoteScore = remote.bestScore || 0;
+    const useRemoteScore =
+      remoteScore > localScore ||
+      (remoteScore === localScore && (remote.bestTotal || 0) > 0 && (remote.bestTotal || 0) < (local.bestTotal || Infinity));
+    const localCp = local.checkpoint;
+    const remoteCp = remote.checkpoint;
+    let checkpoint = localCp || remoteCp || undefined;
+    if (localCp && remoteCp) {
+      const lt = Date.parse(localCp.updatedAt || 0) || 0;
+      const rt = Date.parse(remoteCp.updatedAt || 0) || 0;
+      checkpoint = rt >= lt ? remoteCp : localCp;
+    }
+    const localPlayed = Date.parse(local.lastPlayed || 0) || 0;
+    const remotePlayed = Date.parse(remote.lastPlayed || 0) || 0;
+    const merged = {
+      bestMedal: betterMedal(local.bestMedal, remote.bestMedal),
+      bestScore: useRemoteScore ? remoteScore : localScore,
+      bestTotal: useRemoteScore ? remote.bestTotal || local.bestTotal || 1 : local.bestTotal || remote.bestTotal || 1,
+      plays: Math.max(local.plays || 0, remote.plays || 0),
+      lastPlayed:
+        remotePlayed >= localPlayed
+          ? remote.lastPlayed || local.lastPlayed || null
+          : local.lastPlayed || remote.lastPlayed || null,
+      awardedKeys,
+      liveXp: !!(local.liveXp || remote.liveXp || Object.keys(awardedKeys).length)
+    };
+    if (checkpoint) merged.checkpoint = checkpoint;
+    return merged;
+  }
+
+  function mergeActivity(local, remote) {
+    const days = {};
+    const ld = (local && local.days) || {};
+    const rd = (remote && remote.days) || {};
+    const keys = {};
+    Object.keys(ld).forEach((k) => {
+      keys[k] = true;
+    });
+    Object.keys(rd).forEach((k) => {
+      keys[k] = true;
+    });
+    Object.keys(keys).forEach((key) => {
+      const a = ld[key] || {};
+      const b = rd[key] || {};
+      days[key] = {
+        xp: Math.max(a.xp || 0, b.xp || 0),
+        exercises: Math.max(a.exercises || 0, b.exercises || 0),
+        questions: Math.max(a.questions || 0, b.questions || 0)
+      };
+    });
+    return { days };
+  }
+
+  function mergeTwoProfiles(local, remote) {
+    if (!local) return remote;
+    if (!remote) return local;
+    const games = {};
+    const lg = local.games || {};
+    const rg = remote.games || {};
+    const gids = {};
+    Object.keys(lg).forEach((k) => {
+      gids[k] = true;
+    });
+    Object.keys(rg).forEach((k) => {
+      gids[k] = true;
+    });
+    Object.keys(gids).forEach((gid) => {
+      games[gid] = mergeGameEntry(lg[gid], rg[gid]);
+    });
+    const xp = Math.max(local.xp || 0, remote.xp || 0);
+    const remoteAt = Date.parse(remote.updatedAt || 0) || 0;
+    const localAt = Date.parse(local.updatedAt || 0) || 0;
+    const newer = remoteAt >= localAt ? remote : local;
+    return {
+      id: local.id || remote.id,
+      name: newer.name || local.name || remote.name,
+      avatarEmoji: newer.avatarEmoji || local.avatarEmoji || remote.avatarEmoji,
+      pinFruit: local.pinFruit || remote.pinFruit || null,
+      xp,
+      level: levelFromXp(xp),
+      games,
+      activity: mergeActivity(local.activity, remote.activity),
+      disabled: !!(newer.disabled || local.disabled || remote.disabled),
+      disabledReason: newer.disabledReason || local.disabledReason || remote.disabledReason || null,
+      updatedAt: remoteAt >= localAt ? remote.updatedAt || local.updatedAt : local.updatedAt || remote.updatedAt
+    };
   }
 
   function todayKey(d) {
@@ -262,6 +460,10 @@
     return Object.values(data.profiles).sort((a, b) => a.name.localeCompare(b.name));
   }
 
+  function listPlayableProfiles() {
+    return listProfiles().filter((p) => !p.disabled);
+  }
+
   function getProfile(id) {
     return load().profiles[id] || null;
   }
@@ -269,7 +471,9 @@
   function getActiveProfile() {
     const unlocked = getSessionUnlockedId();
     if (!unlocked) return null;
-    return getProfile(unlocked);
+    const p = getProfile(unlocked);
+    if (p && p.disabled) return null;
+    return p;
   }
 
   function isUnlocked() {
@@ -278,7 +482,8 @@
 
   function createProfile({ name, avatarEmoji, pinFruit }) {
     const clean = String(name || '').trim().slice(0, 24);
-    if (!clean) throw new Error('Name required');
+    const nameCheck = checkName(clean);
+    if (!nameCheck.ok) throw new Error(nameErrorMessage(nameCheck.reason));
     if (!PIN_FRUITS.includes(pinFruit)) throw new Error('Invalid fruit PIN');
     const avatar = AVATARS.includes(avatarEmoji) ? avatarEmoji : AVATARS[0];
     const data = load();
@@ -291,16 +496,35 @@
       xp: 0,
       level: 1,
       games: {},
-      activity: { days: {} }
+      activity: { days: {} },
+      disabled: false,
+      disabledReason: null
     });
     save(data);
     schedulePush();
     return data.profiles[id];
   }
 
+  function renameProfile(id, newName) {
+    const clean = String(newName || '').trim().slice(0, 24);
+    const nameCheck = checkName(clean);
+    if (!nameCheck.ok) return { ok: false, reason: nameCheck.reason, message: nameErrorMessage(nameCheck.reason) };
+    const data = load();
+    const p = data.profiles[id];
+    if (!p) return { ok: false, reason: 'missing', message: 'Profile not found.' };
+    p.name = clean;
+    p.disabled = false;
+    p.disabledReason = null;
+    touchProfile(p);
+    save(data);
+    schedulePush();
+    return { ok: true, profile: p };
+  }
+
   function unlockProfile(id, fruit) {
     const profile = getProfile(id);
     if (!profile) return { ok: false, reason: 'missing' };
+    if (profile.disabled) return { ok: false, reason: 'disabled' };
     if (profile.pinFruit !== fruit) return { ok: false, reason: 'wrong' };
     const data = load();
     data.activeProfileId = id;
@@ -410,13 +634,14 @@
       streak: Number(streak) || 0,
       at: nowIso()
     };
+    capAwardedKeys(entry);
     entry.liveXp = true;
     p.xp = (p.xp || 0) + gained;
     p.level = levelFromXp(p.xp);
     bumpActivity(p, { xp: gained, questions: 1 });
     touchProfile(p);
     save(data);
-    schedulePush();
+    scheduleCriticalPush();
 
     const result = {
       xpGained: gained,
@@ -467,6 +692,7 @@
       awardedKeys: prev.awardedKeys || {},
       liveXp: prev.liveXp || false
     };
+    capAwardedKeys(p.games[gameId]);
     if (prev.checkpoint) p.games[gameId].checkpoint = prev.checkpoint;
     p.xp = (p.xp || 0) + gained;
     p.level = levelFromXp(p.xp);
@@ -478,7 +704,7 @@
     });
     touchProfile(p);
     save(data);
-    schedulePush();
+    scheduleCriticalPush();
 
     return {
       medal,
@@ -508,8 +734,114 @@
     return counts;
   }
 
+  const SUBJECT_LABELS = {
+    math: 'Math',
+    science: 'Science',
+    english: 'English',
+    hpe: 'HPE',
+    thai: 'Thai'
+  };
+
+  function subjectStats(profile) {
+    const order = ['math', 'science', 'english', 'hpe', 'thai'];
+    const buckets = {};
+    order.forEach((s) => {
+      buckets[s] = {
+        subject: s,
+        label: SUBJECT_LABELS[s] || s,
+        gamesSucceeded: 0,
+        gamesPlayed: 0,
+        questionsCorrect: 0,
+        gold: 0,
+        silver: 0,
+        bronze: 0
+      };
+    });
+    const games = (profile && profile.games) || {};
+    Object.keys(games).forEach((gid) => {
+      const slash = gid.indexOf('/');
+      const subject = slash > 0 ? gid.slice(0, slash) : 'other';
+      if (!buckets[subject]) {
+        buckets[subject] = {
+          subject,
+          label: SUBJECT_LABELS[subject] || subject,
+          gamesSucceeded: 0,
+          gamesPlayed: 0,
+          questionsCorrect: 0,
+          gold: 0,
+          silver: 0,
+          bronze: 0
+        };
+      }
+      const g = games[gid] || {};
+      const medal = g.bestMedal;
+      const awarded = g.awardedKeys && typeof g.awardedKeys === 'object' ? Object.keys(g.awardedKeys).length : 0;
+      const succeeded =
+        (medal === 'gold' || medal === 'silver' || medal === 'bronze') ||
+        (Number(g.bestScore) || 0) > 0 ||
+        awarded > 0;
+      if ((g.plays || 0) > 0 || medal || awarded) buckets[subject].gamesPlayed += 1;
+      if (succeeded) buckets[subject].gamesSucceeded += 1;
+      buckets[subject].questionsCorrect += awarded;
+      if (medal === 'gold') buckets[subject].gold += 1;
+      if (medal === 'silver') buckets[subject].silver += 1;
+      if (medal === 'bronze') buckets[subject].bronze += 1;
+    });
+    return order
+      .map((s) => buckets[s])
+      .concat(Object.keys(buckets).filter((s) => order.indexOf(s) === -1).map((s) => buckets[s]));
+  }
+
+  function checkName(name) {
+    if (global.NameModeration && typeof global.NameModeration.isNameAllowed === 'function') {
+      return global.NameModeration.isNameAllowed(name);
+    }
+    const clean = String(name || '').trim();
+    if (!clean) return { ok: false, reason: 'empty' };
+    if (clean.length > 24) return { ok: false, reason: 'long' };
+    return { ok: true };
+  }
+
+  function nameErrorMessage(reason) {
+    if (reason === 'empty') return 'Please enter a first name.';
+    if (reason === 'long') return 'Name is too long (max 24).';
+    return 'Please choose a kinder first name — no rude or mean words.';
+  }
+
+  function applyNamePolicyToStore(data) {
+    let changed = false;
+    Object.keys(data.profiles || {}).forEach((id) => {
+      const p = data.profiles[id];
+      if (!p) return;
+      const check = checkName(p.name);
+      if (!check.ok) {
+        if (!p.disabled || p.disabledReason !== 'name') {
+          p.disabled = true;
+          p.disabledReason = 'name';
+          touchProfile(p);
+          markDirty(id, p.updatedAt);
+          changed = true;
+        }
+        if (data.activeProfileId === id) data.activeProfileId = null;
+        if (getSessionUnlockedId() === id) setSessionUnlockedId(null);
+      } else if (p.disabled && p.disabledReason === 'name') {
+        // Keep disabled until rename clears it explicitly; do not auto-enable.
+      }
+    });
+    return changed;
+  }
+
+  function enforceNamePolicy() {
+    const data = load();
+    if (applyNamePolicyToStore(data)) {
+      save(data);
+      document.dispatchEvent(new CustomEvent('nolan:profiles', { detail: { count: Object.keys(data.profiles).length } }));
+    }
+  }
+
   function leaderboardRows() {
     return listProfiles()
+      .filter((p) => !p.disabled)
       .map((p) => {
         const medals = countMedals(p);
         return {
@@ -668,30 +1000,81 @@
 
   function applyCloudProfiles(incoming) {
     if (!incoming || typeof incoming !== 'object') return;
+    const dirtyBefore = loadDirty();
     const data = load();
     Object.keys(incoming).forEach((id) => {
       const remote = incoming[id];
       if (!remote || !remote.id) return;
       const local = data.profiles[id];
+      const wasDirty = !!dirtyBefore[id];
       if (!local) {
         data.profiles[id] = remote;
         return;
       }
-      const remoteAt = Date.parse(remote.updatedAt || 0) || 0;
-      const localAt = Date.parse(local.updatedAt || 0) || 0;
-      if (remoteAt >= localAt) data.profiles[id] = remote;
-      else if (!local.pinFruit && remote.pinFruit) {
-        local.pinFruit = remote.pinFruit;
+      data.profiles[id] = mergeTwoProfiles(local, remote);
+      // Keep dirty so local exercise/medal gains are re-pushed after merge
+      if (wasDirty && data.profiles[id]) {
+        markDirty(id, data.profiles[id].updatedAt || nowIso());
       }
     });
     save(data);
+    enforceNamePolicy();
     document.dispatchEvent(new CustomEvent('nolan:profiles', { detail: { count: Object.keys(data.profiles).length } }));
+  }
+
+  function pruneArchivedProfiles(archivedIds) {
+    if (!Array.isArray(archivedIds) || !archivedIds.length) return false;
+    const blocked = new Set(archivedIds.map((id) => String(id)));
+    const data = load();
+    let changed = false;
+    Object.keys(data.profiles || {}).forEach((id) => {
+      if (!blocked.has(id)) return;
+      delete data.profiles[id];
+      changed = true;
+      if (data.activeProfileId === id) data.activeProfileId = null;
+      if (getSessionUnlockedId() === id) setSessionUnlockedId(null);
+    });
+    const dirty = loadDirty();
+    let dirtyChanged = false;
+    Object.keys(dirty).forEach((id) => {
+      if (!blocked.has(id)) return;
+      delete dirty[id];
+      dirtyChanged = true;
+    });
+    if (dirtyChanged) saveDirty(dirty);
+    if (changed) {
+      save(data);
+      document.dispatchEvent(new CustomEvent('nolan:profiles', { detail: { count: Object.keys(data.profiles).length } }));
+    }
+    return changed;
+  }
+
+  function collectDirtyProfiles() {
+    const data = load();
+    const dirty = loadDirty();
+    const out = {};
+    Object.keys(dirty).forEach((id) => {
+      if (data.profiles[id]) out[id] = data.profiles[id];
+    });
+    return out;
+  }
+
+  function scheduleRetry() {
+    clearTimeout(retryTimer);
+    if (retryAttempt >= RETRY_DELAYS_MS.length) retryAttempt = RETRY_DELAYS_MS.length - 1;
+    const delay = RETRY_DELAYS_MS[retryAttempt] || 15000;
+    retryAttempt += 1;
+    retryTimer = setTimeout(() => {
+      pushProfiles().catch(() => {});
+    }, delay);
   }
 
   async function pullProfiles() {
     try {
       const data = await apiPost({ action: 'list' });
       applyCloudProfiles(data.profiles || {});
+      pruneArchivedProfiles(data.archivedIds || []);
+      enforceNamePolicy();
       return data.profiles;
     } catch (e) {
       return null;
@@ -699,13 +1082,32 @@
   }
 
   async function pushProfiles() {
-    const data = load();
+    if (pushing) return null;
+    const toPush = collectDirtyProfiles();
+    const ids = Object.keys(toPush);
+    if (!ids.length) {
+      retryAttempt = 0;
+      return load().profiles;
+    }
+    const pushedUpdatedAt = {};
+    ids.forEach((id) => {
+      pushedUpdatedAt[id] = toPush[id] && toPush[id].updatedAt;
+    });
+    pushing = true;
     try {
-      const res = await apiPost({ action: 'push', profiles: data.profiles });
+      const res = await apiPost({ action: 'push', profiles: toPush });
       applyCloudProfiles(res.profiles || {});
+      pruneArchivedProfiles(res.archivedIds || []);
+      const stillDirty = clearDirtyIfUnchanged(ids, pushedUpdatedAt);
+      retryAttempt = 0;
+      clearTimeout(retryTimer);
+      if (stillDirty) schedulePush();
       return res.profiles;
     } catch (e) {
+      scheduleRetry();
       return null;
+    } finally {
+      pushing = false;
     }
   }
 
@@ -716,10 +1118,38 @@
     }, 600);
   }
 
+  function scheduleCriticalPush() {
+    clearTimeout(criticalPushTimer);
+    clearTimeout(pushTimer);
+    criticalPushTimer = setTimeout(() => {
+      pushProfiles().catch(() => {});
+    }, 150);
+  }
+
+  function flushPushNow() {
+    clearTimeout(pushTimer);
+    clearTimeout(criticalPushTimer);
+    pushProfiles().catch(() => {});
+  }
+
+  function bindFlushListeners() {
+    if (flushBound || typeof document === 'undefined') return;
+    flushBound = true;
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') flushPushNow();
+    });
+    window.addEventListener('online', () => {
+      retryAttempt = 0;
+      flushPushNow();
+    });
+    window.addEventListener('pagehide', flushPushNow);
+  }
+
   async function ensureProfilesReady() {
     if (syncing) return true;
     syncing = true;
     try {
+      bindFlushListeners();
       await pullProfiles();
       await pushProfiles();
     } finally {
@@ -728,6 +1158,8 @@
     return true;
   }
 
+  bindFlushListeners();
+
   global.NolanProgress = {
     PIN_FRUITS,
     AVATARS,
@@ -735,17 +1167,23 @@
     LEVEL_EPITHETS,
     XP_PER_LEVEL,
     listProfiles,
+    listPlayableProfiles,
     getProfile,
     getActiveProfile,
     isUnlocked,
     createProfile,
+    renameProfile,
     unlockProfile,
     lock,
+    checkName,
+    nameErrorMessage,
+    enforceNamePolicy,
     recordResult,
     awardAnswerXp,
     questionKey,
     XP_PER_CORRECT,
     activitySummary,
+    subjectStats,
     bumpActivity,
     todayKey,
     recordFromDom,
@@ -773,6 +1211,8 @@
     pushProfiles,
     ensureProfilesReady,
     schedulePush,
+    scheduleCriticalPush,
+    flushPushNow,
     xpToNext(profile) {
       const xp = (profile && profile.xp) || 0;
       const level = levelFromXp(xp);

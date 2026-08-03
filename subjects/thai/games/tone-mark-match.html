@@ -54,7 +54,7 @@
   <script src="../../../js/shell.js"></script>
   <script>
     const NAMES = ['Mai Ek', 'Mai Tho', 'Mai Tri', 'Mai Chattawa'];
-    const ROUNDS = [
+    const ROUND_POOL = [
       { mark: '่', answer: 0, tip: '่ is Mai Ek — the first tone mark.' },
       { mark: '้', answer: 1, tip: '้ is Mai Tho (like Thai “2”).' },
       { mark: '๊', answer: 2, tip: '๊ is Mai Tri.' },
@@ -64,6 +64,7 @@
       { mark: '่', answer: 0, tip: '่ is Mai Ek.' },
       { mark: '๊', answer: 2, tip: '๊ is Mai Tri.' }
     ];
+    let rounds = ROUND_POOL.slice();
     let i = 0, score = 0, locked = false;
       /* nolan-cp */
       function __nolanSaveCp() {
@@ -96,20 +97,38 @@
     const progressBar = document.getElementById('progress-bar');
     const roundLabel = document.getElementById('round-label');
 
+    function shuffle(a) {
+      const x = a.slice();
+      for (let n = x.length - 1; n > 0; n--) {
+        const j = Math.floor(Math.random() * (n + 1));
+        [x[n], x[j]] = [x[j], x[n]];
+      }
+      return x;
+    }
+    function startRound(keepProgress) {
+      rounds = shuffle(ROUND_POOL);
+      if (!keepProgress) {
+        i = 0;
+        score = 0;
+      }
+      if (i >= rounds.length) i = 0;
+    }
     function load() {
       locked = false;
       feedback.classList.add('hidden');
       nextBtn.classList.add('hidden');
-      const r = ROUNDS[i];
+      const r = rounds[i];
       markDisplay.textContent = r.mark;
-      roundLabel.textContent = `Round ${i + 1} of ${ROUNDS.length}`;
-      progressBar.style.width = `${(i / ROUNDS.length) * 100}%`;
+      roundLabel.textContent = `Round ${i + 1} of ${rounds.length}`;
+      progressBar.style.width = `${(i / rounds.length) * 100}%`;
       choices.innerHTML = '';
-      NAMES.forEach((name, idx) => {
+      const order = shuffle([0, 1, 2, 3]);
+      order.forEach((idx) => {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'option-btn name-btn text-center';
-        btn.textContent = name;
+        btn.textContent = NAMES[idx];
+        btn.dataset.answerIdx = String(idx);
         btn.addEventListener('click', () => pick(idx, btn));
         choices.appendChild(btn);
       });
@@ -117,8 +136,9 @@
     function pick(idx, btn) {
       if (locked) return;
       locked = true;
-      const r = ROUNDS[i];
-      [...choices.children].forEach((b, j) => {
+      const r = rounds[i];
+      [...choices.children].forEach((b) => {
+        const j = Number(b.dataset.answerIdx);
         if (j === r.answer) b.classList.add('correct');
         else if (j === idx && idx !== r.answer) b.classList.add('wrong');
       });
@@ -135,22 +155,25 @@
     }
     nextBtn.addEventListener('click', () => {
       i++; __nolanSaveCp();
-      if (i < ROUNDS.length) load();
+      if (i < rounds.length) load();
       else {
+        __nolanClearCp();
         document.getElementById('play-screen').classList.add('hidden');
         document.getElementById('result-screen').classList.remove('hidden');
         document.getElementById('score-display').textContent = score;
         document.getElementById('result-message').textContent =
-          score === ROUNDS.length ? 'Perfect tones! 🌟' : score >= 6 ? 'Great listening! 👍' : 'Practice the marks again! 💪';
+          score === rounds.length ? 'Perfect tones! 🌟' : score >= 6 ? 'Great listening! 👍' : 'Practice the marks again! 💪';
         progressBar.style.width = '100%';
       }
     });
     document.getElementById('restart-btn').addEventListener('click', () => {
-      __nolanClearCp(); i = 0; score = 0;
+      __nolanClearCp();
       document.getElementById('result-screen').classList.add('hidden');
       document.getElementById('play-screen').classList.remove('hidden');
+      startRound(false);
       load();
     });
+    startRound(true);
     load();
   </script>
 </body>

@@ -182,29 +182,30 @@
         tip: 'Story + Trai Yang work together in Grade 2 Thai!'
       }
     ];
+    let scenes = SCENES.slice();
     let i = 0, score = 0, streak = 0, locked = false;
       /* nolan-cp */
       function __nolanSaveCp() {
-        if (!window.{{name}}Progress) return;
-        var id = {{name}}Progress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
+        if (!window.NolanProgress) return;
+        var id = NolanProgress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
         if (!id) return;
-        {{name}}Progress.saveCheckpoint(id, { index: i, score: score });
+        NolanProgress.saveCheckpoint(id, { index: i, score: score });
       }
       function __nolanClearCp() {
-        if (!window.{{name}}Progress) return;
-        var id = {{name}}Progress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
+        if (!window.NolanProgress) return;
+        var id = NolanProgress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
         if (!id) return;
-        {{name}}Progress.clearCheckpoint(id);
+        NolanProgress.clearCheckpoint(id);
       }
       (function __nolanRestoreCp() {
-        if (!window.{{name}}Progress || !{{name}}Progress.loadCheckpoint) return;
-        var id = {{name}}Progress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
+        if (!window.NolanProgress || !NolanProgress.loadCheckpoint) return;
+        var id = NolanProgress.inferGameIdFromPath() || (document.body && document.body.getAttribute('data-game-id'));
         if (!id) return;
-        var cp = {{name}}Progress.loadCheckpoint(id);
+        var cp = NolanProgress.loadCheckpoint(id);
         if (!cp) return;
         i = Math.max(0, cp.index | 0);
         score = Math.max(0, Number(cp.score) || 0);
-        if ({{name}}Progress.showResumeToast) {{name}}Progress.showResumeToast('Resuming…');
+        if (NolanProgress.showResumeToast) NolanProgress.showResumeToast('Resuming…');
       })();
 
     const comicStrip = document.getElementById('comic-strip');
@@ -215,11 +216,35 @@
     const progressBar = document.getElementById('progress-bar');
     const scoreHud = document.getElementById('score-hud');
 
+    function shuffle(a) {
+      const x = a.slice();
+      for (let n = x.length - 1; n > 0; n--) {
+        const j = Math.floor(Math.random() * (n + 1));
+        [x[n], x[j]] = [x[j], x[n]];
+      }
+      return x;
+    }
+    function fill(t) {
+      return window.NolanProgress && NolanProgress.fillName ? NolanProgress.fillName(t) : String(t || '');
+    }
+    function startRound(keepProgress) {
+      scenes = shuffle(SCENES).map((s) => Object.assign({}, s, {
+        question: fill(s.question),
+        tip: fill(s.tip),
+        choices: shuffle(s.choices.map((c) => Object.assign({}, c, { text: fill(c.text) })))
+      }));
+      if (!keepProgress) {
+        i = 0;
+        score = 0;
+        streak = 0;
+      }
+      if (i >= scenes.length) i = 0;
+    }
     function load() {
       locked = false;
       feedback.classList.add('hidden');
       nextBtn.classList.add('hidden');
-      const s = SCENES[i];
+      const s = scenes[i];
       comicStrip.innerHTML = `
         <div class="comic-panel active-scene text-center">
           <div class="panel-emoji">${s.emoji}</div>
@@ -230,8 +255,8 @@
           <p class="panel-caption">What do YOU think?</p>
         </div>`;
       sceneQuestion.innerHTML = s.question;
-      progressBar.style.width = `${(i / SCENES.length) * 100}%`;
-      scoreHud.textContent = `Points: ${score} · Scene ${i + 1} of ${SCENES.length}`;
+      progressBar.style.width = `${(i / scenes.length) * 100}%`;
+      scoreHud.textContent = `Points: ${score} · Scene ${i + 1} of ${scenes.length}`;
       storyChoices.innerHTML = '';
       s.choices.forEach((c, idx) => {
         const btn = document.createElement('button');
@@ -266,29 +291,32 @@
         feedback.classList.add('bg-red-100', 'text-red-800');
         feedback.innerHTML = `<strong>Check the comic!</strong><br>${s.tip}`;
       }
-      scoreHud.textContent = `Points: ${score} · Scene ${i + 1} of ${SCENES.length}`;
+      scoreHud.textContent = `Points: ${score} · Scene ${i + 1} of ${scenes.length}`;
       nextBtn.classList.remove('hidden');
     }
     nextBtn.addEventListener('click', () => {
       i++; __nolanSaveCp();
-      if (i < SCENES.length) load();
+      if (i < scenes.length) load();
       else {
+        __nolanClearCp();
         progressBar.style.width = '100%';
         document.getElementById('play-screen').classList.add('hidden');
         document.getElementById('result-screen').classList.remove('hidden');
         document.getElementById('score-display').textContent = score;
-        document.getElementById('total-display').textContent = SCENES.length;
+        document.getElementById('total-display').textContent = scenes.length;
         document.getElementById('result-message').textContent =
-          score === SCENES.length ? 'Nam Sai expert! 🌟' : score >= 8 ? 'Great story memory! 👍' : 'Reread the chapter, then replay! 💪';
-        if (score === SCENES.length && window.FunEffects) FunEffects.confetti();
+          score === scenes.length ? 'Nam Sai expert! 🌟' : score >= 8 ? 'Great story memory! 👍' : 'Reread the chapter, then replay! 💪';
+        if (score === scenes.length && window.FunEffects) FunEffects.confetti();
       }
     });
     document.getElementById('restart-btn').addEventListener('click', () => {
-      __nolanClearCp(); i = 0; score = 0; streak = 0;
+      __nolanClearCp();
       document.getElementById('result-screen').classList.add('hidden');
       document.getElementById('play-screen').classList.remove('hidden');
+      startRound(false);
       load();
     });
+    startRound(true);
     load();
   </script>
 </body>

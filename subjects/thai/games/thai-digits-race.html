@@ -49,7 +49,7 @@
   <script src="../../../js/progress.js"></script>
   <script src="../../../js/shell.js"></script>
   <script>
-    const ROUNDS = [
+    const ROUND_POOL = [
       { type: 'digit', show: '๑', answer: '1', wrong: ['2', '3', '7'], tip: '๑ = 1 (nueng)' },
       { type: 'digit', show: '๒', answer: '2', wrong: ['1', '5', '8'], tip: '๒ = 2 (song)' },
       { type: 'digit', show: '๓', answer: '3', wrong: ['2', '4', '8'], tip: '๓ = 3 (sam)' },
@@ -61,6 +61,7 @@
       { type: 'digit', show: '๙', answer: '9', wrong: ['0', '7', '8'], tip: '๙ = 9 (kao)' },
       { type: 'read', show: '๑๑', answer: 'Sip-et', wrong: ['Sip-nueng', 'Nueng-sip', 'Sip-song'], tip: "11 ends with 'et' — Sip-et!" }
     ];
+    let rounds = ROUND_POOL.slice();
     let i = 0, score = 0, locked = false;
       /* nolan-cp */
       function __nolanSaveCp() {
@@ -102,15 +103,23 @@
       }
       return x;
     }
+    function startRound(keepProgress) {
+      rounds = shuffle(ROUND_POOL);
+      if (!keepProgress) {
+        i = 0;
+        score = 0;
+      }
+      if (i >= rounds.length) i = 0;
+    }
     function load() {
       locked = false;
       feedback.classList.add('hidden');
       nextBtn.classList.add('hidden');
-      const r = ROUNDS[i];
+      const r = rounds[i];
       digitDisplay.textContent = r.show;
       prompt.textContent = r.type === 'read' ? 'How do you READ this number?' : 'What number is this?';
-      roundLabel.textContent = `Round ${i + 1} of ${ROUNDS.length}`;
-      progressBar.style.width = `${(i / ROUNDS.length) * 100}%`;
+      roundLabel.textContent = `Round ${i + 1} of ${rounds.length}`;
+      progressBar.style.width = `${(i / rounds.length) * 100}%`;
       choices.innerHTML = '';
       shuffle([r.answer, ...r.wrong]).forEach((opt) => {
         const btn = document.createElement('button');
@@ -141,22 +150,25 @@
     }
     nextBtn.addEventListener('click', () => {
       i++; __nolanSaveCp();
-      if (i < ROUNDS.length) load();
+      if (i < rounds.length) load();
       else {
+        __nolanClearCp();
         document.getElementById('play-screen').classList.add('hidden');
         document.getElementById('result-screen').classList.remove('hidden');
         document.getElementById('score-display').textContent = score;
         document.getElementById('result-message').textContent =
-          score === 10 ? 'Digit champion! Sip-et forever! 🌟' : score >= 7 ? 'Great counting! 👍' : 'Practice ๑–๙ again! 💪';
+          score === rounds.length ? 'Digit champion! Sip-et forever! 🌟' : score >= 7 ? 'Great counting! 👍' : 'Practice ๑–๙ again! 💪';
         progressBar.style.width = '100%';
       }
     });
     document.getElementById('restart-btn').addEventListener('click', () => {
-      __nolanClearCp(); i = 0; score = 0;
+      __nolanClearCp();
       document.getElementById('result-screen').classList.add('hidden');
       document.getElementById('play-screen').classList.remove('hidden');
+      startRound(false);
       load();
     });
+    startRound(true);
     load();
   </script>
 </body>

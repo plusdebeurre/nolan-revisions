@@ -107,19 +107,21 @@
       document.body.prepend(bar);
     }
     const profile = NP && NP.getActiveProfile();
-    const familyBtn = `<button type="button" class="shell-lb-btn" id="shell-leaderboard" title="Leaderboard">🏆</button>`;
     if (!profile) {
       bar.innerHTML = `
         <button type="button" class="shell-profile-btn" id="shell-open-profiles">👤 Who is playing?</button>
-        ${familyBtn}
-        <button type="button" class="shell-fs-btn" id="shell-fullscreen" title="Fullscreen">⛶ Full screen</button>
+        <div class="shell-bar-right">
+          <button type="button" class="shell-lb-btn" id="shell-leaderboard" title="Leaderboard">🏆</button>
+          <button type="button" class="shell-fs-btn" id="shell-fullscreen" title="Fullscreen">⛶ Full screen</button>
+        </div>
       `;
+      document.getElementById('shell-open-profiles')?.addEventListener('click', () => openProfileModal());
     } else {
       const xpInfo = NP.xpToNext(profile);
       const pct = Math.min(100, Math.round((xpInfo.into / xpInfo.need) * 100));
       const title = NP.levelTitle(profile.level, profile.avatarEmoji);
       bar.innerHTML = `
-        <button type="button" class="shell-profile-btn" id="shell-open-profiles" title="Switch profile">
+        <button type="button" class="shell-profile-btn" id="shell-open-my-progress" title="My progress">
           <span class="shell-avatar-photo" aria-hidden="true">${profile.avatarEmoji}</span>
           <span class="shell-profile-text">
             <span class="shell-name">${escapeHtml(profile.name)}</span>
@@ -130,13 +132,106 @@
           <div class="shell-xp-track"><div class="shell-xp-fill" style="width:${pct}%"></div></div>
           <span class="shell-xp-text">${profile.xp} XP</span>
         </div>
-        ${familyBtn}
-        <button type="button" class="shell-fs-btn" id="shell-fullscreen" title="Fullscreen">⛶ Full screen</button>
+        <div class="shell-bar-right">
+          <button type="button" class="shell-lb-btn" id="shell-leaderboard" title="Leaderboard">🏆</button>
+          <button type="button" class="shell-fs-btn" id="shell-fullscreen" title="Fullscreen">⛶ Full screen</button>
+          <button type="button" class="shell-logout-btn" id="shell-logout" title="Log out">Log out</button>
+        </div>
       `;
+      document.getElementById('shell-open-my-progress')?.addEventListener('click', () => openMyProgressModal());
+      document.getElementById('shell-logout')?.addEventListener('click', logoutToProfilePicker);
     }
-    document.getElementById('shell-open-profiles')?.addEventListener('click', () => openProfileModal());
     document.getElementById('shell-fullscreen')?.addEventListener('click', enterFullscreenFlow);
     document.getElementById('shell-leaderboard')?.addEventListener('click', openLeaderboard);
+  }
+
+  function logoutToProfilePicker() {
+    const NP = window.NolanProgress;
+    if (!NP) return;
+    if (IN_IFRAME) {
+      try {
+        window.top.postMessage({ type: 'nolan:logout' }, '*');
+      } catch (e) { /* ignore */ }
+      return;
+    }
+    NP.lock();
+    updateHubLock();
+    renderTopBar();
+    openProfileModal();
+  }
+
+  function openMyProgressModal() {
+    if (IN_IFRAME) {
+      try {
+        window.top.postMessage({ type: 'nolan:open-my-progress' }, '*');
+      } catch (e) { /* ignore */ }
+      return;
+    }
+    const NP = window.NolanProgress;
+    if (!NP) return;
+    const active = NP.getActiveProfile();
+    if (!active) {
+      openProfileModal();
+      return;
+    }
+    const stats = NP.activitySummary ? NP.activitySummary(active) : null;
+    const subjects = NP.subjectStats ? NP.subjectStats(active) : [];
+    const title = NP.levelTitle(active.level, active.avatarEmoji);
+    let modal = document.getElementById('nolan-my-progress-modal');
+    if (!modal) {
+      modal = el('div', 'nolan-modal-backdrop');
+      modal.id = 'nolan-my-progress-modal';
+      document.body.appendChild(modal);
+    }
+    modal.classList.remove('hidden');
+    modal.classList.remove('nolan-modal-backdrop--required');
+    const maxSucceeded = Math.max(1, ...subjects.map((s) => s.gamesSucceeded || 0));
+    const subjectHtml = subjects.length
+      ? `<div class="profile-activity" aria-label="Subject success">
+          <p class="profile-activity-title">Successful exercises by subject</p>
+          <div class="profile-subject-list">
+            ${subjects
+              .map((s) => {
+                const pct = Math.round(((s.gamesSucceeded || 0) / maxSucceeded) * 100);
+                return `<div class="profile-subject-row">
+                  <div class="profile-subject-meta">
+                    <span class="profile-subject-label">${escapeHtml(s.label)}</span>
+                    <strong>${s.gamesSucceeded || 0}</strong>
+                    <span class="profile-subject-extra">${s.questionsCorrect || 0} correct answers</span>
+                  </div>
+                  <div class="profile-subject-bar" aria-hidden="true"><span style="width:${pct}%"></span></div>
+                </div>`;
+              })
+              .join('')}
+          </div>
+        </div>`
+      : '';
+    modal.innerHTML = `
+      <div class="nolan-modal nolan-modal--profile question-card animate-pop" role="dialog" aria-modal="true">
+        <h2 class="nolan-modal-title">${escapeHtml(active.avatarEmoji || '')} ${escapeHtml(active.name)}</h2>
+        <p class="nolan-modal-sub">Lv ${active.level || 1} · ${escapeHtml(title)} · ${active.xp || 0} XP</p>
+        ${
+          stats
+            ? `<div class="profile-activity" aria-label="Activity stats">
+          <p class="profile-activity-title">Your progress</p>
+          <div class="profile-activity-grid">
+            <div><span class="profile-activity-label">XP today</span><strong>${stats.today.xp}</strong></div>
+            <div><span class="profile-activity-label">This week</span><strong>${stats.week.xp}</strong></div>
+            <div><span class="profile-activity-label">This month</span><strong>${stats.month.xp}</strong></div>
+            <div><span class="profile-activity-label">This year</span><strong>${stats.year.xp}</strong></div>
+            <div><span class="profile-activity-label">Exercises done</span><strong>${stats.exercisesTotal}</strong></div>
+            <div><span class="profile-activity-label">Questions done</span><strong>${stats.questionsTotal}</strong></div>
+          </div>
+        </div>`
+            : ''
+        }
+        ${subjectHtml}
+        <button type="button" class="nav-link mt-3" id="btn-close-my-progress">Keep playing</button>
+      </div>
+    `;
+    modal.querySelector('#btn-close-my-progress')?.addEventListener('click', () => {
+      modal.classList.add('hidden');
+    });
   }
 
   function showFsChip() {
@@ -169,6 +264,37 @@
       return;
     }
     location.href = resolveAppUrl();
+  }
+
+  function isHubPage() {
+    return !!(document.body && document.body.classList.contains('theme-hub') && !IS_APP);
+  }
+
+  function updateHubLock() {
+    if (!document.body) return;
+    if (IN_IFRAME || !isHubPage()) {
+      document.body.classList.remove('hub-locked');
+      return;
+    }
+    const NP = window.NolanProgress;
+    if (NP && NP.isUnlocked()) document.body.classList.remove('hub-locked');
+    else document.body.classList.add('hub-locked');
+  }
+
+  function bindPlayModeCta() {
+    const btn = document.getElementById('open-play-mode');
+    if (!btn || btn.dataset.bound === '1') return;
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      enterFullscreenFlow();
+    });
+  }
+
+  function onProfileUnlocked() {
+    updateHubLock();
+    renderTopBar();
+    paintHubMedals();
   }
 
   function openLeaderboard() {
@@ -254,28 +380,14 @@
 
     const profiles = NP.listProfiles();
     const unlocked = NP.isUnlocked();
-    const active = NP.getActiveProfile();
-    const stats = active && NP.activitySummary ? NP.activitySummary(active) : null;
+
+    if (!unlocked && isHubPage()) modal.classList.add('nolan-modal-backdrop--required');
+    else modal.classList.remove('nolan-modal-backdrop--required');
 
     modal.innerHTML = `
       <div class="nolan-modal nolan-modal--profile question-card animate-pop" role="dialog" aria-modal="true">
         <h2 class="nolan-modal-title">Who is playing?</h2>
-        <p class="nolan-modal-sub">Pick a profile, then tap your secret fruit.</p>
-        ${
-          stats && active
-            ? `<div class="profile-activity" aria-label="Activity stats">
-          <p class="profile-activity-title">${escapeHtml(active.avatarEmoji || '')} ${escapeHtml(active.name)} — progress</p>
-          <div class="profile-activity-grid">
-            <div><span class="profile-activity-label">XP today</span><strong>${stats.today.xp}</strong></div>
-            <div><span class="profile-activity-label">This week</span><strong>${stats.week.xp}</strong></div>
-            <div><span class="profile-activity-label">This month</span><strong>${stats.month.xp}</strong></div>
-            <div><span class="profile-activity-label">This year</span><strong>${stats.year.xp}</strong></div>
-            <div><span class="profile-activity-label">Exercises done</span><strong>${stats.exercisesTotal}</strong></div>
-            <div><span class="profile-activity-label">Questions done</span><strong>${stats.questionsTotal}</strong></div>
-          </div>
-        </div>`
-            : ''
-        }
+        <p class="nolan-modal-sub">Create a new profile or pick yours and tap your secret fruit.</p>
         <div id="profile-list" class="profile-list"></div>
         <button type="button" class="btn-primary w-full mt-3" id="btn-create-profile">+ New profile</button>
         <div id="profile-create" class="hidden"></div>
@@ -289,10 +401,16 @@
       list.innerHTML = '';
     } else {
       profiles.forEach((p) => {
-        const btn = el('button', 'profile-pick-btn');
+        const btn = el('button', 'profile-pick-btn' + (p.disabled ? ' profile-pick-btn--disabled' : ''));
         btn.type = 'button';
-        btn.innerHTML = `<span class="shell-avatar-photo">${p.avatarEmoji}</span><span class="profile-pick-meta"><span class="profile-pick-name">${escapeHtml(p.name)}</span><span class="shell-level-title">${escapeHtml(NP.levelTitle(p.level || 1, p.avatarEmoji))}</span></span>`;
-        btn.addEventListener('click', () => showPinStep(p));
+        const status = p.disabled
+          ? '<span class="shell-level-title">Needs a kinder name</span>'
+          : `<span class="shell-level-title">${escapeHtml(NP.levelTitle(p.level || 1, p.avatarEmoji))}</span>`;
+        btn.innerHTML = `<span class="shell-avatar-photo">${p.avatarEmoji}</span><span class="profile-pick-meta"><span class="profile-pick-name">${escapeHtml(p.name)}</span>${status}</span>`;
+        btn.addEventListener('click', () => {
+          if (p.disabled) showRenameStep(p);
+          else showPinStep(p);
+        });
         list.appendChild(btn);
       });
     }
@@ -378,8 +496,9 @@
     box.querySelector('#btn-save-profile')?.addEventListener('click', () => {
       setErr('');
       const name = box.querySelector('#create-name').value;
-      if (!name.trim()) {
-        setErr('Please enter a first name.');
+      const nameCheck = NP.checkName ? NP.checkName(name) : { ok: !!String(name || '').trim() };
+      if (!nameCheck.ok) {
+        setErr(NP.nameErrorMessage ? NP.nameErrorMessage(nameCheck.reason) : 'Please enter a first name.');
         return;
       }
       if (!pinFruit) {
@@ -392,8 +511,7 @@
         const unlocked = NP.unlockProfile(p.id, pinFruit);
         if (unlocked.ok) {
           document.getElementById('nolan-profile-modal')?.classList.add('hidden');
-          renderTopBar();
-          paintHubMedals();
+          onProfileUnlocked();
           if (window.FunEffects) window.FunEffects.confetti({ count: 18 });
         } else {
           showPinStep(p);
@@ -401,6 +519,52 @@
       } catch (e) {
         setErr(e.message || 'Could not create profile');
       }
+    });
+  }
+
+  function showRenameStep(profile) {
+    const NP = window.NolanProgress;
+    const box = document.getElementById('profile-create');
+    const pinBox = document.getElementById('profile-pin');
+    const list = document.getElementById('profile-list');
+    const createBtn = document.getElementById('btn-create-profile');
+    const closeBtn = document.getElementById('btn-close-profiles');
+    if (!box) return;
+    list?.classList.add('hidden');
+    pinBox?.classList.add('hidden');
+    createBtn?.classList.add('hidden');
+    closeBtn?.classList.add('hidden');
+    box.classList.remove('hidden');
+    box.innerHTML = `
+      <h3 class="profile-step-title">Choose a kinder name</h3>
+      <p class="nolan-modal-sub" style="margin-bottom:0.75rem">This profile is paused. Pick a friendly first name to keep all your XP and medals.</p>
+      <label class="profile-field-label" for="rename-name">New first name</label>
+      <input id="rename-name" class="profile-input" maxlength="24" placeholder="e.g. Alex" autocomplete="off" />
+      <div class="profile-step-actions">
+        <button type="button" class="btn-primary" id="btn-save-rename">Save &amp; continue</button>
+        <button type="button" class="nav-link" id="btn-cancel-rename">Back</button>
+      </div>
+      <p id="rename-error" class="hidden text-red-600 font-semibold mt-2 text-center"></p>
+    `;
+    const err = box.querySelector('#rename-error');
+    const setErr = (msg) => {
+      if (!msg) {
+        err.classList.add('hidden');
+        return;
+      }
+      err.textContent = msg;
+      err.classList.remove('hidden');
+    };
+    box.querySelector('#btn-cancel-rename')?.addEventListener('click', () => openProfileModal());
+    box.querySelector('#btn-save-rename')?.addEventListener('click', () => {
+      setErr('');
+      const name = box.querySelector('#rename-name').value;
+      const result = NP.renameProfile(profile.id, name);
+      if (!result.ok) {
+        setErr(result.message || 'Could not rename');
+        return;
+      }
+      showPinStep(result.profile);
     });
   }
 
@@ -440,8 +604,7 @@
         const res = NP.unlockProfile(profile.id, f);
         if (res.ok) {
           document.getElementById('nolan-profile-modal')?.classList.add('hidden');
-          renderTopBar();
-          paintHubMedals();
+          onProfileUnlocked();
           try {
             const stage = document.getElementById('nolan-stage');
             if (stage && stage.contentWindow) {
@@ -471,8 +634,10 @@
     ensureProgress(() => {
       const NP = window.NolanProgress;
       const afterSync = () => {
+        bindPlayModeCta();
         if (!IN_IFRAME) {
           renderTopBar();
+          updateHubLock();
           if (!NP?.isUnlocked()) openProfileModal();
           else paintHubMedals();
           document.addEventListener('fullscreenchange', () => {
@@ -504,8 +669,14 @@
       if (NP?.ensureProfilesReady) {
         NP.ensureProfilesReady()
           .then(() => {
-            if (!IN_IFRAME) renderTopBar();
-            paintHubMedals();
+            if (!IN_IFRAME) {
+              renderTopBar();
+              updateHubLock();
+              if (!NP?.isUnlocked()) openProfileModal();
+              else paintHubMedals();
+            } else {
+              paintHubMedals();
+            }
           })
           .catch(() => {});
       }
@@ -518,15 +689,30 @@
         } catch (e) { /* ignore */ }
       });
       document.addEventListener('nolan:profiles', () => {
-        if (!IN_IFRAME) renderTopBar();
+        if (!IN_IFRAME) {
+          renderTopBar();
+          updateHubLock();
+          paintHubMedals();
+          const modal = document.getElementById('nolan-profile-modal');
+          if (modal && !modal.classList.contains('hidden') && !NP?.isUnlocked()) {
+            openProfileModal();
+          }
+        } else {
+          paintHubMedals();
+        }
       });
     });
 
     window.addEventListener('message', (ev) => {
       if (!ev.data || typeof ev.data !== 'object') return;
       if (ev.data.type === 'nolan:open-profiles' && !IN_IFRAME) openProfileModal();
+      if (ev.data.type === 'nolan:open-my-progress' && !IN_IFRAME) openMyProgressModal();
+      if (ev.data.type === 'nolan:logout' && !IN_IFRAME) logoutToProfilePicker();
       if (ev.data.type === 'nolan:open-leaderboard' && !IN_IFRAME) openLeaderboard();
-      if (ev.data.type === 'nolan:progress' && !IN_IFRAME) renderTopBar();
+      if (ev.data.type === 'nolan:progress' && !IN_IFRAME) {
+        renderTopBar();
+        paintHubMedals();
+      }
       if (ev.data.type === 'nolan:unlocked' && IN_IFRAME) paintHubMedals();
     });
   }

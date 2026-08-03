@@ -78,20 +78,21 @@
   <script src="../../../js/shell.js"></script>
   <script>
     const NAMES = ['Mai Ek', 'Mai Tho', 'Mai Tri', 'Mai Chattawa'];
-    const ROUNDS = [
-      { syllable: 'ไก่', answer: 0, tip: 'ไก่ uses Mai Ek (่) — low tone on live syllable rules + class.' },
-      { syllable: 'ม้า', answer: 1, tip: 'ม้า has ้ — Mai Tho (falling tone here).' },
-      { syllable: 'น้ำ', answer: 1, tip: 'น้ำ — Mai Tho mark ้.' },
-      { syllable: 'ใบ', answer: 0, tip: 'ใบ tree/leaf — Mai Ek ่ on the vowel cluster.' },
-      { syllable: 'ช้าง', answer: 1, tip: 'ช้าง elephant — ้ is Mai Tho.' },
-      { syllable: 'เรือ', answer: 0, tip: 'เรือ boat — Mai Ek tone pattern.' },
-      { syllable: 'เด็ก', answer: 0, tip: 'เด็ก child — Mai Ek ่.' },
-      { syllable: 'แม่', answer: 0, tip: 'แม่ mother — Mai Ek.' },
-      { syllable: 'ปลา', answer: 0, tip: 'ปลา fish — Mai Ek on live syllable.' },
-      { syllable: 'หมา', answer: 0, tip: 'หมา dog — Mai Ek mark.' },
-      { syllable: 'บ้าน', answer: 1, tip: 'บ้าน house — Mai Tho ้.' },
-      { syllable: 'ดี', answer: 0, tip: 'ดี good — Mai Ek ่.' }
+    const ROUND_POOL = [
+      { syllable: 'ไก่', answer: 0, tip: 'ไก่ has ่ — Mai Ek.' },
+      { syllable: 'แม่', answer: 0, tip: 'แม่ has ่ — Mai Ek.' },
+      { syllable: 'ได้', answer: 0, tip: 'ได้ has ่ — Mai Ek.' },
+      { syllable: 'ม้า', answer: 1, tip: 'ม้า has ้ — Mai Tho.' },
+      { syllable: 'น้ำ', answer: 1, tip: 'น้ำ has ้ — Mai Tho.' },
+      { syllable: 'ช้าง', answer: 1, tip: 'ช้าง has ้ — Mai Tho.' },
+      { syllable: 'บ้าน', answer: 1, tip: 'บ้าน has ้ — Mai Tho.' },
+      { syllable: 'ก๊าซ', answer: 2, tip: 'ก๊าซ has ๊ — Mai Tri.' },
+      { syllable: 'โต๊ะ', answer: 2, tip: 'โต๊ะ has ๊ — Mai Tri.' },
+      { syllable: 'จ๊ะ', answer: 2, tip: 'จ๊ะ has ๊ — Mai Tri.' },
+      { syllable: 'ก๋วย', answer: 3, tip: 'ก๋วย has ๋ — Mai Chattawa.' },
+      { syllable: 'เหย๋อ', answer: 3, tip: 'เหย๋อ has ๋ — Mai Chattawa.' }
     ];
+    let rounds = ROUND_POOL.slice();
     let i = 0, score = 0, streak = 0, locked = false;
       /* nolan-cp */
       function __nolanSaveCp() {
@@ -125,8 +126,25 @@
     const karaokeMic = document.getElementById('karaoke-mic');
     const scoreHud = document.getElementById('score-hud');
 
+    function shuffle(a) {
+      const x = a.slice();
+      for (let n = x.length - 1; n > 0; n--) {
+        const j = Math.floor(Math.random() * (n + 1));
+        [x[n], x[j]] = [x[j], x[n]];
+      }
+      return x;
+    }
+    function startRound(keepProgress) {
+      rounds = shuffle(ROUND_POOL);
+      if (!keepProgress) {
+        i = 0;
+        score = 0;
+        streak = 0;
+      }
+      if (i >= rounds.length) i = 0;
+    }
     function updateKaraoke() {
-      const pct = (i / ROUNDS.length) * 100;
+      const pct = (i / rounds.length) * 100;
       karaokeFill.style.width = pct + '%';
       karaokeMic.style.left = Math.max(8, pct) + '%';
     }
@@ -134,16 +152,18 @@
       locked = false;
       feedback.classList.add('hidden');
       nextBtn.classList.add('hidden');
-      const r = ROUNDS[i];
+      const r = rounds[i];
       syllableEl.textContent = r.syllable;
       updateKaraoke();
-      scoreHud.textContent = `Score: ${score} · Verse ${i + 1} of ${ROUNDS.length}`;
+      scoreHud.textContent = `Score: ${score} · Verse ${i + 1} of ${rounds.length}`;
       choices.innerHTML = '';
-      NAMES.forEach((name, idx) => {
+      const order = shuffle([0, 1, 2, 3]);
+      order.forEach((idx) => {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'option-btn tone-btn text-center';
-        btn.textContent = name;
+        btn.textContent = NAMES[idx];
+        btn.dataset.answerIdx = String(idx);
         btn.addEventListener('click', () => pick(idx, r));
         choices.appendChild(btn);
       });
@@ -151,7 +171,8 @@
     function pick(idx, r) {
       if (locked) return;
       locked = true;
-      [...choices.children].forEach((b, j) => {
+      [...choices.children].forEach((b) => {
+        const j = Number(b.dataset.answerIdx);
         if (j === r.answer) b.classList.add('correct');
         else if (j === idx && idx !== r.answer) b.classList.add('wrong');
       });
@@ -171,30 +192,33 @@
         feedback.classList.add('bg-red-100', 'text-red-800');
         feedback.innerHTML = `<strong>Listen again!</strong><br>${r.tip}`;
       }
-      scoreHud.textContent = `Score: ${score} · Verse ${i + 1} of ${ROUNDS.length}`;
+      scoreHud.textContent = `Score: ${score} · Verse ${i + 1} of ${rounds.length}`;
       nextBtn.classList.remove('hidden');
     }
     nextBtn.addEventListener('click', () => {
       i++; __nolanSaveCp();
-      if (i < ROUNDS.length) load();
+      if (i < rounds.length) load();
       else {
+        __nolanClearCp();
         karaokeFill.style.width = '100%';
         karaokeMic.style.left = '96%';
         document.getElementById('play-screen').classList.add('hidden');
         document.getElementById('result-screen').classList.remove('hidden');
         document.getElementById('score-display').textContent = score;
-        document.getElementById('total-display').textContent = ROUNDS.length;
+        document.getElementById('total-display').textContent = rounds.length;
         document.getElementById('result-message').textContent =
-          score === ROUNDS.length ? 'Tone superstar! 🌟' : score >= 9 ? 'Great singing! 👍' : 'Hum the marks again! 💪';
-        if (score === ROUNDS.length && window.FunEffects) FunEffects.confetti();
+          score === rounds.length ? 'Tone superstar! 🌟' : score >= 9 ? 'Great singing! 👍' : 'Hum the marks again! 💪';
+        if (score === rounds.length && window.FunEffects) FunEffects.confetti();
       }
     });
     document.getElementById('restart-btn').addEventListener('click', () => {
-      __nolanClearCp(); i = 0; score = 0; streak = 0;
+      __nolanClearCp();
       document.getElementById('result-screen').classList.add('hidden');
       document.getElementById('play-screen').classList.remove('hidden');
+      startRound(false);
       load();
     });
+    startRound(true);
     load();
   </script>
 </body>
