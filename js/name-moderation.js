@@ -3,6 +3,21 @@
  * Used by progress.js create/rename and family-api push.
  */
 (function (global) {
+  const AVATAR_CREATURES = {
+    '🦊': 'Fox',
+    '🐼': 'Panda',
+    '🦁': 'Lion',
+    '🐸': 'Frog',
+    '🐯': 'Tiger',
+    '🐰': 'Bunny',
+    '🐻': 'Bear',
+    '🐨': 'Koala',
+    '🦄': 'Unicorn',
+    '🐶': 'Puppy'
+  };
+
+  const FILLERS = ['haha', 'hahaha', 'hehe', 'lol', 'lmao', 'rofl'];
+
   const WORD_LIST = [
     // English
     'fuck', 'fucker', 'fucking', 'shit', 'bullshit', 'asshole', 'ass', 'bastard', 'bitch',
@@ -10,12 +25,16 @@
     'dumb', 'dumbass', 'retard', 'retarded', 'loser', 'hateyou', 'kill', 'killer', 'die',
     'nigger', 'nigga', 'faggot', 'fag', 'cunt', 'piss', 'sucker', 'jerk', 'bozo',
     'dummy', 'ugly', 'fatso', 'fatty', 'nerd', 'geekoff', 'shut up', 'shutup',
+    'gay', 'homo', 'lesbian', 'queer', 'tranny',
+    'your mom', 'ur mom', 'yo mama', 'yo momma', 'your mother', 'mother is',
+    'mom is gay', 'mum is gay', 'so gay',
     // French
     'merde', 'putain', 'pute', 'salope', 'connard', 'connasse', 'con', 'conne', 'enfoire',
     'encule', 'enculer', 'bordel', 'foutre', 'nique', 'niquer', 'bite', 'couille',
     'pd', 'tapette', 'trou du cul', 'trouduc', 'abruti', 'imbecile', 'imbécile',
     'debile', 'débile', 'creatin', 'crétin', 'salaud', 'salopard', 'chiant', 'chier',
     'fdp', 'tg', 'ta gueule', 'ferme ta gueule', 'nul', 'naze', 'bouffon', 'toocard',
+    'ta mere', 'ta mère', 'ton pere', 'ton père', 'ta soeur', 'ta sœur',
     // German
     'scheisse', 'scheiße', 'arschloch', 'arsch', 'fotze', 'hure', 'hurensohn', 'wichser',
     'schwuchtel', 'idiot', 'dummkopf', 'blodmann', 'blödmann', 'mistkerl', 'schwein',
@@ -53,6 +72,20 @@
     return String(s || '').replace(/[\s'_-]+/g, '');
   }
 
+  function hasBadShape(clean, norm, packed) {
+    // First-name shape: letters (Latin/Thai/Hebrew), spaces, hyphen, apostrophe only
+    if (/[^a-zA-Z\u0e00-\u0e7f\u0590-\u05ff\s'-]/u.test(clean)) {
+      return true;
+    }
+    const words = norm.split(/\s+/).filter(Boolean);
+    if (words.length > 2) return true;
+    for (let i = 0; i < FILLERS.length; i++) {
+      const f = FILLERS[i];
+      if (packed.indexOf(f) !== -1) return true;
+    }
+    return false;
+  }
+
   function isNameAllowed(name) {
     const clean = String(name || '').trim();
     if (!clean) return { ok: false, reason: 'empty' };
@@ -60,6 +93,10 @@
     const norm = normalize(clean);
     const packed = compact(norm);
     if (!norm) return { ok: false, reason: 'empty' };
+
+    if (hasBadShape(clean, norm, packed)) {
+      return { ok: false, reason: 'shape' };
+    }
 
     for (let i = 0; i < WORD_LIST.length; i++) {
       const w = normalize(WORD_LIST[i]);
@@ -77,7 +114,34 @@
     return { ok: true };
   }
 
-  const api = { isNameAllowed, normalize, WORD_LIST };
+  function safeReplacementName(profile) {
+    const emoji = profile && profile.avatarEmoji;
+    return AVATAR_CREATURES[emoji] || 'Friend';
+  }
+
+  function scrubProfileName(profile) {
+    if (!profile || typeof profile !== 'object') return profile;
+    const check = isNameAllowed(profile.name);
+    if (check.ok) return profile;
+    const safe = safeReplacementName(profile);
+    if (profile.name === safe && profile.disabled && profile.disabledReason === 'name') {
+      return profile;
+    }
+    return Object.assign({}, profile, {
+      name: safe,
+      disabled: true,
+      disabledReason: 'name'
+    });
+  }
+
+  const api = {
+    isNameAllowed,
+    normalize,
+    WORD_LIST,
+    AVATAR_CREATURES,
+    safeReplacementName,
+    scrubProfileName
+  };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   global.NameModeration = api;
 })(typeof window !== 'undefined' ? window : global);

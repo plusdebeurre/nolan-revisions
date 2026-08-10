@@ -805,6 +805,9 @@
   function nameErrorMessage(reason) {
     if (reason === 'empty') return 'Please enter a first name.';
     if (reason === 'long') return 'Name is too long (max 24).';
+    if (reason === 'shape') {
+      return 'Please use a short first name (up to 2 words, letters only).';
+    }
     return 'Please choose a kinder first name — no rude or mean words.';
   }
 
@@ -815,7 +818,14 @@
       if (!p) return;
       const check = checkName(p.name);
       if (!check.ok) {
-        if (!p.disabled || p.disabledReason !== 'name') {
+        const safe =
+          global.NameModeration && typeof global.NameModeration.safeReplacementName === 'function'
+            ? global.NameModeration.safeReplacementName(p)
+            : 'Friend';
+        const needsRewrite = p.name !== safe;
+        const needsDisable = !p.disabled || p.disabledReason !== 'name';
+        if (needsRewrite || needsDisable) {
+          p.name = safe;
           p.disabled = true;
           p.disabledReason = 'name';
           touchProfile(p);

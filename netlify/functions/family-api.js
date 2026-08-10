@@ -156,6 +156,9 @@ function mergeTwoProfiles(local, remote) {
 }
 
 function sanitizeProfileName(profile) {
+  if (typeof NameModeration.scrubProfileName === 'function') {
+    return NameModeration.scrubProfileName(profile);
+  }
   if (!profile || typeof profile !== 'object') return profile;
   const check = NameModeration.isNameAllowed(profile.name);
   if (!check.ok) {
@@ -165,6 +168,15 @@ function sanitizeProfileName(profile) {
     });
   }
   return profile;
+}
+
+function profileNameNeedsPersist(before, after) {
+  if (!before || !after) return !!after;
+  return (
+    before.name !== after.name ||
+    !!before.disabled !== !!after.disabled ||
+    before.disabledReason !== after.disabledReason
+  );
 }
 
 function mergeProfiles(existing, incoming, archived) {
@@ -283,9 +295,16 @@ async function loadProfiles(meta) {
       });
     }
   }
+  let scrubbed = false;
   Object.keys(data.profiles).forEach((id) => {
-    data.profiles[id] = sanitizeProfileName(data.profiles[id]);
+    const before = data.profiles[id];
+    const after = sanitizeProfileName(before);
+    data.profiles[id] = after;
+    if (profileNameNeedsPersist(before, after)) scrubbed = true;
   });
+  if (scrubbed) {
+    await saveProfiles(meta, data);
+  }
   return data;
 }
 

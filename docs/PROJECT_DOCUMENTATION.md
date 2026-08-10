@@ -87,8 +87,8 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 ## Profiles, medals & XP
 
 - Multi-child **profiles** (first name + avatar + secret fruit emoji PIN).
-- **Name moderation** (`js/name-moderation.js`): blocks rude / insulting / condescending first names in English, French, German, Italian, Thai, and Hebrew. Create rejects them; existing bad names are **disabled** (XP/games kept) until the child **renames** to a kinder name.
-- **Public cloud sync** via Netlify Blobs (`family-api`): every device can see and unlock all profiles; `localStorage` is a cache. Server also sanitizes names on load/push and preserves `disabled` in merges.
+- **Name moderation** (`js/name-moderation.js`): blocks rude / insulting first names (EN/FR/DE/IT/TH/HE) plus **first-name shape** rules (max 2 words, letters only, no `haha`/`lol` fillers). Create/rename rejects bad names. Existing bad names are **auto-rewritten** to the avatar creature (e.g. Fox, Unicorn) or `Friend`, kept **disabled** (XP/games kept) until the child picks a kinder first name. Server scrubs on every load/push and **persists** rewrites to Netlify Blobs so insults leave the class list.
+- **Public cloud sync** via Netlify Blobs (`family-api`): every device can see and unlock all profiles; `localStorage` is a cache. Server scrubs bad names on load/push (rewrites + disables) and persists those fixes; merges preserve `disabled`.
 - Unlock by tapping the secret fruit; **Log out** (top-right) returns to Create / Pick. Clicking the active avatar opens **your stats only** (not other players).
 - Completing a game awards a medal by mistakes (`total − score`): **gold** 0, **silver** 1, **bronze** 2.
 - **XP** is earned per **first-time correct answer** (+10), keyed by question content (replays of the same question = +0). Wrong answers give 0. Streak bonuses (+5 / +10 / +15 at streaks 3 / 5 / 8) only on first-claim corrects. Live `+XP` float animation via `FunEffects.showXpGain`. Custom games without live awards get improvement-only XP (`+10 × max(0, score − bestScore)`).

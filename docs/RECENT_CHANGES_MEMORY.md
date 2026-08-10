@@ -1,5 +1,19 @@
 # Recent Changes Memory
 
+## 2026-08-10 — Kid-safe name scrub + stronger filter
+
+### What changed
+- **Name filter:** first-name shape (max 2 words, letters/`-`/`'` only, block `haha`/`lol` fillers) plus expanded insult phrases (`your mom`, `gay`, `ta mère`, …).
+- **Auto-scrub:** blocked names are rewritten to the avatar creature (`Fox`, `Unicorn`, …) or `Friend`, stay disabled until rename; XP/medals kept.
+- **Server persist:** `family-api` scrub on load writes cleaned names back to Netlify Blobs (list/pull no longer leaves insults in the cloud).
+- **Client:** `applyNamePolicyToStore` rewrites local cache and marks dirty so corrections sync.
+
+### User impact
+- Insulting class nicknames disappear from the profile picker; kids must choose a short friendly first name before unlocking again. New phrases like “Your mom is gay…” cannot be saved.
+
+### Key files
+- `js/name-moderation.js`, `js/progress.js`, `netlify/functions/family-api.js`, docs
+
 ## 2026-08-03 — Thai game fixes, subject stats, kid-safe names
 
 ### What changed
