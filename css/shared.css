@@ -992,8 +992,8 @@ button.nav-link {
 
 @media (min-width: 768px) {
   .nolan-modal--profile {
-    max-height: none;
-    overflow: visible;
+    max-height: 90vh;
+    overflow: auto;
   }
 }
 
@@ -1058,12 +1058,29 @@ button.nav-link {
   min-width: 10rem;
 }
 
+.profile-search-wrap {
+  margin: 0 0 0.65rem;
+}
+
+.profile-search-input {
+  margin-bottom: 0;
+}
+
+.profile-list-empty {
+  text-align: center;
+  color: #64748b;
+  font-weight: 600;
+  margin: 0.35rem 0 0.5rem;
+  font-size: 0.95rem;
+}
+
 .profile-list {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  max-height: 40vh;
+  max-height: 45vh;
   overflow: auto;
+  padding-right: 0.15rem;
 }
 
 .profile-activity {
@@ -1158,10 +1175,17 @@ button.nav-link {
 
 @media (min-width: 768px) {
   .profile-list {
-    max-height: none;
-    overflow: visible;
+    max-height: 55vh;
+    overflow: auto;
     display: grid;
     grid-template-columns: 1fr 1fr;
+    align-content: start;
+  }
+}
+
+@media (min-width: 1024px) {
+  .profile-list {
+    grid-template-columns: 1fr 1fr 1fr;
   }
 }
 
@@ -1372,4 +1396,117 @@ body.nolan-embedded .nolan-resume-toast {
   }
 }
 
+/* Feedback bubble (bottom-right) */
+.nolan-feedback-root {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 120;
+  font-family: 'Fredoka', sans-serif;
+}
+
+.nolan-feedback-fab {
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 999px;
+  border: 3px solid #fbbf24;
+  background: #fffbeb;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+  font-size: 1.45rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+}
+
+.nolan-feedback-fab:hover {
+  background: #fef3c7;
+}
+
+.nolan-feedback-panel {
+  width: min(20.5rem, calc(100vw - 2rem));
+  margin-bottom: 0.65rem;
+  padding: 0.9rem 1rem 1rem;
+  border-radius: 1.1rem;
+  border: 3px solid #fbbf24;
+  background: #fff;
+  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.2);
+}
+
+.nolan-feedback-panel.hidden {
+  display: none !important;
+}
+
+.nolan-feedback-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+  color: #334155;
+  font-size: 1.05rem;
+}
+
+.nolan-feedback-close {
+  border: none;
+  background: transparent;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #64748b;
+  padding: 0 0.2rem;
+}
+
+.nolan-feedback-hint {
+  margin: 0 0 0.65rem;
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.nolan-feedback-textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 5.5rem;
+  border-radius: 0.85rem;
+  border: 2px solid #e2e8f0;
+  padding: 0.65rem 0.75rem;
+  font-family: inherit;
+  font-size: 1rem;
+  color: #0f172a;
+  box-sizing: border-box;
+}
+
+.nolan-feedback-textarea:focus {
+  outline: none;
+  border-color: #f59e0b;
+}
+
+.nolan-feedback-count {
+  margin: 0.25rem 0 0.65rem;
+  text-align: right;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.nolan-feedback-status {
+  margin: 0.55rem 0 0;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.nolan-feedback-status--ok {
+  color: #047857;
+}
+
+.nolan-feedback-status--error {
+  color: #b91c1c;
+}
+
+.nolan-feedback-status--info {
+  color: #475569;
+}
 

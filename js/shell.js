@@ -388,7 +388,12 @@
       <div class="nolan-modal nolan-modal--profile question-card animate-pop" role="dialog" aria-modal="true">
         <h2 class="nolan-modal-title">Who is playing?</h2>
         <p class="nolan-modal-sub">Create a new profile or pick yours and tap your secret fruit.</p>
+        <div id="profile-search-wrap" class="profile-search-wrap${profiles.length ? '' : ' hidden'}">
+          <label class="profile-field-label" for="profile-search">Find my name</label>
+          <input id="profile-search" class="profile-input profile-search-input" type="search" maxlength="24" placeholder="Type your name…" autocomplete="off" />
+        </div>
         <div id="profile-list" class="profile-list"></div>
+        <p id="profile-list-empty" class="profile-list-empty hidden">No name matches — try another spelling.</p>
         <button type="button" class="btn-primary w-full mt-3" id="btn-create-profile">+ New profile</button>
         <div id="profile-create" class="hidden"></div>
         <div id="profile-pin" class="hidden"></div>
@@ -397,10 +402,17 @@
     `;
 
     const list = modal.querySelector('#profile-list');
-    if (!profiles.length) {
+    const emptyMsg = modal.querySelector('#profile-list-empty');
+    const searchInput = modal.querySelector('#profile-search');
+
+    function renderProfileList(filterText) {
+      const q = String(filterText || '').trim().toLowerCase();
       list.innerHTML = '';
-    } else {
-      profiles.forEach((p) => {
+      const matched = profiles.filter((p) => {
+        if (!q) return true;
+        return String(p.name || '').toLowerCase().indexOf(q) !== -1;
+      });
+      matched.forEach((p) => {
         const btn = el('button', 'profile-pick-btn' + (p.disabled ? ' profile-pick-btn--disabled' : ''));
         btn.type = 'button';
         const status = p.disabled
@@ -413,6 +425,16 @@
         });
         list.appendChild(btn);
       });
+      if (emptyMsg) {
+        if (profiles.length && !matched.length) emptyMsg.classList.remove('hidden');
+        else emptyMsg.classList.add('hidden');
+      }
+    }
+
+    renderProfileList('');
+    searchInput?.addEventListener('input', () => renderProfileList(searchInput.value));
+    if (profiles.length > 8) {
+      setTimeout(() => searchInput?.focus(), 50);
     }
 
     modal.querySelector('#btn-create-profile')?.addEventListener('click', showCreateStep);
@@ -422,18 +444,20 @@
     if (!profiles.length) showCreateStep();
   }
 
+  function hideProfilePickerChrome() {
+    document.getElementById('profile-list')?.classList.add('hidden');
+    document.getElementById('profile-search-wrap')?.classList.add('hidden');
+    document.getElementById('profile-list-empty')?.classList.add('hidden');
+    document.getElementById('btn-create-profile')?.classList.add('hidden');
+    document.getElementById('btn-close-profiles')?.classList.add('hidden');
+    document.getElementById('profile-pin')?.classList.add('hidden');
+  }
+
   function showCreateStep() {
     const NP = window.NolanProgress;
     const box = document.getElementById('profile-create');
-    const pinBox = document.getElementById('profile-pin');
-    const list = document.getElementById('profile-list');
-    const createBtn = document.getElementById('btn-create-profile');
-    const closeBtn = document.getElementById('btn-close-profiles');
     if (!box) return;
-    list?.classList.add('hidden');
-    pinBox?.classList.add('hidden');
-    createBtn?.classList.add('hidden');
-    closeBtn?.classList.add('hidden');
+    hideProfilePickerChrome();
     box.classList.remove('hidden');
     let avatar = NP.AVATARS[0];
     let pinFruit = null;
@@ -525,15 +549,8 @@
   function showRenameStep(profile) {
     const NP = window.NolanProgress;
     const box = document.getElementById('profile-create');
-    const pinBox = document.getElementById('profile-pin');
-    const list = document.getElementById('profile-list');
-    const createBtn = document.getElementById('btn-create-profile');
-    const closeBtn = document.getElementById('btn-close-profiles');
     if (!box) return;
-    list?.classList.add('hidden');
-    pinBox?.classList.add('hidden');
-    createBtn?.classList.add('hidden');
-    closeBtn?.classList.add('hidden');
+    hideProfilePickerChrome();
     box.classList.remove('hidden');
     box.innerHTML = `
       <h3 class="profile-step-title">Choose a kinder name</h3>
@@ -572,13 +589,8 @@
     const NP = window.NolanProgress;
     const box = document.getElementById('profile-pin');
     const create = document.getElementById('profile-create');
-    const list = document.getElementById('profile-list');
-    const createBtn = document.getElementById('btn-create-profile');
-    const closeBtn = document.getElementById('btn-close-profiles');
     create?.classList.add('hidden');
-    list?.classList.add('hidden');
-    createBtn?.classList.add('hidden');
-    closeBtn?.classList.add('hidden');
+    hideProfilePickerChrome();
     box.classList.remove('hidden');
     const decoys = NP.PIN_FRUITS.slice();
     for (let i = decoys.length - 1; i > 0; i--) {
@@ -624,6 +636,114 @@
     box.querySelector('#btn-pin-back')?.addEventListener('click', () => openProfileModal());
   }
 
+  function feedbackApiUrl() {
+    return '/.netlify/functions/feedback';
+  }
+
+  function ensureFeedbackBubble() {
+    if (IN_IFRAME) return;
+    if (document.getElementById('nolan-feedback-root')) return;
+
+    const root = el('div', 'nolan-feedback-root');
+    root.id = 'nolan-feedback-root';
+    root.innerHTML = `
+      <button type="button" class="nolan-feedback-fab" id="nolan-feedback-fab" aria-label="Send a message" title="Send a message">💬</button>
+      <div class="nolan-feedback-panel hidden" id="nolan-feedback-panel" role="dialog" aria-label="Send a message">
+        <div class="nolan-feedback-panel-head">
+          <strong>Send a message</strong>
+          <button type="button" class="nolan-feedback-close" id="nolan-feedback-close" aria-label="Close">×</button>
+        </div>
+        <p class="nolan-feedback-hint">Tell us what you like, what is broken, or what to add.</p>
+        <label class="profile-field-label" for="nolan-feedback-name">Your name (optional)</label>
+        <input id="nolan-feedback-name" class="profile-input" maxlength="40" placeholder="e.g. Alex or Parent" autocomplete="name" />
+        <label class="profile-field-label" for="nolan-feedback-msg">Message</label>
+        <textarea id="nolan-feedback-msg" class="nolan-feedback-textarea" maxlength="500" rows="4" placeholder="Write your message…"></textarea>
+        <p class="nolan-feedback-count"><span id="nolan-feedback-len">0</span>/500</p>
+        <button type="button" class="btn-primary w-full" id="nolan-feedback-send">Send</button>
+        <p id="nolan-feedback-status" class="nolan-feedback-status hidden"></p>
+      </div>
+    `;
+    document.body.appendChild(root);
+
+    const fab = root.querySelector('#nolan-feedback-fab');
+    const panel = root.querySelector('#nolan-feedback-panel');
+    const closeBtn = root.querySelector('#nolan-feedback-close');
+    const nameInput = root.querySelector('#nolan-feedback-name');
+    const msgInput = root.querySelector('#nolan-feedback-msg');
+    const lenEl = root.querySelector('#nolan-feedback-len');
+    const sendBtn = root.querySelector('#nolan-feedback-send');
+    const status = root.querySelector('#nolan-feedback-status');
+
+    function setStatus(text, kind) {
+      if (!text) {
+        status.className = 'nolan-feedback-status hidden';
+        status.textContent = '';
+        return;
+      }
+      status.textContent = text;
+      status.className = 'nolan-feedback-status nolan-feedback-status--' + (kind || 'info');
+    }
+
+    function openPanel() {
+      const NP = window.NolanProgress;
+      const active = NP && NP.isUnlocked && NP.isUnlocked() ? NP.getActiveProfile && NP.getActiveProfile() : null;
+      if (active && active.name && !nameInput.value) nameInput.value = active.name;
+      panel.classList.remove('hidden');
+      fab.setAttribute('aria-expanded', 'true');
+      setTimeout(() => msgInput.focus(), 30);
+    }
+
+    function closePanel() {
+      panel.classList.add('hidden');
+      fab.setAttribute('aria-expanded', 'false');
+      setStatus('');
+    }
+
+    fab.addEventListener('click', () => {
+      if (panel.classList.contains('hidden')) openPanel();
+      else closePanel();
+    });
+    closeBtn.addEventListener('click', closePanel);
+    msgInput.addEventListener('input', () => {
+      lenEl.textContent = String(msgInput.value.length);
+    });
+
+    sendBtn.addEventListener('click', async () => {
+      const message = String(msgInput.value || '').trim();
+      const name = String(nameInput.value || '').trim().slice(0, 40);
+      if (!message) {
+        setStatus('Please write a short message.', 'error');
+        return;
+      }
+      sendBtn.disabled = true;
+      setStatus('Sending…', 'info');
+      try {
+        const res = await fetch(feedbackApiUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: message.slice(0, 500),
+            name: name || undefined,
+            page: location.href
+          })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || 'Could not send');
+        }
+        msgInput.value = '';
+        lenEl.textContent = '0';
+        setStatus('Thanks! We got your message.', 'ok');
+        if (window.FunEffects) window.FunEffects.confetti({ count: 12 });
+        setTimeout(closePanel, 1600);
+      } catch (e) {
+        setStatus(e.message || 'Could not send — try again later.', 'error');
+      } finally {
+        sendBtn.disabled = false;
+      }
+    });
+  }
+
   function boot() {
     if (IN_IFRAME) {
       sessionStorage.setItem('nolanInFrame', '1');
@@ -637,6 +757,7 @@
         bindPlayModeCta();
         if (!IN_IFRAME) {
           renderTopBar();
+          ensureFeedbackBubble();
           updateHubLock();
           if (!NP?.isUnlocked()) openProfileModal();
           else paintHubMedals();

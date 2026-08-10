@@ -1,5 +1,18 @@
 # Recent Changes Memory
 
+## 2026-08-10 — Profile search picker + Discord feedback bubble
+
+### What changed
+- **Who is playing?** searchable (“Find my name”), scrollable list on desktop too, denser 2–3 column grid.
+- **Feedback FAB** bottom-right → Netlify Function `feedback` → Discord webhook channel (`DISCORD_FEEDBACK_WEBHOOK`).
+- Rate-limit + length caps; FAB only on non-iframe shells (no double in play mode).
+
+### User impact
+- Large classes can type a few letters to find their profile. Kids/parents can send suggestions or bug notes without leaving the site.
+
+### Key files
+- `js/shell.js`, `css/shared.css`, `netlify/functions/feedback.js`, docs
+
 ## 2026-08-10 — Kid-safe name scrub + stronger filter
 
 ### What changed

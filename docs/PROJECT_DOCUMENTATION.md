@@ -12,7 +12,7 @@ Open the live Netlify site (recommended — cloud profile sync needs Functions),
 nolan-revisions/
 ├── index.html                 # Home — Learning Adventure
 ├── app.html                   # Play shell (fullscreen + iframe stage)
-├── netlify/functions/         # family-api (public profiles + leaderboard via Netlify Blobs)
+├── netlify/functions/         # family-api + feedback (Discord webhook)
 ├── css/shared.css
 ├── js/quiz-engine.js
 ├── js/fun-effects.js
@@ -87,7 +87,9 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 ## Profiles, medals & XP
 
 - Multi-child **profiles** (first name + avatar + secret fruit emoji PIN).
+- **Profile picker:** live **Find my name** search, scrollable list on all screen sizes, denser 2–3 column grid on desktop so large classes can still find a profile quickly.
 - **Name moderation** (`js/name-moderation.js`): blocks rude / insulting first names (EN/FR/DE/IT/TH/HE) plus **first-name shape** rules (max 2 words, letters only, no `haha`/`lol` fillers). Create/rename rejects bad names. Existing bad names are **auto-rewritten** to the avatar creature (e.g. Fox, Unicorn) or `Friend`, kept **disabled** (XP/games kept) until the child picks a kinder first name. Server scrubs on every load/push and **persists** rewrites to Netlify Blobs so insults leave the class list.
+- **Feedback bubble** (bottom-right 💬): kids/parents send a short message via `/.netlify/functions/feedback`, delivered to a Discord channel webhook (`DISCORD_FEEDBACK_WEBHOOK` Netlify env — not in client). Rate-limited; injected only outside iframes so play-mode does not double the FAB.
 - **Public cloud sync** via Netlify Blobs (`family-api`): every device can see and unlock all profiles; `localStorage` is a cache. Server scrubs bad names on load/push (rewrites + disables) and persists those fixes; merges preserve `disabled`.
 - Unlock by tapping the secret fruit; **Log out** (top-right) returns to Create / Pick. Clicking the active avatar opens **your stats only** (not other players).
 - Completing a game awards a medal by mistakes (`total − score`): **gold** 0, **silver** 1, **bronze** 2.
