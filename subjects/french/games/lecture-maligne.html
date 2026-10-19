@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lecture maligne — Français</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body class="game theme-french" data-game-id="french/lecture-maligne">
+  <div id="app"></div>
+  <script src="../../../js/fun-effects.js"></script>
+  <script src="../../../js/progress.js"></script>
+  <script src="../../../js/shell.js"></script>
+  <script src="../../../js/reading-banks.js"></script>
+  <script src="../../../js/read-engine.js"></script>
+  <script>
+    ReadEngine.mount({
+      subject: 'french',
+      mode: 'choices',
+      title: 'Lecture maligne',
+      subtitle: 'Fin du 1er semestre · lis, puis réponds',
+      backHref: '../index.html',
+      homeHref: '../../../index.html',
+      bank: ReadingBanks.lectureMaligne,
+      ui: {
+        back: '← Français',
+        home: '🏠 Accueil',
+        hint: '🦉 Un indice de M. Hibou',
+        owl: 'M. Hibou dit :',
+        next: 'Histoire suivante 🚀',
+        seeScore: 'Voir mon score 🏆',
+        again: 'Rejouer 🔄',
+        done: 'Lecture terminée !',
+        scored: 'Ton score :',
+        outOf: 'sur',
+        bang: ' !',
+        yes: 'Oui ! 🎉',
+        nope: 'Pas encore.',
+        stop: 'Texte',
+        of: 'sur',
+        scoreWord: 'Score',
+        perfect: 'Parfait ! Tu as compris toutes les histoires. 🌟',
+        good: 'Bravo ! Tu retrouves qui, où et quoi dans le texte. 👍',
+        retry: 'Bel essai ! Relis doucement, puis cherche qui, où et quoi. 💪',
+        resume: 'On reprend…'
+      }
+    });
+  </script>
+</body>
+</html>

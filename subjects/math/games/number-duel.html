@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Number Duel — Math</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body class="game theme-math" data-game-id="math/number-duel">
+  <div id="app"></div>
+  <script src="../../../js/fun-effects.js"></script>
+  <script src="../../../js/progress.js"></script>
+  <script src="../../../js/shell.js"></script>
+  <script src="../../../js/math-challenge.js"></script>
+  <script>
+    MathChallenge.mount({
+      kind: 'numberduel',
+      title: 'Number Duel',
+      subtitle: 'Type the bigger number up to 999.',
+      emoji: '⚔️'
+    });
+  </script>
+</body>
+</html>

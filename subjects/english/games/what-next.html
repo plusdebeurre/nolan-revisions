@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>What Happens Next — English</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body class="game theme-english" data-game-id="english/what-next">
+  <div id="app"></div>
+  <script src="../../../js/fun-effects.js"></script>
+  <script src="../../../js/progress.js"></script>
+  <script src="../../../js/shell.js"></script>
+  <script src="../../../js/reading-pack-en.js"></script>
+  <script src="../../../js/play-reading.js"></script>
+  <script>
+    PlayReading.mount({
+      subject: 'english',
+      mode: 'pick',
+      skin: 'next',
+      title: 'What Happens Next',
+      subtitle: 'Use the clues to pick the next moment',
+      emoji: '🔮',
+      backHref: '../index.html',
+      homeHref: '../../../index.html',
+      bank: ReadingPackEn.whatNext,
+      ui: {
+        back: '← English',
+        home: '🏠 Home',
+        hint: '🦉 Get a hint',
+        owl: 'Mr. Owl says:',
+        next: 'Next 🚀',
+        seeScore: 'See my score 🏆',
+        again: 'Play Again 🔄',
+        scored: 'You scored',
+        outOf: 'out of',
+        yes: 'Yes! 🎉',
+        nope: 'Not yet.',
+        stop: 'Round',
+        of: 'of',
+        scoreWord: 'Score',
+        undo: 'Undo',
+        check: 'Check',
+        done: 'You saw ahead!',
+        perfect: 'The clues led you every time. 🌟',
+        good: 'Nice predicting! 👍',
+        retry: 'Good try! Use the last clue in the story. 💪'
+      }
+    });
+  </script>
+</body>
+</html>

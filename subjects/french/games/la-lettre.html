@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La lettre — Français</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body class="game theme-french" data-game-id="french/la-lettre">
+  <div id="app"></div>
+  <script src="../../../js/fun-effects.js"></script>
+  <script src="../../../js/progress.js"></script>
+  <script src="../../../js/shell.js"></script>
+  <script src="../../../js/reading-pack-fr.js"></script>
+  <script src="../../../js/play-reading.js"></script>
+  <script>
+    PlayReading.mount({
+      subject: 'french',
+      mode: 'pick',
+      skin: 'note',
+      title: 'La lettre',
+      subtitle: 'Lis le petit mot',
+      emoji: '✉️',
+      backHref: '../index.html',
+      homeHref: '../../../index.html',
+      bank: ReadingPackFr.laLettre,
+      ui: {
+        back: '← Français',
+        home: '🏠 Accueil',
+        hint: '🦉 Un indice',
+        owl: 'M. Hibou dit :',
+        next: 'Suite 🚀',
+        seeScore: 'Voir mon score 🏆',
+        again: 'Rejouer 🔄',
+        scored: 'Ton score :',
+        outOf: 'sur',
+        bang: ' !',
+        yes: 'Oui ! 🎉',
+        nope: 'Pas encore.',
+        stop: 'Manche',
+        of: 'sur',
+        scoreWord: 'Score',
+        undo: 'Annuler',
+        check: 'Vérifier',
+        resume: 'On reprend…',
+        done: 'Courrier lu !',
+        perfect: 'Tu as lu chaque lettre. 🌟',
+        good: 'Bravo, destinataire, objet, signature. 👍',
+        retry: 'Bel essai ! Regarde le début et la signature. 💪'
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phrase indice — Français</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body class="game theme-french" data-game-id="french/phrase-indice">
+  <div id="app"></div>
+  <script src="../../../js/fun-effects.js"></script>
+  <script src="../../../js/progress.js"></script>
+  <script src="../../../js/shell.js"></script>
+  <script src="../../../js/reading-banks.js"></script>
+  <script src="../../../js/read-engine.js"></script>
+  <script>
+    ReadEngine.mount({
+      subject: 'french',
+      mode: 'sentences',
+      title: 'Phrase indice',
+      subtitle: 'Fin du 1er semestre · touche la bonne phrase',
+      backHref: '../index.html',
+      homeHref: '../../../index.html',
+      bank: ReadingBanks.phraseIndice,
+      ui: {
+        back: '← Français',
+        home: '🏠 Accueil',
+        hint: '🦉 Un indice de M. Hibou',
+        owl: 'M. Hibou dit :',
+        next: 'Indice suivant 🚀',
+        seeScore: 'Voir mon score 🏆',
+        again: 'Rejouer 🔄',
+        done: 'Indices trouvés !',
+        scored: 'Ton score :',
+        outOf: 'sur',
+        bang: ' !',
+        yes: 'Oui ! 🎉',
+        nope: 'Pas encore.',
+        stop: 'Indice',
+        of: 'sur',
+        scoreWord: 'Score',
+        perfect: 'Parfait ! Tu sais montrer la phrase exacte. 🌟',
+        good: 'Bravo ! Tu sais où chercher dans le texte. 👍',
+        retry: 'Bel essai ! Lis chaque phrase, puis relie-la à la question. 💪',
+        resume: 'On reprend…'
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vowel Hunt — Thai</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body class="game theme-thai" data-game-id="thai/vowel-hunt">
+  <div id="app"></div>
+  <script src="../../../js/fun-effects.js"></script>
+  <script src="../../../js/progress.js"></script>
+  <script src="../../../js/shell.js"></script>
+  <script src="../../../js/speak.js"></script>
+  <script src="../../../js/challenge-th.js"></script>
+  <script src="../../../js/play-reading.js"></script>
+  <script>
+    PlayReading.mount({
+      subject: 'thai',
+      mode: 'pick',
+      skin: 'plain',
+      title: 'Vowel Hunt',
+      subtitle: 'Which vowel sound is it?',
+      emoji: 'อา',
+      backHref: '../index.html',
+      homeHref: '../../../index.html',
+      bank: ChallengeTh.vowelHunt,
+      ui: {
+        back: '← Thai', home: '🏠 Home', listen: '🔊 Listen',
+        hint: '🦉 Hint', owl: 'Mr. Owl says:', next: 'Next 🚀',
+        seeScore: 'See my score 🏆', again: 'Play Again 🔄',
+        scored: 'You scored', outOf: 'out of', yes: 'Yes! 🎉', nope: 'Not yet.',
+        stop: 'Round', of: 'of', scoreWord: 'Score', undo: 'Undo', check: 'Check',
+        done: 'Thai challenge done!',
+        perfect: 'Perfect ears and eyes! 🌟',
+        good: 'Great Thai listening. 👍',
+        retry: 'Good try! Press Listen, then look at the letters. 💪'
+      }
+    });
+  </script>
+</body>
+</html>

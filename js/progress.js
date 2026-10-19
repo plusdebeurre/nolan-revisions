@@ -738,12 +738,13 @@
     math: 'Math',
     science: 'Science',
     english: 'English',
+    french: 'French',
     hpe: 'HPE',
     thai: 'Thai'
   };
 
   function subjectStats(profile) {
-    const order = ['math', 'science', 'english', 'hpe', 'thai'];
+    const order = ['math', 'science', 'english', 'french', 'hpe', 'thai'];
     const buckets = {};
     order.forEach((s) => {
       buckets[s] = {

@@ -55,7 +55,7 @@
   function paintHubMedals() {
     const NP = window.NolanProgress;
     if (!NP || !NP.isUnlocked()) return;
-    document.querySelectorAll('[data-game-id]').forEach((card) => {
+    document.querySelectorAll('.exercise-card[data-game-id]').forEach((card) => {
       const id = card.getAttribute('data-game-id');
       const prog = NP.getGameProgress(id);
       let chip = card.querySelector('.medal-chip');
@@ -143,6 +143,23 @@
     }
     document.getElementById('shell-fullscreen')?.addEventListener('click', enterFullscreenFlow);
     document.getElementById('shell-leaderboard')?.addEventListener('click', openLeaderboard);
+    syncShellOffset();
+  }
+
+  function syncShellOffset() {
+    if (IN_IFRAME) {
+      document.documentElement.style.setProperty('--nolan-shell-h', '0px');
+      return;
+    }
+    const bar = document.getElementById('nolan-shell-bar');
+    if (!bar) return;
+    const height = bar.offsetHeight;
+    document.body.style.paddingTop = height + 'px';
+    document.documentElement.style.setProperty('--nolan-shell-h', height + 'px');
+    if (!syncShellOffset.bound) {
+      syncShellOffset.bound = true;
+      window.addEventListener('resize', syncShellOffset);
+    }
   }
 
   function logoutToProfilePicker() {
@@ -749,6 +766,7 @@
       sessionStorage.setItem('nolanInFrame', '1');
       document.body.classList.add('nolan-embedded');
       document.body.style.paddingTop = '0';
+      document.documentElement.style.setProperty('--nolan-shell-h', '0px');
     }
 
     ensureProgress(() => {

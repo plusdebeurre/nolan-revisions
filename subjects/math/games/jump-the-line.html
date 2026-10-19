@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jump the Line — Math</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body class="game theme-math" data-game-id="math/jump-the-line">
+  <div id="app"></div>
+  <script src="../../../js/fun-effects.js"></script>
+  <script src="../../../js/progress.js"></script>
+  <script src="../../../js/shell.js"></script>
+  <script src="../../../js/math-challenge.js"></script>
+  <script>
+    MathChallenge.mount({
+      kind: 'jumpline',
+      title: 'Jump the Line',
+      subtitle: 'Jump 10 or 100 forward or back.',
+      emoji: '🦘'
+    });
+  </script>
+</body>
+</html>

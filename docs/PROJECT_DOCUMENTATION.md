@@ -29,7 +29,10 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 
 ## Subjects and games
 
-### Math (12) — large fixed banks for long practice
+### Math (36) — large fixed banks for long practice
+- Play: `biscuit-bandits.html` — stack a fair share or a group of 2, 5, or 10. A wrong plate makes the raccoon steal the biscuits.
+- Focus: `stop-or-go.html` — catch a card only when the rule is true (even/odd, bigger, ×2 ×5 ×10). `hold-the-number.html` — remember a number through a short question, then use it.
+- `arithmetic-trail.html` — typed answers, end of semester 1 (within 20, 2-digit +/−, mental ±10 / +100, ×2 ×5 ×10)
 - `place-value-quiz.html` — 30+ place value / odd-even / compare
 - `add-subtract-adventure.html` — 30+ regrouping +/−
 - `skip-counting-race.html` — 24 rounds (2s/5s/10s/3s)
@@ -42,8 +45,11 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 - `money-market.html` — count coins to a total
 - `shape-spy.html` — 2D shapes
 - `pattern-detective.html` — number & shape patterns
+- Challenge (harder, generated): `hundreds-trail`, `times-three-four`, `fair-shares-plus`, `half-and-quarter`, `two-step-quest`, `quarter-clock`, `change-maker`, `hundreds-house`, `number-duel`, `missing-factor`, `fence-builder`, `jump-the-line`, `balance-scale`, `array-garden`, `pizza-fractions`, `nearest-ten`, `double-dash`, `graph-reader`, `day-counter`, `challenge-mix`
 
-### Science (12)
+### Science (14)
+- Play: `sprout-disco.html` — toss water, light, air, soil, or space. The sprout dances and grows. A cat can join; a rock sits still.
+- Focus: `rule-flip.html` — sort living / non-living, then the rule switches to animal / plant or mammal / bird / fish / reptile.
 - `plants-living-quiz.html`, `plant-parts-label.html`, `plant-needs-garden.html`
 - `living-or-not-sort.html`, `mrs-gren-detective.html`, `animal-or-plant.html`
 - `photosynthesis-factory.html` — ordered ingredients
@@ -53,7 +59,12 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 - `care-the-plant-sim.html` — care choices + health
 - `classify-speed-round.html` — timed living / not
 
-### English (12)
+### English (47)
+- Play: `runway-roar.html` — throw fur, feathers, scales, or gills, then shout They / always / never.
+- Focus: `mirror-letters.html` — tap the real b/d or p/q in a word. `word-sweep.html` — tap moving words in reading order (cause and effect, frequency).
+- `story-sleuth.html` — short stories, end of semester 1 (who / where / what / feeling)
+- `sentence-clue.html` — tap the sentence that answers
+- Reading variety: `best-title`, `true-false-flash`, `who-said-it`, `story-order`, `odd-sentence`, `feeling-faces`, `what-next`, `word-tap`, `same-story`, `ending-picker`
 - `midterm-explorer-quiz.html`, `animal-groups-safari.html`, `body-coverings-match.html`
 - `pronoun-rescue.html`, `frequency-meter.html`, `states-of-matter-lab.html`
 - `animal-action-charades.html` — action / covering vocab
@@ -62,8 +73,19 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 - `cause-effect-chain.html` — cause → effect
 - `opposites-snap.html` — memory opposites
 - `listening-lookalike.html` — close-word choices
+- Challenge reading: `main-idea`, `why-it-happened`, `word-in-sentence`, `two-clues`, `listen-and-pick`, `fact-or-guess`, `what-they-want`, `four-steps`, `extra-detail`, `what-the-line-means`, `where-it-happens`, `two-characters`, `word-part`, `tiny-poem`, `follow-the-steps`, `write-back`, `news-flash`, `riddle`, `which-scene`, `reading-boss`
 
-### HPE (11)
+### French (34) — reading, then a harder challenge set
+- Play: `gouter-volant.html` — attraper au vol qui, où ou quoi.
+- Focus: `lettres-miroir.html` — la vraie lettre b/d ou p/q dans un mot court.
+- `lecture-maligne.html` — petite histoire, puis qui / où / quoi / quand
+- `phrase-indice.html` — toucher la phrase qui répond
+- Variété : `mot-manquant`, `oui-non-flash`, `dans-l-histoire`, `question-inverse`, `bd-ordre`, `ou-ca`, `avant-apres`, `la-lettre`, `la-liste`, `le-piege`
+- Défi : `idee-principale`, `pourquoi`, `mot-en-contexte`, `deux-indices`, `ecoute-et-choisis`, `fait-ou-idee`, `ce-qu-il-veut`, `quatre-etapes`, `detail-en-trop`, `sens-replique`, `le-lieu`, `deux-personnages`, `petit-mot-colle`, `poeme-court`, `la-consigne`, `reponse-lettre`, `fait-divers`, `la-devinette`, `quelle-scene`, `defi-lecture`
+
+### HPE (13)
+- Play: `robot-boing.html` — pop on heart, lungs, and teeth, then jump, stretch, or run.
+- Focus: `body-sequence.html` — watch organ and movement cards, tap them in order, then backwards.
 - `body-organs-game.html`, `organ-jobs-quiz.html`, `super-teeth-care.html`
 - `move-it-loco.html`, `healthy-day-planner.html`
 - `pulse-check.html` — organ scenarios
@@ -73,7 +95,8 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 - `posture-puzzle.html` — habit sort
 - `sleep-fuel-day.html` — sleep/water/play/hygiene picks
 
-### Thai (13)
+### Thai (34)
+- Play: `hat-shop-hop.html` — drop a consonant, Mai Ek, a Thai digit, or a Mae family hat. Listen uses `js/speak.js`.
 - `mega-quiz-40.html` — full catch-up MCQ
 - `consonant-class-sort.html`, `vowel-length-lab.html`, `tone-mark-match.html`
 - `mae-ending-safari.html`, `thai-digits-race.html`, `nam-sai-story-quiz.html`
@@ -83,6 +106,7 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 - `mae-memory.html` — word ↔ Mae family
 - `digit-bingo.html` — Arabic → Thai digit
 - `nam-sai-comic-choice.html` — story comic choices
+- Challenge with a Listen button (`js/speak.js`, browser voice, written fallback): `hear-the-word`, `hear-the-vowel`, `hear-the-tone`, `hear-the-ending`, `hear-the-letter`, `minimal-pair`, `hear-the-number`, `hear-the-class`, `which-mai-ek`, `sentence-listen`, `confirm-the-tone`, `wrong-mark`, `mae-audio`, `two-sentence-listen`, `digit-dictation`, `vowel-hunt`, `old-letter-listen`, `karaoke-listen`, `comic-listen`, `thai-boss`
 
 ## Profiles, medals & XP
 
@@ -158,6 +182,14 @@ QuizEngine.mount({
 ```
 
 `quiz-engine.js` auto-loads `fun-effects.js` for confetti / streak / shake.
+
+## Focus games
+
+`js/focus-engine.js` runs the seven Focus cards (inhibition, hold, mirror letters, word sweep, rule switch, sequence). `js/focus-banks.js` builds six rounds per run. Round 4 is preceded by a stand-up pause that is not scored. Checkpoints store the generated rounds. Parent notes: [`revision-guides/focus.md`](revision-guides/focus.md).
+
+## Play scenes
+
+`js/play-scene.js` runs six toy scenes (biscuit stack, sprout gifts, runway costumes, flying French snack, robot parts, Thai hats). A wrong tap bonks. A right tap makes the character bounce. Parent notes: [`revision-guides/play.md`](revision-guides/play.md).
 
 ## Adding a new game
 

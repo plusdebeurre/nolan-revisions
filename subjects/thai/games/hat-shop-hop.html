@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hat Shop Hop — Thai</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Sarabun:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body class="game theme-thai" data-game-id="thai/hat-shop-hop">
+  <div id="app"></div>
+  <script src="../../../js/fun-effects.js"></script>
+  <script src="../../../js/progress.js"></script>
+  <script src="../../../js/shell.js"></script>
+  <script src="../../../js/speak.js"></script>
+  <script src="../../../js/play-banks.js"></script>
+  <script src="../../../js/play-scene.js"></script>
+  <script>
+    PlayScene.mount({
+      subject: 'thai',
+      title: 'Hat Shop Hop',
+      subtitle: 'Drop the right hat and the pet hops',
+      backHref: '../index.html',
+      homeHref: '../../../index.html',
+      buildRounds: function () { return PlayBanks.hatShopHop(); }
+    });
+  </script>
+</body>
+</html>

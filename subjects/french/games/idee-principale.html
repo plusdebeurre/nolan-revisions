@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Idée principale — Français</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/shared.css">
+</head>
+<body class="game theme-french" data-game-id="french/idee-principale">
+  <div id="app"></div>
+  <script src="../../../js/fun-effects.js"></script>
+  <script src="../../../js/progress.js"></script>
+  <script src="../../../js/shell.js"></script>
+  <script src="../../../js/speak.js"></script>
+  <script src="../../../js/challenge-fr.js"></script>
+  <script src="../../../js/play-reading.js"></script>
+  <script>
+    PlayReading.mount({
+      subject: 'french',
+      mode: 'pick',
+      skin: 'plain',
+      title: 'Idée principale',
+      subtitle: 'De quoi parle surtout le texte ?',
+      emoji: '🎯',
+      backHref: '../index.html',
+      homeHref: '../../../index.html',
+      bank: ChallengeFr.idee,
+      ui: {
+        back: '← Français', home: '🏠 Accueil', listen: '🔊 Écoute',
+        hint: '🦉 Un indice', owl: 'M. Hibou dit :', next: 'Suite 🚀',
+        seeScore: 'Voir mon score 🏆', again: 'Rejouer 🔄',
+        scored: 'Ton score :', outOf: 'sur', bang: ' !',
+        yes: 'Oui ! 🎉', nope: 'Pas encore.',
+        stop: 'Manche', of: 'sur', scoreWord: 'Score', undo: 'Annuler', check: 'Vérifier',
+        resume: 'On reprend…', done: 'Défi terminé !',
+        perfect: 'Parfait ! Tu as suivi les indices. 🌟',
+        good: 'Bravo ! La lecture devient plus solide. 👍',
+        retry: 'Bel essai ! Relis, puis choisis. 💪'
+      }
+    });
+  </script>
+</body>
+</html>

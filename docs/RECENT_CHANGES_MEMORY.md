@@ -1,5 +1,101 @@
 # Recent Changes Memory
 
+## 2026-10-19 — Play scenes
+
+### What changed
+- Six toy games, one per subject, in a new Play section above the existing cards. Nothing already on the hubs was removed.
+- A wrong move bonks and bounces back. A right move makes the character jump. The school skill is the move that wins the scene.
+- Shared helper: `js/play-scene.js`. Scene banks: `js/play-banks.js`.
+
+### User impact
+- Nolan can share biscuits, grow a dancing sprout, dress animals on a runway, catch a French snack, build a robot, and drop Thai hats, beside the quizzes and Focus games.
+
+### Key files
+- `js/play-scene.js`, `js/play-banks.js`, `css/shared.css`, six game pages, subject hubs, `docs/revision-guides/play.md`
+
+## 2026-10-19 — Focus games
+
+### What changed
+- Seven short games train attention skills from the 7-year-old activation notes, on Grade 2 work already in the hubs: inhibition, holding a number, mirror letters, left-to-right word order, rule switching, and sequence memory.
+- A stand-up cross-crawl pause sits before round 4. It is not part of the score.
+- Shared helper: `js/focus-engine.js`. Round sets: `js/focus-banks.js`.
+
+### User impact
+- Nolan can practice even/odd and ×2 ×5 ×10, place value and shapes, b/d p/q in English and French, cause and effect, living things, and body organs with a different kind of attention each time.
+
+### Key files
+- `js/focus-engine.js`, `js/focus-banks.js`, `css/shared.css`, subject hubs, seven new game pages, `docs/revision-guides/focus.md`
+
+## 2026-10-14 — Harder challenge sets
+
+### What changed
+- **20 math games** one step above semester 1: 3-digit +/−, ×3 and ×4, exact ÷2 ÷5 ÷10, halves and quarters, two-step stories, quarter hours, change, place value to 999, perimeter. Problems are generated.
+- **20 English** and **20 French** reading games: main idea, inference, two clues, word meaning, order, and a Listen button on the listening rounds.
+- **20 Thai games** with `speechSynthesis` (`th-TH`). A romanization stays on screen if the device has no Thai voice.
+- Shared helpers: `js/speak.js`, `js/math-challenge.js`. Language rounds reuse `js/play-reading.js`.
+
+### User impact
+- Nolan gets new challenge sections on Math, English, French, and Thai instead of replaying the same easier sets.
+
+### Key files
+- `js/speak.js`, `js/math-challenge.js`, `js/play-reading.js`, `js/challenge-en.js`, `js/challenge-fr.js`, `js/challenge-th.js`, subject hubs and new game pages, docs
+
+## 2026-10-10 — Medal stays on the game card
+
+### What changed
+- Gold, silver, and bronze medals are drawn only on exercise cards, at the card’s top-right. They are no longer injected onto the game page, where the medal sat in the top-left corner over the profile.
+
+### Key files
+- `js/shell.js`, `css/shared.css`
+
+## 2026-10-10 — Twenty varied reading games
+
+### What changed
+- **10 English games** with different play styles: best title, true/false, who said it, story order, odd sentence, feeling faces, what happens next, word tap, same detail, pick the ending.
+- **10 French games** with other styles: missing word, oui/non, multi-select what is in the text, reverse question, comic order, place picker, before/after, letter, list, spot the false sentence.
+- Each run shuffles. Score, hint, XP, checkpoint, and Play Again match the other games. Six short rounds so a session stays light.
+
+### User impact
+- Reading practice changes shape every game, so a Grade 2 / CE2 child is not stuck on the same multiple-choice pattern.
+
+### Key files
+- `js/play-reading.js`, `js/reading-pack-en.js`, `js/reading-pack-fr.js`, `subjects/english/games/*`, `subjects/french/games/*`, subject hubs, docs
+
+## 2026-10-10 — Score chip sits below the top bar
+
+### What changed
+- The fixed **Score** chip uses the real top-bar height, so it stays under the trophy / full screen / log out row when that bar wraps.
+
+### Key files
+- `css/shared.css`, `js/shell.js`
+
+## 2026-10-10 — Reading games, English and French
+
+### What changed
+- **Story Sleuth** and **Sentence Clue** (English): short end-of-semester-1 passages. Answer who / where / what / when / why / feeling, or tap the sentence that holds the clue.
+- **Lecture maligne** and **Phrase indice** (French): same level and the same two jobs, in French. New French hub tile.
+- Rounds shuffle each run. Score, hints, streaks, first-try XP, checkpoint, and Play Again match the other games.
+- The top bar now pads the page to its real height, so a wrapped phone bar no longer covers Back / Home.
+
+### User impact
+- Nolan can practice reading for meaning in both school English and French, on texts a Grade 2 / CE2 child meets by the end of the first semester.
+
+### Key files
+- `js/read-engine.js`, `js/reading-banks.js`, `subjects/english/games/story-sleuth.html`, `subjects/english/games/sentence-clue.html`, `subjects/french/`, `index.html`, `css/shared.css`, `js/progress.js`, docs
+
+## 2026-10-10 — Arithmetic Trail (end of semester 1)
+
+### What changed
+- New math game **Arithmetic Trail**: 24 typed problems (keypad + keyboard), a new set each run, checkpoint stores the generated trail.
+- Level is end of semester 1 for Grade 2 / CE2: facts within 20, 2-digit and 1-digit +/− with and without regrouping, mental +10 / −10 / +100 / +10 across a hundred, missing numbers, and ×2 ×5 ×10 only.
+- Live score, hints, streaks, first-try XP, Play Again, and a medal on finish.
+
+### User impact
+- Nolan can practice the arithmetic he is expected to handle by January, without later-year skills (×3 and up, division, column work past 100).
+
+### Key files
+- `subjects/math/games/arithmetic-trail.html`, `subjects/math/index.html`, docs
+
 ## 2026-08-10 — Profile search picker + Discord feedback bubble
 
 ### What changed
