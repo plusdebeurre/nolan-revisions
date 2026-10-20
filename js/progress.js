@@ -164,6 +164,112 @@
   const XP_PER_CORRECT = 10;
   const ARCADE_XP = 2;
   const ARCADE_CAP = 6;
+  const CREDIT_CAP = 6;
+  const CREDIT_TODAY = 40;
+  const CREDIT_WEEK = 120;
+
+  function questStep(id, kind, title) {
+    return { id: id, kind: kind, title: title };
+  }
+
+  const QUEST_PATHS = {
+    math: [
+      questStep('math/place-value-quiz', 'quiz', 'Place Value Quiz'),
+      questStep('math/stop-or-go', 'focus', 'Stop or Go'),
+      questStep('math/biscuit-bandits', 'play', 'Biscuit Bandits'),
+      questStep('math/biscuit-run', 'arcade', 'Biscuit Run'),
+      questStep('math/arithmetic-trail', 'quiz', 'Arithmetic Trail'),
+      questStep('math/fair-houses', 'arcade', 'Fair Houses'),
+      questStep('math/hold-the-number', 'focus', 'Hold the Number'),
+      questStep('math/sum-lane', 'arcade', 'Sum Lane'),
+      questStep('math/tens-cave', 'arcade', 'Tens Cave'),
+      questStep('math/hour-tower', 'arcade', 'Hour Tower'),
+      questStep('math/lantern-crumbs', 'arcade', 'Crumb Maze')
+    ],
+    science: [
+      questStep('science/plants-living-quiz', 'quiz', 'Plants & Living Quiz'),
+      questStep('science/rule-flip', 'focus', 'Rule Flip'),
+      questStep('science/sprout-disco', 'play', 'Sprout Disco'),
+      questStep('science/sprout-hop', 'arcade', 'Sprout Hop'),
+      questStep('science/plant-needs-garden', 'quiz', 'Plant Needs Garden'),
+      questStep('science/garden-patrol', 'arcade', 'Garden Patrol'),
+      questStep('science/living-or-not-sort', 'quiz', 'Living or Not?'),
+      questStep('science/seed-slide', 'arcade', 'Seed Slide'),
+      questStep('science/habitat-hop', 'arcade', 'Habitat Hop'),
+      questStep('science/food-factory', 'arcade', 'Food Factory'),
+      questStep('science/lantern-hut', 'arcade', 'Hut Door')
+    ],
+    english: [
+      questStep('english/story-sleuth', 'reading', 'Story Sleuth'),
+      questStep('english/mirror-letters', 'focus', 'Mirror Letters'),
+      questStep('english/runway-roar', 'play', 'Runway Roar'),
+      questStep('english/covering-run', 'arcade', 'Covering Run'),
+      questStep('english/sentence-clue', 'reading', 'Sentence Clue'),
+      questStep('english/pronoun-pop', 'arcade', 'Pronoun Pop'),
+      questStep('english/word-sweep', 'focus', 'Word Sweep'),
+      questStep('english/always-river', 'arcade', 'Always River'),
+      questStep('english/order-climb', 'arcade', 'Order Climb'),
+      questStep('english/cause-bridge', 'arcade', 'Cause Bridge'),
+      questStep('english/lantern-crates', 'arcade', 'Crate Catch')
+    ],
+    french: [
+      questStep('french/lecture-maligne', 'reading', 'Lecture maligne'),
+      questStep('french/lettres-miroir', 'focus', 'Lettres miroir'),
+      questStep('french/gouter-volant', 'play', 'Goûter volant'),
+      questStep('french/gouter-run', 'arcade', 'Goûter Run'),
+      questStep('french/phrase-indice', 'reading', 'Phrase indice'),
+      questStep('french/qui-maze', 'arcade', 'Qui Maze'),
+      questStep('french/mot-manquant', 'reading', 'Mot manquant'),
+      questStep('french/mot-hop', 'arcade', 'Mot Hop'),
+      questStep('french/ordre-cases', 'arcade', 'Ordre des cases'),
+      questStep('french/lettre-express', 'arcade', 'Lettre Express'),
+      questStep('french/lantern-logs', 'arcade', 'Rondins')
+    ],
+    hpe: [
+      questStep('hpe/organ-jobs-quiz', 'quiz', 'Organ Jobs Quiz'),
+      questStep('hpe/body-sequence', 'focus', 'Body Sequence'),
+      questStep('hpe/robot-boing', 'play', 'Robot Boing'),
+      questStep('hpe/organ-run', 'arcade', 'Organ Run'),
+      questStep('hpe/super-teeth-care', 'quiz', 'Super Teeth Care'),
+      questStep('hpe/brush-beat', 'arcade', 'Brush Beat'),
+      questStep('hpe/move-it-loco', 'quiz', 'Move It! Loco'),
+      questStep('hpe/move-gate', 'arcade', 'Move Gate'),
+      questStep('hpe/snack-dodge', 'arcade', 'Snack Dodge'),
+      questStep('hpe/day-loop', 'arcade', 'Day Loop'),
+      questStep('hpe/lantern-buddy', 'arcade', 'Buddy Steps')
+    ],
+    thai: [
+      questStep('thai/consonant-class-sort', 'quiz', 'Consonant Class Sort'),
+      questStep('thai/hat-shop-hop', 'play', 'Hat Shop Hop'),
+      questStep('thai/hear-the-word', 'quiz', 'Hear the Word'),
+      questStep('thai/letter-hop', 'arcade', 'Letter Hop'),
+      questStep('thai/tone-mark-match', 'quiz', 'Tone Mark Match'),
+      questStep('thai/tone-hats', 'arcade', 'Tone Hats'),
+      questStep('thai/thai-digits-race', 'quiz', 'Thai Digits Race'),
+      questStep('thai/digit-coins', 'arcade', 'Digit Coins'),
+      questStep('thai/mae-cave', 'arcade', 'Mae Cave'),
+      questStep('thai/listen-chase', 'arcade', 'Listen Chase'),
+      questStep('thai/lantern-listen', 'arcade', 'Listen Step')
+    ],
+    computing: [
+      questStep('computing/arrow-bot', 'arcade', 'Arrow Bot'),
+      questStep('computing/bug-walk', 'arcade', 'Bug Walk'),
+      questStep('computing/parts-room', 'arcade', 'Parts Room'),
+      questStep('computing/keep-it-private', 'arcade', 'Keep It Private'),
+      questStep('computing/predict-the-stop', 'arcade', 'Predict the Stop'),
+      questStep('computing/lantern-blocks', 'arcade', 'Block Path')
+    ]
+  };
+
+  const ARCADE_ORDER = {
+    math: ['math/biscuit-run', 'math/fair-houses', 'math/sum-lane', 'math/tens-cave', 'math/hour-tower', 'math/lantern-crumbs'],
+    science: ['science/sprout-hop', 'science/garden-patrol', 'science/seed-slide', 'science/habitat-hop', 'science/food-factory', 'science/lantern-hut'],
+    english: ['english/covering-run', 'english/pronoun-pop', 'english/always-river', 'english/order-climb', 'english/cause-bridge', 'english/lantern-crates'],
+    french: ['french/gouter-run', 'french/qui-maze', 'french/mot-hop', 'french/ordre-cases', 'french/lettre-express', 'french/lantern-logs'],
+    hpe: ['hpe/organ-run', 'hpe/brush-beat', 'hpe/move-gate', 'hpe/snack-dodge', 'hpe/day-loop', 'hpe/lantern-buddy'],
+    thai: ['thai/letter-hop', 'thai/tone-hats', 'thai/digit-coins', 'thai/mae-cave', 'thai/listen-chase', 'thai/lantern-listen'],
+    computing: ['computing/arrow-bot', 'computing/bug-walk', 'computing/parts-room', 'computing/keep-it-private', 'computing/predict-the-stop', 'computing/lantern-blocks']
+  };
   const STREAK_XP = [
     { min: 8, bonus: 15 },
     { min: 5, bonus: 10 },
@@ -307,6 +413,17 @@
     return merged;
   }
 
+  function mergeQuest(local, remote) {
+    const out = {};
+    [local || {}, remote || {}].forEach((quest) => {
+      Object.keys(quest).forEach((key) => {
+        const n = Number(quest[key]) || 0;
+        if (n > (out[key] || 0)) out[key] = n;
+      });
+    });
+    return out;
+  }
+
   function mergeActivity(local, remote) {
     const days = {};
     const ld = (local && local.days) || {};
@@ -324,7 +441,12 @@
       days[key] = {
         xp: Math.max(a.xp || 0, b.xp || 0),
         exercises: Math.max(a.exercises || 0, b.exercises || 0),
-        questions: Math.max(a.questions || 0, b.questions || 0)
+        questions: Math.max(a.questions || 0, b.questions || 0),
+        arcadeXp: Math.max(a.arcadeXp || 0, b.arcadeXp || 0),
+        arcadeCreditsSpent: Math.max(a.arcadeCreditsSpent || 0, b.arcadeCreditsSpent || 0),
+        arcadePlays: Math.max(a.arcadePlays || 0, b.arcadePlays || 0),
+        arcadeSeconds: Math.max(a.arcadeSeconds || 0, b.arcadeSeconds || 0),
+        arcadeGates: Math.max(a.arcadeGates || 0, b.arcadeGates || 0)
       };
     });
     return { days };
@@ -359,6 +481,7 @@
       level: levelFromXp(xp),
       games,
       activity: mergeActivity(local.activity, remote.activity),
+      quest: mergeQuest(local.quest, remote.quest),
       disabled: !!(newer.disabled || local.disabled || remote.disabled),
       disabledReason: newer.disabledReason || local.disabledReason || remote.disabledReason || null,
       updatedAt: remoteAt >= localAt ? remote.updatedAt || local.updatedAt : local.updatedAt || remote.updatedAt
@@ -379,15 +502,151 @@
     return p.activity;
   }
 
-  function bumpActivity(p, { xp, exercises, questions } = {}) {
+  function bumpActivity(p, opts = {}) {
     const activity = ensureActivity(p);
     const key = todayKey();
     if (!activity.days[key]) activity.days[key] = { xp: 0, exercises: 0, questions: 0 };
     const row = activity.days[key];
-    row.xp = (row.xp || 0) + Math.max(0, Number(xp) || 0);
-    row.exercises = (row.exercises || 0) + Math.max(0, Number(exercises) || 0);
-    row.questions = (row.questions || 0) + Math.max(0, Number(questions) || 0);
+    const xp = Math.max(0, Number(opts.xp) || 0);
+    row.xp = (row.xp || 0) + xp;
+    row.exercises = (row.exercises || 0) + Math.max(0, Number(opts.exercises) || 0);
+    row.questions = (row.questions || 0) + Math.max(0, Number(opts.questions) || 0);
+    if (opts.arcade) row.arcadeXp = (row.arcadeXp || 0) + xp;
+    row.arcadePlays = (row.arcadePlays || 0) + Math.max(0, Number(opts.arcadePlays) || 0);
+    row.arcadeSeconds = (row.arcadeSeconds || 0) + Math.max(0, Number(opts.arcadeSeconds) || 0);
+    row.arcadeGates = (row.arcadeGates || 0) + Math.max(0, Number(opts.arcadeGates) || 0);
     return row;
+  }
+
+  function practiceXp(row) {
+    return Math.max(0, (Number(row && row.xp) || 0) - (Number(row && row.arcadeXp) || 0));
+  }
+
+  function questIndexOf(profile, subject) {
+    const quest = profile && profile.quest;
+    return Math.max(0, Number(quest && quest[subject]) || 0);
+  }
+
+  function arcadeCreditState(profile) {
+    const days = (profile && profile.activity && profile.activity.days) || {};
+    const now = new Date();
+    const today = todayKey(now);
+    const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
+    let todayPractice = 0;
+    let weekPractice = 0;
+    let spent = 0;
+    Object.keys(days).forEach((key) => {
+      const row = days[key] || {};
+      const practice = practiceXp(row);
+      if (key === today) {
+        todayPractice = practice;
+        spent = Number(row.arcadeCreditsSpent) || 0;
+      }
+      const dt = parseDayKey(key);
+      if (dt && dt >= weekStart && dt <= now) weekPractice += practice;
+    });
+    const earned = Math.min(
+      CREDIT_CAP,
+      1 + Math.floor(todayPractice / CREDIT_TODAY) + Math.floor(weekPractice / CREDIT_WEEK)
+    );
+    return {
+      earned: earned,
+      spent: spent,
+      left: Math.max(0, earned - spent),
+      todayPractice: todayPractice,
+      weekPractice: weekPractice
+    };
+  }
+
+  function spendArcadeCredit() {
+    const profile = getActiveProfile();
+    if (!profile) return { ok: true, guest: true, left: 1, earned: 1 };
+    const state = arcadeCreditState(profile);
+    if (state.left <= 0) return { ok: false, earned: state.earned, spent: state.spent, left: 0 };
+    const data = load();
+    const p = data.profiles[profile.id];
+    if (!p) return { ok: false, left: 0 };
+    const activity = ensureActivity(p);
+    const key = todayKey();
+    if (!activity.days[key]) activity.days[key] = { xp: 0, exercises: 0, questions: 0 };
+    activity.days[key].arcadeCreditsSpent = (activity.days[key].arcadeCreditsSpent || 0) + 1;
+    touchProfile(p);
+    save(data);
+    schedulePush();
+    return { ok: true, earned: state.earned, spent: state.spent + 1, left: state.left - 1 };
+  }
+
+  function refundArcadeCredit() {
+    const profile = getActiveProfile();
+    if (!profile) return { ok: false };
+    const data = load();
+    const p = data.profiles[profile.id];
+    if (!p) return { ok: false };
+    const activity = ensureActivity(p);
+    const key = todayKey();
+    const row = activity.days[key];
+    if (!row || !(row.arcadeCreditsSpent > 0)) return { ok: false };
+    row.arcadeCreditsSpent -= 1;
+    touchProfile(p);
+    save(data);
+    schedulePush();
+    return { ok: true, left: arcadeCreditState(p).left };
+  }
+
+  function recordArcadeSession({ plays, seconds, gates } = {}) {
+    const profile = getActiveProfile();
+    if (!profile) return null;
+    const data = load();
+    const p = data.profiles[profile.id];
+    if (!p) return null;
+    bumpActivity(p, {
+      arcadePlays: plays || 0,
+      arcadeSeconds: seconds || 0,
+      arcadeGates: gates || 0
+    });
+    touchProfile(p);
+    save(data);
+    scheduleCriticalPush();
+    return true;
+  }
+
+  function arcadeLocked(gameId) {
+    if (!gameId) return false;
+    const subject = String(gameId).split('/')[0];
+    const order = ARCADE_ORDER[subject];
+    if (!order) return false;
+    const at = order.indexOf(gameId);
+    if (at < 0 || at < 3) return false;
+    const path = QUEST_PATHS[subject] || [];
+    const stepAt = path.findIndex((step) => step.id === gameId);
+    if (stepAt < 0) return true;
+    return questIndexOf(getActiveProfile(), subject) < stepAt;
+  }
+
+  function noteQuestFinish(p, gameId) {
+    const subject = String(gameId || '').split('/')[0];
+    const path = QUEST_PATHS[subject];
+    if (!path) return;
+    if (!p.quest || typeof p.quest !== 'object') p.quest = {};
+    const index = Math.max(0, Number(p.quest[subject]) || 0);
+    const step = path[index];
+    if (step && step.id === gameId) p.quest[subject] = index + 1;
+  }
+
+  function questSnapshot(subject) {
+    const path = QUEST_PATHS[subject] || [];
+    const index = questIndexOf(getActiveProfile(), subject);
+    return {
+      index: index,
+      done: path.length > 0 && index >= path.length,
+      steps: path.map((step, i) => ({
+        id: step.id,
+        kind: step.kind,
+        title: step.title,
+        href: 'games/' + step.id.split('/')[1] + '.html',
+        state: i < index ? 'done' : i === index ? 'now' : 'later'
+      }))
+    };
   }
 
   function parseDayKey(key) {
@@ -401,14 +660,18 @@
   }
 
   function activitySummary(profile) {
+    const span = () => ({ xp: 0, exercises: 0, questions: 0, arcadePlays: 0, arcadeSeconds: 0, arcadeGates: 0 });
     const empty = {
-      today: { xp: 0, exercises: 0, questions: 0 },
-      week: { xp: 0, exercises: 0, questions: 0 },
-      month: { xp: 0, exercises: 0, questions: 0 },
-      year: { xp: 0, exercises: 0, questions: 0 },
+      today: span(),
+      week: span(),
+      month: span(),
+      year: span(),
       exercisesTotal: 0,
       questionsTotal: 0,
-      xpLogged: 0
+      xpLogged: 0,
+      arcadePlays: 0,
+      arcadeSeconds: 0,
+      arcadeGates: 0
     };
     if (!profile) return empty;
     const days = (profile.activity && profile.activity.days) || {};
@@ -424,14 +687,23 @@
       const xp = Number(row.xp) || 0;
       const exercises = Number(row.exercises) || 0;
       const questions = Number(row.questions) || 0;
+      const arcadePlays = Number(row.arcadePlays) || 0;
+      const arcadeSeconds = Number(row.arcadeSeconds) || 0;
+      const arcadeGates = Number(row.arcadeGates) || 0;
       sum.xp += xp;
       sum.exercises += exercises;
       sum.questions += questions;
+      empty.arcadePlays += arcadePlays;
+      empty.arcadeSeconds += arcadeSeconds;
+      empty.arcadeGates += arcadeGates;
 
       if (key === today) {
         empty.today.xp += xp;
         empty.today.exercises += exercises;
         empty.today.questions += questions;
+        empty.today.arcadePlays += arcadePlays;
+        empty.today.arcadeSeconds += arcadeSeconds;
+        empty.today.arcadeGates += arcadeGates;
       }
       const dt = parseDayKey(key);
       if (!dt) return;
@@ -439,6 +711,9 @@
         empty.week.xp += xp;
         empty.week.exercises += exercises;
         empty.week.questions += questions;
+        empty.week.arcadePlays += arcadePlays;
+        empty.week.arcadeSeconds += arcadeSeconds;
+        empty.week.arcadeGates += arcadeGates;
       }
       if (dt.getFullYear() === year && dt.getMonth() === month) {
         empty.month.xp += xp;
@@ -661,7 +936,7 @@
     entry.liveXp = true;
     p.xp = (p.xp || 0) + gained;
     p.level = levelFromXp(p.xp);
-    bumpActivity(p, { xp: gained, questions: 1 });
+    bumpActivity(p, { xp: gained, questions: 1, arcade: isArcade });
     touchProfile(p);
     save(data);
     scheduleCriticalPush();
@@ -725,9 +1000,11 @@
       exercises: 1,
       questions: legacyQuestions
     });
+    noteQuestFinish(p, gameId);
     touchProfile(p);
     save(data);
     scheduleCriticalPush();
+    document.dispatchEvent(new CustomEvent('nolan:progress', { detail: { quest: true } }));
 
     return {
       medal,
@@ -1219,6 +1496,12 @@
     XP_PER_CORRECT,
     ARCADE_XP,
     ARCADE_CAP,
+    arcadeCreditState,
+    spendArcadeCredit,
+    refundArcadeCredit,
+    recordArcadeSession,
+    arcadeLocked,
+    questSnapshot,
     activitySummary,
     subjectStats,
     bumpActivity,

@@ -1,5 +1,20 @@
 # Recent Changes Memory
 
+## 2026-10-20 — Quest, arcade credits, lantern chapter
+
+### What changed
+- Arcade buttons and the playfield no longer select text on a tap. A second tap on the same control within 400ms does not fire again.
+- Arcade credits come from non-arcade XP: 1 per day, plus 1 per 40 XP today and 1 per 120 XP over 7 days, capped at 6. A run spends 1. Quitting in under 15 seconds refunds it. Quest itself does not spend a credit.
+- Each day stores arcade plays, seconds, and gates cleared. Client and `family-api` merges keep those fields, plus `profile.quest`. My Progress shows the day and week totals.
+- Every hub card has a type mark (quiz, reading, Focus, Play, Arcade). A Quest button opens a path that alternates those types. The first 3 arcade games per subject stay open. The rest stay visible and locked until the path reaches them.
+- Seven lantern games, one new verb each: crumb sums of 10, a 4-sided hut, catching the next word, stepping on the right French word, a friend who steps on the right body move, a heard Thai step, and a robot path of 4 blocks.
+
+### User impact
+- A day with no XP still has one arcade game. Extra games come from practice outside Arcade, and from following Quest. The new games teach during the move, not only at a question at the end.
+
+### Key files
+- `js/progress.js`, `js/shell.js`, `js/arcade-runner.js`, `js/lantern-lessons.js`, `js/arcade-banks.js`, `netlify/functions/family-api.js`, `css/shared.css`, subject hubs, seven lantern game pages
+
 ## 2026-10-20 — Arcade touch lock
 
 ### What changed

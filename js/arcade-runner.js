@@ -134,14 +134,31 @@
     document.addEventListener('gestureend', block, { passive: false });
     document.addEventListener('dblclick', block);
     let last = { t: 0, el: null };
+    let suppressClick = false;
+    document.addEventListener('selectstart', block);
     document.addEventListener(
       'touchend',
       (event) => {
         const now = Date.now();
-        if (event.target === last.el && now - last.t < 400) event.preventDefault();
+        if (event.target === last.el && now - last.t < 400) {
+          event.preventDefault();
+          suppressClick = true;
+        } else {
+          suppressClick = false;
+        }
         last = { t: now, el: event.target };
       },
-      { passive: false }
+      { passive: false, capture: true }
+    );
+    document.addEventListener(
+      'click',
+      (event) => {
+        if (!suppressClick || event.target !== last.el) return;
+        event.preventDefault();
+        event.stopPropagation();
+        suppressClick = false;
+      },
+      true
     );
     document.addEventListener(
       'touchmove',
@@ -191,6 +208,9 @@
     let gateBusy = false;
     let phaserGame = null;
     let sceneApi = null;
+    let creditSpent = false;
+    let startedAt = 0;
+    let sessionRecorded = false;
     const pad = { left: false, right: false, up: false, down: false, jump: false };
 
     app.innerHTML =
@@ -203,6 +223,7 @@
       '<h1 class="text-3xl font-bold mb-1" id="arc-title" style="color: var(--accent-dark)"></h1>' +
       '<p class="text-lg text-slate-500" id="arc-sub"></p>' +
       '<p id="arc-line" class="live-score-line"></p>' +
+      '<p id="arc-credits" class="arcade-credit-line"></p>' +
       '<p id="arc-coins" class="text-sm font-semibold text-slate-500"></p>' +
       '</div>' +
       '<div class="arcade-host" id="arcade-host"><div id="arcade-canvas"></div></div>' +
@@ -245,11 +266,58 @@
     const padEl = document.getElementById('arcade-pad');
     const programEl = document.getElementById('arcade-program');
 
+    function creditText(left) {
+      if (lang === 'fr') {
+        return left <= 0 ? 'Crédits arcade : 0. Fais la quête pour en gagner.' : 'Crédits arcade : ' + left;
+      }
+      return left <= 0 ? 'Arcade credits: 0. Play Quest to earn more.' : 'Arcade credits: ' + left;
+    }
+
+    function paintCredits() {
+      const node = document.getElementById('arc-credits');
+      const NP = global.NolanProgress;
+      if (!node || !NP || !NP.arcadeCreditState || !NP.getActiveProfile) return;
+      const profile = NP.getActiveProfile();
+      if (!profile) {
+        node.textContent = '';
+        return;
+      }
+      node.textContent = creditText(NP.arcadeCreditState(profile).left);
+    }
+
     function paintScore() {
       const text = ui.score + ': ' + gateScore + ' / 3';
       hud.textContent = text;
       line.textContent = text + ' · ' + ui.time + ' ' + (sceneApi ? sceneApi.seconds() : 0) + 's';
       coinLine.textContent = ui.coins + ': ' + coins;
+      paintCredits();
+    }
+
+    function showBlocked(message) {
+      document.getElementById('arcade-host').classList.add('hidden');
+      padEl.classList.add('hidden');
+      programEl.classList.add('hidden');
+      result.classList.add('hidden');
+      gateBox.classList.remove('hidden');
+      promptEl.textContent = message;
+      optionsEl.innerHTML = '';
+      document.getElementById('arcade-hint').classList.add('hidden');
+      feedback.classList.add('hidden');
+    }
+
+    function recordSession() {
+      if (sessionRecorded || !global.NolanProgress || !global.NolanProgress.recordArcadeSession) return;
+      const mark = 'nolan-arcade-counted-' + gameId + '-' + runId;
+      try {
+        if (sessionStorage.getItem(mark) === '1') {
+          sessionRecorded = true;
+          return;
+        }
+        sessionStorage.setItem(mark, '1');
+      } catch (e) { /* private mode still counts this page */ }
+      sessionRecorded = true;
+      const seconds = startedAt ? Math.max(0, Math.round((Date.now() - startedAt) / 1000)) : 0;
+      global.NolanProgress.recordArcadeSession({ plays: 1, seconds: seconds, gates: gateScore });
     }
 
     function persist() {
@@ -322,6 +390,7 @@
       if (mistakes <= 0 && fun()) fun().celebratePerfect();
       paintScore();
       clearPersisted();
+      recordSession();
       if (gameId && global.NolanProgress && global.NolanProgress.recordResult) {
         global.NolanProgress.recordResult(gameId, { score: gateScore, total: 3, skipXp: true });
       }
@@ -440,9 +509,20 @@
         holdButton(ui.up, 'up');
         holdButton(ui.down, 'down');
         holdButton(ui.right, 'right');
-      } else if (mode === 'lane') {
+      } else if (mode === 'lane' || (mode === 'lantern' && config.lesson === 'crates')) {
         holdButton(ui.up, 'up');
         holdButton(ui.down, 'down');
+      } else if (mode === 'lantern' && config.lesson === 'logs') {
+        holdButton(ui.left, 'left');
+        holdButton(ui.jump, 'jump');
+        holdButton(ui.right, 'right');
+      } else if (mode === 'lantern' && (config.lesson === 'hut' || config.lesson === 'blocks')) {
+        padEl.classList.add('hidden');
+      } else if (mode === 'lantern') {
+        holdButton(ui.left, 'left');
+        holdButton(ui.up, 'up');
+        holdButton(ui.down, 'down');
+        holdButton(ui.right, 'right');
       } else {
         padEl.classList.add('hidden');
       }
@@ -615,6 +695,23 @@
         },
         onTime: () => finish(),
         onFrame: () => paintScore(),
+        lesson: config.lesson || '',
+        lang: lang,
+        limitMs: mode === 'lantern' ? 120000 : limitMs,
+        onLessonPass: (prompt) => {
+          if (finished || gateBusy) return;
+          gateBusy = true;
+          gateScore += 1;
+          award({ prompt: String(prompt || 'lesson'), answer: 'yes' });
+          paintScore();
+          gateIndex += 1;
+          persist();
+          setTimeout(() => {
+            gateBusy = false;
+            if (gateIndex >= 3) finish();
+            else if (sceneApi && sceneApi.resumePastGate) sceneApi.resumePastGate();
+          }, 350);
+        },
         onReady: () => {
           if (mode === 'program' || mode === 'bug') bootProgram();
         }
@@ -651,7 +748,7 @@
         pixelArt: true,
         physics: {
           default: 'arcade',
-          arcade: { gravity: { y: mode === 'platform' ? 1100 : 0 }, debug: false }
+          arcade: { gravity: { y: mode === 'platform' || (mode === 'lantern' && config.lesson === 'logs') ? 1100 : 0 }, debug: false }
         },
         scale: {
           mode: Phaser.Scale.FIT,
@@ -686,7 +783,7 @@
         phaserGame = null;
       }
       sceneApi = null;
-      boot(0);
+      beginRun(0, true);
     });
 
     document.addEventListener('keydown', (event) => {
@@ -713,7 +810,42 @@
       }
     }
 
-    boot(resumeGate);
+    function beginRun(startGate, spend) {
+      const NP = global.NolanProgress;
+      const locked = gameId && NP && NP.arcadeLocked && NP.arcadeLocked(gameId);
+      if (locked) {
+        showBlocked(lang === 'fr' ? 'Tu veux plus de jeux arcade ? Ouvre la quête.' : 'Want more arcade games? Open Quest.');
+        paintCredits();
+        return;
+      }
+      if (spend && NP && NP.getActiveProfile && NP.getActiveProfile() && NP.spendArcadeCredit) {
+        const paid = NP.spendArcadeCredit();
+        if (!paid || !paid.ok) {
+          creditSpent = false;
+          showBlocked(creditText(0));
+          paintCredits();
+          return;
+        }
+        creditSpent = !paid.guest;
+      }
+      startedAt = Date.now();
+      sessionRecorded = false;
+      boot(startGate);
+      paintCredits();
+    }
+
+    window.addEventListener('pagehide', () => {
+      if (!creditSpent || finished || sessionRecorded) return;
+      const elapsed = Date.now() - startedAt;
+      if (elapsed < 15000) {
+        if (global.NolanProgress && global.NolanProgress.refundArcadeCredit) global.NolanProgress.refundArcadeCredit();
+        creditSpent = false;
+        return;
+      }
+      recordSession();
+    });
+
+    beginRun(resumeGate, resumeGate === 0);
     global.ArcadeRunner.current = null;
   }
 
@@ -721,7 +853,7 @@
     const mode = hooks.mode;
     const elapsed = { ms: 0, paused: false, ended: false };
     const api = {
-      seconds: () => Math.min(75, Math.floor(elapsed.ms / 1000)),
+      seconds: () => Math.min(Math.floor((hooks.limitMs || 75000) / 1000), Math.floor(elapsed.ms / 1000)),
       pause: () => {
         elapsed.paused = true;
         if (scene.physics && scene.physics.world) scene.physics.world.pause();
@@ -739,7 +871,7 @@
         elapsed.ms += delta;
         if (api.onTick) api.onTick(delta);
         if (hooks.onFrame) hooks.onFrame();
-        if (elapsed.ms >= 75000 && mode !== 'program' && mode !== 'bug') {
+        if (elapsed.ms >= (hooks.limitMs || 75000) && mode !== 'program' && mode !== 'bug') {
           elapsed.ended = true;
           hooks.onTime();
         }
@@ -753,6 +885,10 @@
       api.resetRobot = () => {
         if (scene.robotHome) scene.robot.setPosition(scene.robotHome.x, scene.robotHome.y);
       };
+      return;
+    }
+    if (mode === 'lantern') {
+      if (global.LanternLessons) global.LanternLessons.mount(scene, hooks, api);
       return;
     }
     if (mode === 'platform') buildPlatform(scene, hooks, api);

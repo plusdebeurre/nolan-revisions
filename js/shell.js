@@ -95,7 +95,217 @@
         card.classList.remove('medal-border-gold', 'medal-border-silver', 'medal-border-bronze');
       }
     });
+    paintHubQuest();
   }
+
+  const ENGLISH_QUIZ = {
+    'english/midterm-explorer-quiz': 1,
+    'english/animal-groups-safari': 1,
+    'english/body-coverings-match': 1,
+    'english/pronoun-rescue': 1,
+    'english/frequency-meter': 1,
+    'english/states-of-matter-lab': 1,
+    'english/animal-action-charades': 1,
+    'english/plural-party': 1,
+    'english/sentence-builder': 1,
+    'english/cause-effect-chain': 1,
+    'english/opposites-snap': 1,
+    'english/listening-lookalike': 1
+  };
+
+  function hubSubject() {
+    const themes = ['math', 'science', 'english', 'french', 'hpe', 'thai', 'computing'];
+    for (let i = 0; i < themes.length; i++) {
+      if (document.body.classList.contains('theme-' + themes[i])) return themes[i];
+    }
+    return '';
+  }
+
+  function frenchHub() {
+    return document.body.classList.contains('theme-french');
+  }
+
+  function kindMeta(kind) {
+    const fr = frenchHub();
+    const table = {
+      quiz: ['❓', fr ? 'Questionnaire' : 'Quiz'],
+      reading: ['📖', fr ? 'Lecture' : 'Reading'],
+      focus: ['🧠', 'Focus'],
+      play: ['🎲', 'Play'],
+      arcade: ['🕹️', 'Arcade']
+    };
+    return table[kind] || table.quiz;
+  }
+
+  function moreKind(card) {
+    const id = card.getAttribute('data-game-id') || '';
+    const subject = id.split('/')[0];
+    if (subject === 'french') return 'reading';
+    if (subject === 'english') return ENGLISH_QUIZ[id] ? 'quiz' : 'reading';
+    return 'quiz';
+  }
+
+  function paintCardKinds() {
+    document.querySelectorAll('main .grid').forEach((grid) => {
+      let section = 'quiz';
+      Array.prototype.forEach.call(grid.children, (node) => {
+        if (node.tagName === 'H2') {
+          const text = (node.textContent || '').toLowerCase();
+          if (text.indexOf('arcade') >= 0) section = 'arcade';
+          else if (text.indexOf('play') >= 0) section = 'play';
+          else if (text.indexOf('focus') >= 0) section = 'focus';
+          else if (text.indexOf('lecture') >= 0 || text.indexOf('read') >= 0) section = 'reading';
+          else section = 'more';
+          return;
+        }
+        if (!node.classList || !node.classList.contains('exercise-card')) return;
+        const explicit = node.getAttribute('data-kind');
+        const kind = explicit || (section === 'more' ? moreKind(node) : section);
+        const meta = kindMeta(kind);
+        const h3 = node.querySelector('h3');
+        if (!h3) return;
+        let mark = h3.querySelector('.kind-mark');
+        if (!mark) {
+          mark = document.createElement('span');
+          mark.className = 'kind-mark';
+          h3.insertBefore(mark, h3.firstChild);
+        }
+        mark.textContent = meta[0];
+        mark.title = meta[1];
+      });
+    });
+  }
+
+  function openQuestPanel() {
+    const NP = window.NolanProgress;
+    const subject = hubSubject();
+    if (!NP || !NP.questSnapshot || !subject) return;
+    let panel = document.getElementById('quest-panel');
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.id = 'quest-panel';
+      panel.className = 'quest-panel question-card p-4';
+      const header = document.querySelector('header');
+      if (header && header.parentNode) header.parentNode.insertBefore(panel, header.nextSibling);
+      else document.querySelector('main')?.prepend(panel);
+    }
+    const snap = NP.questSnapshot(subject);
+    const fr = frenchHub();
+    const title = fr ? 'Quête' : 'Quest';
+    const doneLabel = fr ? 'fait' : 'done';
+    const nowLabel = fr ? 'maintenant' : 'now';
+    const laterLabel = fr ? 'ensuite' : 'later';
+    panel.innerHTML = '<h2 class="text-2xl font-bold mb-2">' + title + '</h2>';
+    if (!snap.steps.length) {
+      panel.innerHTML += '<p>' + (fr ? 'Pas encore de quête ici.' : 'No quest on this page yet.') + '</p>';
+      return;
+    }
+    snap.steps.forEach((step) => {
+      const row = document.createElement('div');
+      row.className = 'quest-step' + (step.state === 'now' ? ' now' : '');
+      const meta = kindMeta(step.kind);
+      const label = step.state === 'done' ? doneLabel : step.state === 'now' ? nowLabel : laterLabel;
+      if (step.state === 'later') {
+        row.innerHTML = '<span>' + meta[0] + ' ' + escapeHtml(step.title) + '</span><span>' + label + '</span>';
+      } else {
+        row.innerHTML =
+          '<a href="' + escapeHtml(step.href) + '">' + meta[0] + ' ' + escapeHtml(step.title) + '</a><span>' + label + '</span>';
+      }
+      panel.appendChild(row);
+    });
+    if (snap.done) {
+      const end = document.createElement('p');
+      end.className = 'mt-3 font-semibold';
+      end.textContent = fr ? 'Quête terminée. Les jeux arcade sont ouverts.' : 'Quest complete. The arcade games are open.';
+      panel.appendChild(end);
+    }
+    panel.classList.remove('hidden');
+  }
+
+  function paintHubQuest() {
+    if (!document.body.classList.contains('subject-hub')) return;
+    const NP = window.NolanProgress;
+    if (!NP || !NP.isUnlocked()) return;
+    paintCardKinds();
+    const nav = document.querySelector('.nav-bar');
+    if (nav && !document.getElementById('open-quest')) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.id = 'open-quest';
+      btn.className = 'nav-link';
+      btn.textContent = frenchHub() ? 'Quête' : 'Quest';
+      btn.addEventListener('click', openQuestPanel);
+      nav.appendChild(btn);
+    }
+    const header = document.querySelector('header');
+    if (header && NP.arcadeCreditState) {
+      let line = document.getElementById('arcade-credit-line');
+      if (!line) {
+        line = document.createElement('p');
+        line.id = 'arcade-credit-line';
+        line.className = 'arcade-credit-line';
+        header.appendChild(line);
+      }
+      const state = NP.arcadeCreditState(NP.getActiveProfile());
+      line.textContent = state.left <= 0
+        ? (frenchHub() ? 'Crédits arcade : 0. Fais la quête pour en gagner.' : 'Arcade credits: 0. Play Quest to earn more.')
+        : (frenchHub() ? 'Crédits arcade : ' + state.left : 'Arcade credits: ' + state.left);
+    }
+    const subject = hubSubject();
+    const snap = NP.questSnapshot ? NP.questSnapshot(subject) : null;
+    const current = snap && snap.steps.find((step) => step.state === 'now');
+    document.querySelectorAll('.quest-now').forEach((node) => node.remove());
+    if (current) {
+      const card = document.querySelector('.exercise-card[data-game-id="' + current.id + '"]');
+      const h3 = card && card.querySelector('h3');
+      if (h3 && !h3.querySelector('.quest-now')) {
+        const star = document.createElement('span');
+        star.className = 'quest-now';
+        star.textContent = frenchHub() ? '★ Quête' : '★ Quest';
+        h3.appendChild(star);
+      }
+    }
+    document.querySelectorAll('.exercise-card[data-game-id]').forEach((card) => {
+      const id = card.getAttribute('data-game-id');
+      const locked = NP.arcadeLocked && NP.arcadeLocked(id);
+      const link = card.querySelector('a.btn-primary');
+      let note = card.querySelector('.quest-lock-note');
+      if (locked) {
+        card.classList.add('quest-locked');
+        if (!note) {
+          note = document.createElement('p');
+          note.className = 'quest-lock-note';
+          note.textContent = frenchHub()
+            ? 'Tu veux plus de jeux arcade ? Ouvre la quête.'
+            : 'Want more arcade games? Open Quest.';
+          card.appendChild(note);
+        }
+        if (link) {
+          if (!link.dataset.realHref) link.dataset.realHref = link.getAttribute('href') || '';
+          link.dataset.questLocked = '1';
+          link.setAttribute('href', '#quest');
+          link.setAttribute('aria-disabled', 'true');
+        }
+      } else {
+        card.classList.remove('quest-locked');
+        if (note) note.remove();
+        if (link && link.dataset.realHref) {
+          link.setAttribute('href', link.dataset.realHref);
+          link.removeAttribute('data-quest-locked');
+          link.removeAttribute('aria-disabled');
+        }
+      }
+    });
+    const panel = document.getElementById('quest-panel');
+    if (panel && !panel.classList.contains('hidden')) openQuestPanel();
+  }
+
+  document.addEventListener('click', (event) => {
+    const link = event.target && event.target.closest ? event.target.closest('a[data-quest-locked="1"]') : null;
+    if (!link) return;
+    event.preventDefault();
+    openQuestPanel();
+  });
 
   function renderTopBar() {
     if (IN_IFRAME) return;
@@ -238,6 +448,9 @@
             <div><span class="profile-activity-label">This year</span><strong>${stats.year.xp}</strong></div>
             <div><span class="profile-activity-label">Exercises done</span><strong>${stats.exercisesTotal}</strong></div>
             <div><span class="profile-activity-label">Questions done</span><strong>${stats.questionsTotal}</strong></div>
+            <div><span class="profile-activity-label">Arcade plays</span><strong>${stats.today.arcadePlays || 0} today · ${stats.week.arcadePlays || 0} this week</strong></div>
+            <div><span class="profile-activity-label">Arcade time</span><strong>${stats.today.arcadeSeconds || 0}s today · ${stats.week.arcadeSeconds || 0}s this week</strong></div>
+            <div><span class="profile-activity-label">Gates cleared</span><strong>${stats.today.arcadeGates || 0} today · ${stats.week.arcadeGates || 0} this week</strong></div>
           </div>
         </div>`
             : ''

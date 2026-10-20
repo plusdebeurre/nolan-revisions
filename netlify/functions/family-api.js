@@ -97,6 +97,17 @@ function mergeGameEntry(local, remote) {
   return merged;
 }
 
+function mergeQuest(local, remote) {
+  const out = {};
+  [local || {}, remote || {}].forEach((quest) => {
+    Object.keys(quest).forEach((key) => {
+      const n = Number(quest[key]) || 0;
+      if (n > (out[key] || 0)) out[key] = n;
+    });
+  });
+  return out;
+}
+
 function mergeActivity(local, remote) {
   const days = {};
   const ld = (local && local.days) || {};
@@ -114,7 +125,12 @@ function mergeActivity(local, remote) {
     days[key] = {
       xp: Math.max(a.xp || 0, b.xp || 0),
       exercises: Math.max(a.exercises || 0, b.exercises || 0),
-      questions: Math.max(a.questions || 0, b.questions || 0)
+      questions: Math.max(a.questions || 0, b.questions || 0),
+      arcadeXp: Math.max(a.arcadeXp || 0, b.arcadeXp || 0),
+      arcadeCreditsSpent: Math.max(a.arcadeCreditsSpent || 0, b.arcadeCreditsSpent || 0),
+      arcadePlays: Math.max(a.arcadePlays || 0, b.arcadePlays || 0),
+      arcadeSeconds: Math.max(a.arcadeSeconds || 0, b.arcadeSeconds || 0),
+      arcadeGates: Math.max(a.arcadeGates || 0, b.arcadeGates || 0)
     };
   });
   return { days };
@@ -149,6 +165,7 @@ function mergeTwoProfiles(local, remote) {
     level: Math.max(1, Math.floor(xp / 150) + 1),
     games,
     activity: mergeActivity(local.activity, remote.activity),
+    quest: mergeQuest(local.quest, remote.quest),
     disabled: !!(newer.disabled || local.disabled || remote.disabled),
     disabledReason: newer.disabledReason || local.disabledReason || remote.disabledReason || null,
     updatedAt: remoteAt >= localAt ? remote.updatedAt || local.updatedAt : local.updatedAt || remote.updatedAt

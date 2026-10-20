@@ -1,6 +1,6 @@
 # Informatique — guide parent
 
-Matière ajoutée à partir du **Oxford International Curriculum** : Computing, niveau Year 2 (6–7 ans), le Student Book 2. Ce n’est pas une copie du manuel. Les cinq jeux couvrent des objectifs de classe : une liste d’étapes, prévoir puis corriger un programme, nommer les parties d’un ordinateur, garder son prénom pour soi.
+Matière ajoutée à partir du **Oxford International Curriculum** : Computing, niveau Year 2 (6–7 ans), le Student Book 2. Ce n’est pas une copie du manuel. Les jeux couvrent des objectifs de classe : une liste d’étapes, prévoir puis corriger un programme, nommer les parties d’un ordinateur, garder son prénom pour soi.
 
 ## Les jeux Arcade
 
@@ -9,6 +9,13 @@ Matière ajoutée à partir du **Oxford International Curriculum** : Computing, 
 - **Parts Room** : écran, clavier, et un travail qu’un ordinateur sait faire.
 - **Keep It Private** : demander à un adulte, ne pas donner son prénom.
 - **Predict the Stop** : lire les pas et dire où le robot s’arrête.
+- **Block Path** : le robot ne part que si le chemin a 4 cases d’affilée. C’est le chapitre de la lanterne (un petit héros et un ami jaune).
+
+## Crédits et quête
+
+Chaque jour donne **1 crédit** arcade, même sans XP. Ensuite : **1 crédit par 40 XP** gagnés hors Arcade aujourd’hui, et **1 par 120 XP** hors Arcade sur 7 jours. Plafond **6**. Lancer une partie arcade dépense 1 crédit. Quitter avant 15 secondes le rend. Le parcours Quest ne dépense pas de crédit.
+
+Sans Quest, les **3 premiers** jeux Arcade de la matière sont jouables. Les suivants restent visibles, verrouillés, jusqu’à ce que la quête arrive à leur étape. My Progress compte les parties, les secondes et les portes justes.
 
 ## Points
 

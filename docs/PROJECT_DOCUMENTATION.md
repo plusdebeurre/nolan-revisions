@@ -30,10 +30,10 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 ## Subjects and games
 
 ### Computing (5) — Oxford International Primary Computing, Year 2
-- Arcade only, 2 XP per learning gate, 6 XP max a run: `arrow-bot` (program the robot), `bug-walk` (fix one command), `parts-room` (screen and keyboard), `keep-it-private`, `predict-the-stop`.
+- Arcade, 2 XP per learning gate, 6 XP max a run: `arrow-bot` (program the robot), `bug-walk` (fix one command), `parts-room` (screen and keyboard), `keep-it-private`, `predict-the-stop`, `lantern-blocks` (the robot moves only on a path of 4 blocks).
 
 ### Math (41) — large fixed banks for long practice
-- Arcade: `biscuit-run`, `fair-houses`, `sum-lane`, `tens-cave`, `hour-tower`. Coins do not give XP.
+- Arcade: `biscuit-run`, `fair-houses`, `sum-lane`, `tens-cave`, `hour-tower`, `lantern-crumbs` (the door opens when the crumbs make 10). Coins do not give XP.
 - Play: `biscuit-bandits.html` — stack a fair share or a group of 2, 5, or 10. A wrong plate makes the raccoon steal the biscuits.
 - Focus: `stop-or-go.html` — catch a card only when the rule is true (even/odd, bigger, ×2 ×5 ×10). `hold-the-number.html` — remember a number through a short question, then use it.
 - `arithmetic-trail.html` — typed answers, end of semester 1 (within 20, 2-digit +/−, mental ±10 / +100, ×2 ×5 ×10)
@@ -52,7 +52,7 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 - Challenge (harder, generated): `hundreds-trail`, `times-three-four`, `fair-shares-plus`, `half-and-quarter`, `two-step-quest`, `quarter-clock`, `change-maker`, `hundreds-house`, `number-duel`, `missing-factor`, `fence-builder`, `jump-the-line`, `balance-scale`, `array-garden`, `pizza-fractions`, `nearest-ten`, `double-dash`, `graph-reader`, `day-counter`, `challenge-mix`
 
 ### Science (19)
-- Arcade: `sprout-hop`, `garden-patrol`, `seed-slide`, `habitat-hop`, `food-factory`.
+- Arcade: `sprout-hop`, `garden-patrol`, `seed-slide`, `habitat-hop`, `food-factory`, `lantern-hut` (a closed square of 4 blocks makes the door).
 - Play: `sprout-disco.html` — toss water, light, air, soil, or space. The sprout dances and grows.
 - Focus: `rule-flip.html` — sort living / non-living, then the rule switches to animal / plant or mammal / bird / fish / reptile.
 - `plants-living-quiz.html`, `plant-parts-label.html`, `plant-needs-garden.html`
@@ -65,7 +65,7 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 - `classify-speed-round.html` — timed living / not
 
 ### English (52)
-- Arcade: `covering-run`, `pronoun-pop`, `always-river`, `order-climb`, `cause-bridge`.
+- Arcade: `covering-run`, `pronoun-pop`, `always-river`, `order-climb`, `cause-bridge`, `lantern-crates` (catch only the next word).
 - Play: `runway-roar.html` — throw fur, feathers, scales, or gills, then shout They / always / never.
 - Focus: `mirror-letters.html` — tap the real b/d or p/q in a word. `word-sweep.html` — tap moving words in reading order (cause and effect, frequency).
 - `story-sleuth.html` — short stories, end of semester 1 (who / where / what / feeling)
@@ -82,7 +82,7 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 - Challenge reading: `main-idea`, `why-it-happened`, `word-in-sentence`, `two-clues`, `listen-and-pick`, `fact-or-guess`, `what-they-want`, `four-steps`, `extra-detail`, `what-the-line-means`, `where-it-happens`, `two-characters`, `word-part`, `tiny-poem`, `follow-the-steps`, `write-back`, `news-flash`, `riddle`, `which-scene`, `reading-boss`
 
 ### French (39) — reading, then a harder challenge set
-- Arcade : `gouter-run`, `qui-maze`, `mot-hop`, `ordre-cases`, `lettre-express`.
+- Arcade : `gouter-run`, `qui-maze`, `mot-hop`, `ordre-cases`, `lettre-express`, `lantern-logs` (poser le pied seulement sur le bon mot).
 - Play: `gouter-volant.html` — attraper au vol qui, où ou quoi.
 - Focus: `lettres-miroir.html` — la vraie lettre b/d ou p/q dans un mot court.
 - `lecture-maligne.html` — petite histoire, puis qui / où / quoi / quand
@@ -91,7 +91,7 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 - Défi : `idee-principale`, `pourquoi`, `mot-en-contexte`, `deux-indices`, `ecoute-et-choisis`, `fait-ou-idee`, `ce-qu-il-veut`, `quatre-etapes`, `detail-en-trop`, `sens-replique`, `le-lieu`, `deux-personnages`, `petit-mot-colle`, `poeme-court`, `la-consigne`, `reponse-lettre`, `fait-divers`, `la-devinette`, `quelle-scene`, `defi-lecture`
 
 ### HPE (18)
-- Arcade: `organ-run`, `brush-beat`, `move-gate`, `snack-dodge`, `day-loop`.
+- Arcade: `organ-run`, `brush-beat`, `move-gate`, `snack-dodge`, `day-loop`, `lantern-buddy` (the friend steps only on the right body move).
 - Play: `robot-boing.html` — pop on heart, lungs, and teeth, then jump, stretch, or run.
 - Focus: `body-sequence.html` — watch organ and movement cards, tap them in order, then backwards.
 - `body-organs-game.html`, `organ-jobs-quiz.html`, `super-teeth-care.html`
@@ -104,7 +104,7 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 - `sleep-fuel-day.html` — sleep/water/play/hygiene picks
 
 ### Thai (39)
-- Arcade: `letter-hop`, `tone-hats`, `digit-coins`, `mae-cave`, `listen-chase`.
+- Arcade: `letter-hop`, `tone-hats`, `digit-coins`, `mae-cave`, `listen-chase`, `lantern-listen` (step on the word that was heard).
 - Play: `hat-shop-hop.html` — drop a consonant, Mai Ek, a Thai digit, or a Mae family hat. Listen uses `js/speak.js`.
 - `mega-quiz-40.html` — full catch-up MCQ
 - `consonant-class-sort.html`, `vowel-length-lab.html`, `tone-mark-match.html`
@@ -202,7 +202,13 @@ QuizEngine.mount({
 
 ## Arcade
 
-`js/arcade-runner.js` runs 35 video games (5 per subject, including Computing) on vendored Phaser 4.2.1 and Kenney Pixel Platformer tiles (CC0). Coins do not give XP. Three learning gates give 2 XP each, 6 XP max a run, with no streak bonus. Parent notes: [`revision-guides/computing.md`](revision-guides/computing.md).
+`js/arcade-runner.js` runs the arcade catalog on vendored Phaser 4.2.1 and Kenney Pixel Platformer tiles (CC0). Coins do not give XP. Three learning gates give 2 XP each, 6 XP max a run, with no streak bonus. Arcade XP does not buy arcade credits.
+
+Each day starts with 1 arcade credit, plus 1 credit per 40 non-arcade XP earned today and 1 per 120 non-arcade XP over the last 7 days, capped at 6. Starting an arcade game spends 1 credit. Leaving in under 15 seconds gives it back. Quest steps do not spend a credit.
+
+Without Quest, the first 3 arcade games in each subject are playable. The others stay on the hub, locked, until that subject’s Quest path reaches them. `profile.quest` stores how far each subject has gone and is merged on sync. My Progress shows arcade plays, seconds, and gates cleared for today and this week.
+
+The lantern chapter is one new game per subject (`lantern-crumbs`, `lantern-hut`, `lantern-crates`, `lantern-logs`, `lantern-buddy`, `lantern-listen`, `lantern-blocks`). A small hero and a yellow friend look for a lantern. The school skill is the move that opens the way. Parent notes: [`revision-guides/computing.md`](revision-guides/computing.md).
 
 ## Adding a new game
 

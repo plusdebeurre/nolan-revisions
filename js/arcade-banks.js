@@ -231,6 +231,14 @@
       gate('Steps: right, right. The robot started on square 0. It stops on…', ['2', '0', '4'], '2', 'Two rights move it from 0 to 2.', 'Each right adds one square.'),
       gate('Steps: down, down, down. It stops after…', ['3 downs', '1 down', '3 ups'], '3 downs', 'Three down steps stop it three squares lower.', 'Count the downs.'),
       gate('A program is…', ['Steps the computer runs', 'A sandwich', 'A nap'], 'Steps the computer runs', 'A program is a list of steps the computer runs.', 'An algorithm is that list of steps.')
-    ])
+    ]),
+
+    lanternCrumbs: pack('lantern', 'Crumb Maze', 'A small hero and a yellow friend hunt a lantern. The door opens when the crumbs make 10.', '#f59e0b', [], { lesson: 'crumbs' }),
+    lanternHut: pack('lantern', 'Hut Door', 'A small hero and a yellow friend hunt a lantern. The door appears when the hut has 4 closed sides.', '#65a30d', [], { lesson: 'hut' }),
+    lanternCrates: pack('lantern', 'Crate Catch', 'A small hero and a yellow friend hunt a lantern. Catch only the next word.', '#0284c7', [], { lesson: 'crates' }),
+    lanternLogs: pack('lantern', 'Rondins', 'Un petit héros et un ami jaune cherchent une lanterne. Pose le pied seulement sur le bon mot.', '#38bdf8', [], { lesson: 'logs', lang: 'fr' }),
+    lanternBuddy: pack('lantern', 'Buddy Steps', 'A small hero and a yellow friend hunt a lantern. The friend steps only on the right body move.', '#f97316', [], { lesson: 'buddy' }),
+    lanternListen: pack('lantern', 'Listen Step', 'A small hero and a yellow friend hunt a lantern. Step on the word you heard.', '#b91c1c', [], { lesson: 'listen' }),
+    lanternBlocks: pack('lantern', 'Block Path', 'A small hero and a yellow friend hunt a lantern. The robot goes only when the path is 4 blocks.', '#0f766e', [], { lesson: 'blocks' })
   };
 })(window);
