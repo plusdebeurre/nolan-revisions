@@ -1857,6 +1857,26 @@ body.theme-thai .play-bubble {
   border: 4px solid var(--card-border, #e2e8f0);
 }
 
+body.arcade-lock {
+  touch-action: manipulation;
+}
+
+body.arcade-lock .arcade-host,
+body.arcade-lock .arcade-host * ,
+body.arcade-lock .arcade-pad,
+body.arcade-lock .arcade-pad * ,
+body.arcade-lock #arcade-gate,
+body.arcade-lock #arcade-gate * ,
+body.arcade-lock #arcade-program,
+body.arcade-lock #arcade-program * {
+  touch-action: manipulation;
+}
+
+body.arcade-lock .arcade-host,
+body.arcade-lock .arcade-host * {
+  touch-action: none;
+}
+
 #arc-header {
   padding-right: 6.5rem;
 }

@@ -118,6 +118,40 @@
     return { x: x, y: y, path: path };
   }
 
+  function lockArcadeTouch() {
+    const meta = document.querySelector('meta[name="viewport"]');
+    if (meta) {
+      meta.setAttribute(
+        'content',
+        'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover'
+      );
+    }
+    if (document.documentElement.dataset.arcadeTouchLock === '1') return;
+    document.documentElement.dataset.arcadeTouchLock = '1';
+    const block = (event) => event.preventDefault();
+    document.addEventListener('gesturestart', block, { passive: false });
+    document.addEventListener('gesturechange', block, { passive: false });
+    document.addEventListener('gestureend', block, { passive: false });
+    document.addEventListener('dblclick', block);
+    let last = { t: 0, el: null };
+    document.addEventListener(
+      'touchend',
+      (event) => {
+        const now = Date.now();
+        if (event.target === last.el && now - last.t < 400) event.preventDefault();
+        last = { t: now, el: event.target };
+      },
+      { passive: false }
+    );
+    document.addEventListener(
+      'touchmove',
+      (event) => {
+        if (event.touches && event.touches.length > 1) event.preventDefault();
+      },
+      { passive: false }
+    );
+  }
+
   function mount(config) {
     const lang = config.lang === 'fr' ? 'fr' : 'en';
     const ui = Object.assign({}, COPY[lang]);
@@ -136,6 +170,8 @@
     if (document.body.classList.contains('nolan-embedded')) kept.push('nolan-embedded');
     if (document.body.classList.contains('hub-locked')) kept.push('hub-locked');
     document.body.className = 'game theme-' + subject + (kept.length ? ' ' + kept.join(' ') : '');
+    document.body.classList.add('arcade-lock');
+    lockArcadeTouch();
 
     const app = document.getElementById('app') || document.body.appendChild(document.createElement('div'));
     app.id = 'app';

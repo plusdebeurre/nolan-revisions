@@ -1,5 +1,13 @@
 # Recent Changes Memory
 
+## 2026-10-20 — Arcade touch lock
+
+### What changed
+- Arcade screens block pinch zoom and double-tap zoom on phones and tablets. A second tap on the same control within 400ms is ignored, so only a single tap counts.
+
+### Key files
+- `js/arcade-runner.js`, `css/shared.css`
+
 ## 2026-10-20 — Arcade video games
 
 ### What changed
