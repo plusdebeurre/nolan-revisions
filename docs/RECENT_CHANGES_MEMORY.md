@@ -1,5 +1,18 @@
 # Recent Changes Memory
 
+## 2026-10-20 — Arcade video games
+
+### What changed
+- 35 short video games, five in each subject, plus a new Computing subject from Oxford International Primary Computing Year 2.
+- A shared Phaser runner handles running, top-down, lane, and program-the-robot rounds. Kenney Pixel Platformer tiles are CC0. Phaser 4.2.1 arcade build is MIT and stored in the repo.
+- Coins on screen do not give XP. Three learning gates give 2 XP each, capped at 6 per run, with no streak bonus. Quiz answers stay at 10 XP.
+
+### User impact
+- Nolan gets a moving character, jumps, and collisions, while the quizzes, Focus games, and Play scenes stay where they were. Arcade cannot outscore those exercises.
+
+### Key files
+- `vendor/phaser-arcade-physics-4.2.1.min.js`, `vendor/kenney/`, `js/arcade-runner.js`, `js/arcade-banks.js`, `js/progress.js`, `subjects/computing/`, arcade game pages, subject hubs, `docs/revision-guides/computing.md`
+
 ## 2026-10-19 — Play scenes
 
 ### What changed

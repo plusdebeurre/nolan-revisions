@@ -32,6 +32,11 @@
   --french-bg: #f0f9ff;
   --french-dot: #bae6fd;
   --french-border: #38bdf8;
+  --computing: #0d9488;
+  --computing-dark: #0f766e;
+  --computing-bg: #f0fdfa;
+  --computing-dot: #99f6e4;
+  --computing-border: #2dd4bf;
 }
 
 body.hub,
@@ -95,6 +100,15 @@ body.theme-french {
   --accent: var(--french);
   --accent-dark: var(--french-dark);
   --card-border: var(--french-border);
+}
+
+body.theme-computing {
+  background-color: var(--computing-bg);
+  background-image: radial-gradient(var(--computing-dot) 2px, transparent 2px);
+  background-size: 30px 30px;
+  --accent: var(--computing);
+  --accent-dark: var(--computing-dark);
+  --card-border: var(--computing-border);
 }
 
 .thai-script {
@@ -1830,5 +1844,41 @@ body.theme-thai .play-bubble {
   .play-prop.bonk {
     animation: none;
   }
+}
+
+.arcade-host {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  touch-action: none;
+  background: #0f172a;
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 4px solid var(--card-border, #e2e8f0);
+}
+
+#arc-header {
+  padding-right: 6.5rem;
+}
+
+.arcade-host canvas {
+  display: block;
+  width: 100% !important;
+  height: auto !important;
+}
+
+.arcade-pad {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 0.7rem;
+}
+
+.arcade-pad .btn-primary,
+.arcade-pad .btn-hint {
+  min-width: 4.6rem;
+  min-height: 3.1rem;
+  margin-top: 0;
 }
 

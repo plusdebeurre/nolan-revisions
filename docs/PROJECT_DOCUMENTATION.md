@@ -29,7 +29,11 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 
 ## Subjects and games
 
-### Math (36) — large fixed banks for long practice
+### Computing (5) — Oxford International Primary Computing, Year 2
+- Arcade only, 2 XP per learning gate, 6 XP max a run: `arrow-bot` (program the robot), `bug-walk` (fix one command), `parts-room` (screen and keyboard), `keep-it-private`, `predict-the-stop`.
+
+### Math (41) — large fixed banks for long practice
+- Arcade: `biscuit-run`, `fair-houses`, `sum-lane`, `tens-cave`, `hour-tower`. Coins do not give XP.
 - Play: `biscuit-bandits.html` — stack a fair share or a group of 2, 5, or 10. A wrong plate makes the raccoon steal the biscuits.
 - Focus: `stop-or-go.html` — catch a card only when the rule is true (even/odd, bigger, ×2 ×5 ×10). `hold-the-number.html` — remember a number through a short question, then use it.
 - `arithmetic-trail.html` — typed answers, end of semester 1 (within 20, 2-digit +/−, mental ±10 / +100, ×2 ×5 ×10)
@@ -47,8 +51,9 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 - `pattern-detective.html` — number & shape patterns
 - Challenge (harder, generated): `hundreds-trail`, `times-three-four`, `fair-shares-plus`, `half-and-quarter`, `two-step-quest`, `quarter-clock`, `change-maker`, `hundreds-house`, `number-duel`, `missing-factor`, `fence-builder`, `jump-the-line`, `balance-scale`, `array-garden`, `pizza-fractions`, `nearest-ten`, `double-dash`, `graph-reader`, `day-counter`, `challenge-mix`
 
-### Science (14)
-- Play: `sprout-disco.html` — toss water, light, air, soil, or space. The sprout dances and grows. A cat can join; a rock sits still.
+### Science (19)
+- Arcade: `sprout-hop`, `garden-patrol`, `seed-slide`, `habitat-hop`, `food-factory`.
+- Play: `sprout-disco.html` — toss water, light, air, soil, or space. The sprout dances and grows.
 - Focus: `rule-flip.html` — sort living / non-living, then the rule switches to animal / plant or mammal / bird / fish / reptile.
 - `plants-living-quiz.html`, `plant-parts-label.html`, `plant-needs-garden.html`
 - `living-or-not-sort.html`, `mrs-gren-detective.html`, `animal-or-plant.html`
@@ -59,7 +64,8 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 - `care-the-plant-sim.html` — care choices + health
 - `classify-speed-round.html` — timed living / not
 
-### English (47)
+### English (52)
+- Arcade: `covering-run`, `pronoun-pop`, `always-river`, `order-climb`, `cause-bridge`.
 - Play: `runway-roar.html` — throw fur, feathers, scales, or gills, then shout They / always / never.
 - Focus: `mirror-letters.html` — tap the real b/d or p/q in a word. `word-sweep.html` — tap moving words in reading order (cause and effect, frequency).
 - `story-sleuth.html` — short stories, end of semester 1 (who / where / what / feeling)
@@ -75,7 +81,8 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 - `listening-lookalike.html` — close-word choices
 - Challenge reading: `main-idea`, `why-it-happened`, `word-in-sentence`, `two-clues`, `listen-and-pick`, `fact-or-guess`, `what-they-want`, `four-steps`, `extra-detail`, `what-the-line-means`, `where-it-happens`, `two-characters`, `word-part`, `tiny-poem`, `follow-the-steps`, `write-back`, `news-flash`, `riddle`, `which-scene`, `reading-boss`
 
-### French (34) — reading, then a harder challenge set
+### French (39) — reading, then a harder challenge set
+- Arcade : `gouter-run`, `qui-maze`, `mot-hop`, `ordre-cases`, `lettre-express`.
 - Play: `gouter-volant.html` — attraper au vol qui, où ou quoi.
 - Focus: `lettres-miroir.html` — la vraie lettre b/d ou p/q dans un mot court.
 - `lecture-maligne.html` — petite histoire, puis qui / où / quoi / quand
@@ -83,7 +90,8 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 - Variété : `mot-manquant`, `oui-non-flash`, `dans-l-histoire`, `question-inverse`, `bd-ordre`, `ou-ca`, `avant-apres`, `la-lettre`, `la-liste`, `le-piege`
 - Défi : `idee-principale`, `pourquoi`, `mot-en-contexte`, `deux-indices`, `ecoute-et-choisis`, `fait-ou-idee`, `ce-qu-il-veut`, `quatre-etapes`, `detail-en-trop`, `sens-replique`, `le-lieu`, `deux-personnages`, `petit-mot-colle`, `poeme-court`, `la-consigne`, `reponse-lettre`, `fait-divers`, `la-devinette`, `quelle-scene`, `defi-lecture`
 
-### HPE (13)
+### HPE (18)
+- Arcade: `organ-run`, `brush-beat`, `move-gate`, `snack-dodge`, `day-loop`.
 - Play: `robot-boing.html` — pop on heart, lungs, and teeth, then jump, stretch, or run.
 - Focus: `body-sequence.html` — watch organ and movement cards, tap them in order, then backwards.
 - `body-organs-game.html`, `organ-jobs-quiz.html`, `super-teeth-care.html`
@@ -95,7 +103,8 @@ Every game shows a **numeric score** (live HUD and/or end screen), **Play Again*
 - `posture-puzzle.html` — habit sort
 - `sleep-fuel-day.html` — sleep/water/play/hygiene picks
 
-### Thai (34)
+### Thai (39)
+- Arcade: `letter-hop`, `tone-hats`, `digit-coins`, `mae-cave`, `listen-chase`.
 - Play: `hat-shop-hop.html` — drop a consonant, Mai Ek, a Thai digit, or a Mae family hat. Listen uses `js/speak.js`.
 - `mega-quiz-40.html` — full catch-up MCQ
 - `consonant-class-sort.html`, `vowel-length-lab.html`, `tone-mark-match.html`
@@ -190,6 +199,10 @@ QuizEngine.mount({
 ## Play scenes
 
 `js/play-scene.js` runs six toy scenes (biscuit stack, sprout gifts, runway costumes, flying French snack, robot parts, Thai hats). A wrong tap bonks. A right tap makes the character bounce. Parent notes: [`revision-guides/play.md`](revision-guides/play.md).
+
+## Arcade
+
+`js/arcade-runner.js` runs 35 video games (5 per subject, including Computing) on vendored Phaser 4.2.1 and Kenney Pixel Platformer tiles (CC0). Coins do not give XP. Three learning gates give 2 XP each, 6 XP max a run, with no streak bonus. Parent notes: [`revision-guides/computing.md`](revision-guides/computing.md).
 
 ## Adding a new game
 

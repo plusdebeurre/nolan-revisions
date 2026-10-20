@@ -162,6 +162,8 @@
   }
 
   const XP_PER_CORRECT = 10;
+  const ARCADE_XP = 2;
+  const ARCADE_CAP = 6;
   const STREAK_XP = [
     { min: 8, bonus: 15 },
     { min: 5, bonus: 10 },
@@ -589,7 +591,7 @@
     schedulePush();
   }
 
-  function awardAnswerXp(gameId, { key, correct, streak } = {}) {
+  function awardAnswerXp(gameId, { key, correct, streak, arcade, runId } = {}) {
     const profile = getActiveProfile();
     if (!profile || !gameId) {
       return { xpGained: 0, base: 0, bonus: 0, totalXp: 0, alreadyAwarded: false };
@@ -625,9 +627,30 @@
       };
     }
 
-    const base = XP_PER_CORRECT;
-    const bonus = streakBonus(streak);
-    const gained = base + bonus;
+    const isArcade = arcade === true;
+    const base = isArcade ? ARCADE_XP : XP_PER_CORRECT;
+    const bonus = isArcade ? 0 : streakBonus(streak);
+    let gained = base + bonus;
+    if (isArcade) {
+      const rid = String(runId || 'run');
+      if (entry.arcadeRunId !== rid) {
+        entry.arcadeRunId = rid;
+        entry.arcadeRunXp = 0;
+      }
+      const room = ARCADE_CAP - (entry.arcadeRunXp || 0);
+      if (room <= 0) {
+        return {
+          xpGained: 0,
+          base: 0,
+          bonus: 0,
+          totalXp: p.xp || 0,
+          alreadyAwarded: false,
+          capped: true
+        };
+      }
+      gained = Math.min(gained, room);
+      entry.arcadeRunXp = (entry.arcadeRunXp || 0) + gained;
+    }
     entry.awardedKeys[qKey] = {
       base,
       bonus,
@@ -740,11 +763,12 @@
     english: 'English',
     french: 'French',
     hpe: 'HPE',
-    thai: 'Thai'
+    thai: 'Thai',
+    computing: 'Computing'
   };
 
   function subjectStats(profile) {
-    const order = ['math', 'science', 'english', 'french', 'hpe', 'thai'];
+    const order = ['math', 'science', 'english', 'french', 'hpe', 'thai', 'computing'];
     const buckets = {};
     order.forEach((s) => {
       buckets[s] = {
@@ -1193,6 +1217,8 @@
     awardAnswerXp,
     questionKey,
     XP_PER_CORRECT,
+    ARCADE_XP,
+    ARCADE_CAP,
     activitySummary,
     subjectStats,
     bumpActivity,
